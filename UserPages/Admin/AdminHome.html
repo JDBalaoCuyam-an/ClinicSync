@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="module" src="../../firebaseconfig.js"></script>
+</head>
+<body>
+    You are Currently on Admin Page (For Confirmation)
+
+    <h1>Create Account</h1>
+    <form>
+        <label for="reg_email">Email:</label>
+        <input type="email" id="reg_email" name="new_username" >
+        <br>
+        <label for="new_password">Password:</label>
+        <input type="password" id="reg_password" name="new_password" >
+        <br>
+        <input type="checkbox" id="regAsAdmin">
+        <label for="regAsAdmin">Register as admin</label>
+        <button type="submit" id="create-account">Register</button>
+        <br>
+        <form>
+        <button type="submit" id="logout-button">Log Out</button>
+    </form>
+</body>
+</html>

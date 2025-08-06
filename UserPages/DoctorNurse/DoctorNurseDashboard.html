@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="module" src="../../firebaseconfig.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/globalCSS.css">
+    <link rel="stylesheet" href="DoctorNurseDashboard.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="menu-icon">&#9776;</div>
+    <h1>ClinicSync</h1>
+  </header>
+
+  <main class="dashboard">
+    <!-- Top Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number">5</div>
+        <div class="stat-label">Upcoming Schedules</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">4</div>
+        <div class="stat-label">Unreturned Items</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">Medicines Nearly<br>Out of Stock</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">2</div>
+        <div class="stat-label">Unreturned Items</div>
+      </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="panels">
+      <div class="panel calendar">
+        <h3>Schedules<br><small>June, 2025</small></h3>
+        <!-- Placeholder calendar -->
+        <div class="calendar-placeholder">[Calendar Here]</div>
+      </div>
+
+      <div class="panel visits">
+        <div class="panel-header">
+          <h3>Patient Visits</h3>
+          <select>
+            <option>Weekly</option>
+            <option>Monthly</option>
+          </select>
+        </div>
+        <div class="chart-placeholder">[Graph Placeholder]</div>
+      </div>
+
+      <div class="panel ratings">
+        <div class="panel-header">
+          <h3>Ratings</h3>
+          <select>
+            <option>Service</option>
+            <option>Doctor</option>
+          </select>
+        </div>
+        <div class="chart-placeholder">[Donut Chart Placeholder]</div>
+      </div>
+
+      <div class="panel complaints">
+        <div class="panel-header">
+          <h3>Chief Complaints</h3>
+          <select>
+            <option>Monthly</option>
+            <option>Weekly</option>
+          </select>
+        </div>
+        <div class="chart-placeholder">[Bar Chart Placeholder]</div>
+      </div>
+    </div>
+  </main>
+  <form>
+        <button type="submit" id="logout-button">Log Out</button>
+    </form>
+</body>
+
+</html>
