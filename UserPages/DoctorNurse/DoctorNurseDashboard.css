@@ -1,17 +1,18 @@
 body {
   font-family: Arial, sans-serif;
-  background-color: #e8f1fc;
+  background-color: #E0EFFF;
   padding: 0;
 }
 
 /* Top Navbar */
 .navbar {
-  background-color: #4a89c7;
+  background-color: #4682B4;
   color: white;
   padding: 15px 20px;
   display: flex;
   align-items: center;
   gap: 10px;
+  height: 10%;
 }
 
 .menu-icon {
@@ -38,7 +39,7 @@ body {
   flex: 1;
   min-width: 200px;
   background-color: #ffffff;
-  border: 1px solid #cbdcf1;
+  border: 1px solid #4682B4;
   border-radius: 5px;
   padding: 20px;
   text-align: center;
@@ -67,7 +68,7 @@ body {
 
 .panel {
   background-color: #ffffff;
-  border: 1px solid #cbdcf1;
+  border: 1px solid #4682B4;
   border-radius: 5px;
   padding: 15px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
