@@ -20,6 +20,7 @@
   background: #222;
   transition: 0.3s;
   background-color: #E0EFFF;
+  border-right: #777777 1px solid;
 }
 .sidebar.show {
   left: 0;
@@ -49,3 +50,18 @@
     height: 80%;
     object-fit: cover;
 }
+.sidebar ul li{
+  padding: 15px;
+  border-bottom: 1px solid #777777;
+  transition: all 0.3s ease-in-out;
+}
+.sidebar ul li a{
+  color: #333;
+  display: block;
+  text-decoration: none;
+  padding: 5px 0;
+}
+.sidebar ul li:hover{
+  background-color: #4682B4;
+}
+
