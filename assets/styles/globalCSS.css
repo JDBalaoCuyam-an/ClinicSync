@@ -2,6 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    position: relative;
 }
 .color{
     color: #4682B4;
@@ -22,9 +23,11 @@
   background-color: #E0EFFF;
   border-right: #777777 1px solid;
 }
+
 .sidebar.show {
   left: 0;
 }
+
 .sidebar .current-user {
   background-color: #4682B4;
   padding: 15px;
@@ -79,4 +82,20 @@
 .menu-icon {
   font-size: 24px;
   cursor: pointer;
+}
+
+/* Close Button */
+.close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 35px;
+  padding: 2px 8px;
+  cursor: pointer;
+  color: black;
+  transition: all 0.3s ease-in-out;
+  z-index: 2;
+}
+.close-button:hover {
+  background-color: red;
 }
