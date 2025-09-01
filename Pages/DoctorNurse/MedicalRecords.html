@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Records</title>
+  <script type="module" src="../../firebaseconfig.js"></script>
+  <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+  <link rel="stylesheet" href="MedicalRecords.css" />
+</head>
+<body>
+  <!-- NavBar -->
+  <header class="navbar">
+    <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    <h1>ClinicSync</h1>
+  </header>
+
+  <!-- SideBar -->
+  <div id="sidebar" class="sidebar">
+    <div class="current-user">
+      <div class="user-info">
+        <div class="user-icon">
+          <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon"/>
+        </div>
+        <div class="user-name">Dr. John Doe</div>
+        <div class="user-role"><b>Doctor</b></div>
+      </div>
+      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    </div>
+    <ul>
+      <li><a href="DoctorNurseDashboard.html">Home</a></li>
+      <li><a href="MedicalRecords.html" class="active">Medical Records</a></li>
+      <li><a href="Schedules.html">Schedules</a></li>
+      <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
+      <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
+    </ul>
+    <form>
+      <button type="submit" id="logout-button">Log Out</button>
+    </form>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="records-header">
+      <h2>Medical Records</h2>
+      <div class="filters">
+        <input type="text" placeholder="Search by Name" class="search-bar" />
+        <select>
+          <option value="all">All</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+        <select>
+          <option value="all">All</option>
+          <option value="student">Student</option>
+          <option value="faculty">Faculty</option>
+        </select>
+      </div>
+    </div>
+
+    <table class="records-table">
+      <thead>
+        <tr>
+          <th>Patient Name</th>
+          <th>Age</th>
+          <th>Sex</th>
+          <th>Role</th>
+          <th>School ID</th>
+          <th>Department</th>
+          <th>Contact</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>IPSUM, Lorem X.</td>
+          <td>21</td>
+          <td>M</td>
+          <td>Student</td>
+          <td>2025-06-1027</td>
+          <td>CIT</td>
+          <td>09123412354</td>
+          <td><button class="view-btn">👁</button></td>
+        </tr>
+        <!-- More rows dynamically inserted here -->
+      </tbody>
+    </table>
+  </main>
+
+</body>
+  <script src="../../script.js"></script>
+</html>

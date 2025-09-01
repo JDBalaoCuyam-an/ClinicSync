@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clinic Inventory</title>
+  <script type="module" src="../../firebaseconfig.js"></script>
+  <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+  <link rel="stylesheet" href="ClinicInventory.css" />
+</head>
+<body>
+  <!-- NavBar -->
+  <header class="navbar">
+    <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    <h1>ClinicSync</h1>
+  </header>
+
+  <!-- SideBar -->
+  <div id="sidebar" class="sidebar">
+    <div class="current-user">
+      <div class="user-info">
+        <div class="user-icon">
+          <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon"/>
+        </div>
+        <div class="user-name">Dr. John Doe</div>
+        <div class="user-role"><b>Doctor</b></div>
+      </div>
+      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    </div>
+    <ul>
+      <li><a href="DoctorNurseDashboard.html">Home</a></li>
+      <li><a href="MedicalRecords.html">Medical Records</a></li>
+      <li><a href="Schedules.html">Schedules</a></li>
+      <li><a href="ClinicInventory.html" class="active">Item Inventory</a></li>
+      <li><a href="MedicineInventory.html">Clinic Inventory</a></li>
+    </ul>
+    <form>
+      <button type="submit" id="logout-button">Log Out</button>
+    </form>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <h2>Clinic Inventory</h2>
+    <div class="inventory-header">
+      <button class="new-btn">+ New Borrower</button>
+      <input type="text" placeholder="Search by Name" class="search-bar" />
+      <select>
+        <option value="all">All</option>
+        <option value="borrowed">Borrowed</option>
+        <option value="returned">Returned</option>
+      </select>
+    </div>
+
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>qty.</th>
+          <th>Borrower’s Name</th>
+          <th>Personnel Incharge</th>
+          <th>Date Borrowed</th>
+          <th>Status</th>
+          <th>Date Returned</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Water Bag</td>
+          <td>1</td>
+          <td>IPSUM, Lorem X.</td>
+          <td>IPSUM, Lorem X.</td>
+          <td>22/10/2025</td>
+          <td>Borrowed</td>
+          <td>30/10/2025</td>
+          <td><button class="check-btn">✔️</button></td>
+        </tr>
+        <tr>
+          <td>Ice Bag</td>
+          <td>1</td>
+          <td>IPSUM, Lorem X.</td>
+          <td>IPSUM, Lorem X.</td>
+          <td>22/10/2025</td>
+          <td>Returned</td>
+          <td>15/11/2025</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+  <script src="../../script.js"></script>
+</html>

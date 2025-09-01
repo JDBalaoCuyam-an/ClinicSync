@@ -1,0 +1,128 @@
+/* === Schedules Page === */
+
+.main-content {
+  padding: 20px;
+  background: #f0f7ff;
+  min-height: 100vh;
+}
+
+.main-content h2 {
+  font-size: 22px;
+  color: #2a4d6c;
+  margin-bottom: 15px;
+}
+
+/* Layout: Calendar + Schedule List */
+.schedules-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* Calendar */
+.calendar {
+  flex: 1;
+  min-width: 320px;
+  background: #e6f0fb;
+  padding: 15px;
+  border: 1px solid #9bb6d0;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.calendar h3 {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.calendar-nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  margin: 5px 0 10px;
+}
+
+.calendar-nav button {
+  padding: 4px 8px;
+  border: none;
+  background: #3f74a5;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.calendar-nav button:hover {
+  background: #2a4d6c;
+}
+
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+.calendar-table th {
+  font-weight: bold;
+  padding: 6px 0;
+  color: #2a4d6c;
+}
+.calendar-table td {
+  padding: 8px;
+  border-radius: 5px;
+}
+.calendar-table td.active {
+  background: #3f74a5;
+  color: white;
+  font-weight: bold;
+}
+.calendar-table td.disabled {
+  color: #aaa;
+}
+
+/* Schedule List */
+.schedule-list {
+  flex: 1;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.schedule-item {
+  background: #e6f0fb;
+  padding: 12px;
+  border: 1px solid #9bb6d0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.schedule-item p {
+  margin: 2px 0;
+  font-size: 14px;
+}
+
+.schedule-item .time {
+  font-weight: bold;
+}
+
+.schedule-item .doctor {
+  font-size: 13px;
+  color: #444;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.actions button {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+.actions button:hover {
+  color: #3f74a5;
+}

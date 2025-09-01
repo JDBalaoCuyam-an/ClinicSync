@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Inventory</title>
+    <script type="module" src="../../firebaseconfig.js"></script>
+  <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+  <link rel="stylesheet" href="MedicineInventory.css" />
+</head>
+<body>
+    <!-- NavBar -->
+  <header class="navbar">
+    <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    <h1>ClinicSync</h1>
+  </header>
+
+  <!-- SideBar -->
+  <div id="sidebar" class="sidebar">
+    <div class="current-user">
+      <div class="user-info">
+        <div class="user-icon">
+          <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon"/>
+        </div>
+        <div class="user-name">Dr. John Doe</div>
+        <div class="user-role"><b>Doctor</b></div>
+      </div>
+      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    </div>
+    <ul>
+      <li><a href="DoctorNurseDashboard.html">Home</a></li>
+      <li><a href="MedicalRecords.html" >Medical Records</a></li>
+      <li><a href="Schedules.html">Schedules</a></li>
+      <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
+      <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
+    </ul>
+    <form>
+      <button type="submit" id="logout-button">Log Out</button>
+    </form>
+  </div>
+
+ <!-- Medicine Inventory Section -->
+  <div class="inventory-container">
+    <div class="inventory-header">
+      <h2>Medicine Inventory</h2>
+    </div>
+
+    <div class="controls">
+      <button class="add-btn">+ Add Medicine</button>
+      <select>
+        <option value="Paracetamol">Paracetamol</option>
+        <option value="Amoxicillin">Amoxicillin</option>
+        <option value="Ibuprofen">Ibuprofen</option>
+      </select>
+      <select>
+        <option value="Add">Add</option>
+        <option value="Subtract">Subtract</option>
+      </select>
+      <input type="number" value="1" min="1" />
+      <button class="apply-btn">Apply Changes</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Medicine Name</th>
+          <th>Stock Left</th>
+          <th>Expiry Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Paracetamol</td>
+          <td>100</td>
+          <td>6/27/2025</td>
+          <td><button class="delete-btn">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+  <script src="../../script.js"></script>
+</html>

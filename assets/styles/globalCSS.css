@@ -65,3 +65,18 @@
   background-color: #4682B4;
 }
 
+/* Top Navbar */
+.navbar {
+  background-color: #4682B4;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 10%;
+}
+
+.menu-icon {
+  font-size: 24px;
+  cursor: pointer;
+}

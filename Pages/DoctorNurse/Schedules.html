@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedules</title>
+    <script type="module" src="../../firebaseconfig.js"></script>
+  <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+  <link rel="stylesheet" href="Schedules.css" />
+</head>
+<body>
+    <!-- NavBar -->
+  <header class="navbar">
+    <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    <h1>ClinicSync</h1>
+  </header>
+
+  <!-- SideBar -->
+  <div id="sidebar" class="sidebar">
+    <div class="current-user">
+      <div class="user-info">
+        <div class="user-icon">
+          <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon"/>
+        </div>
+        <div class="user-name">Dr. John Doe</div>
+        <div class="user-role"><b>Doctor</b></div>
+      </div>
+      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    </div>
+    <ul>
+      <li><a href="DoctorNurseDashboard.html">Home</a></li>
+      <li><a href="MedicalRecords.html" class="active">Medical Records</a></li>
+      <li><a href="Schedules.html">Schedules</a></li>
+      <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
+      <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
+    </ul>
+    <form>
+      <button type="submit" id="logout-button">Log Out</button>
+    </form>
+  </div>
+
+   <!-- Main Content -->
+  <main class="main-content">
+    <h2>Schedules</h2>
+    <div class="schedules-container">
+      <!-- Calendar -->
+      <div class="calendar">
+        <h3>Calendar</h3>
+        <p>June, 2025</p>
+        <div class="calendar-nav">
+          <button>&lt;</button>
+          <button>&gt;</button>
+        </div>
+        <table class="calendar-table">
+          <thead>
+            <tr>
+              <th>SUN</th>
+              <th>MON</th>
+              <th>TUE</th>
+              <th>WED</th>
+              <th>THU</th>
+              <th>FRI</th>
+              <th>SAT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+            <tr><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td></tr>
+            <tr><td>15</td><td class="active">16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td></tr>
+            <tr><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td></tr>
+            <tr><td>29</td><td>30</td><td class="disabled">1</td><td class="disabled">2</td><td class="disabled">3</td><td class="disabled">4</td><td class="disabled">5</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Schedule List -->
+      <div class="schedule-list">
+        <div class="schedule-item">
+          <div>
+            <p><b>June 17, 2025</b> <span class="time">10:00</span></p>
+            <p>Mary Grace</p>
+            <p>Dental Appointment</p>
+            <p class="doctor">Dr. John Doe</p>
+          </div>
+          <div class="actions">
+            <button class="edit">✏️</button>
+            <button class="delete">🗑️</button>
+          </div>
+        </div>
+
+        <div class="schedule-item">
+          <div>
+            <p><b>June 18, 2025</b> <span class="time">10:00</span></p>
+            <p>Medicine Restock</p>
+            <p class="doctor">Dr. John Doe</p>
+          </div>
+          <div class="actions">
+            <button class="edit">✏️</button>
+            <button class="delete">🗑️</button>
+          </div>
+        </div>
+
+        <div class="schedule-item">
+          <div>
+            <p><b>June 19, 2025</b> <span class="time">10:00</span></p>
+            <p>Mary Grace</p>
+            <p>Dental Appointment</p>
+            <p class="doctor">Dr. John Doe</p>
+          </div>
+          <div class="actions">
+            <button class="edit">✏️</button>
+            <button class="delete">🗑️</button>
+          </div>
+        </div>
+
+        <div class="schedule-item">
+          <div>
+            <p><b>June 20, 2025</b> <span class="time">10:00</span></p>
+            <p>Mary Grace</p>
+            <p>Dental Appointment</p>
+            <p class="doctor">Dr. John Doe</p>
+          </div>
+          <div class="actions">
+            <button class="edit">✏️</button>
+            <button class="delete">🗑️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+  <script src="../../script.js"></script>
+
+</html>

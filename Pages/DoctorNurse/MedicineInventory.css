@@ -1,0 +1,66 @@
+.inventory-container {
+      padding: 20px;
+      text-align: center;
+    }
+
+    .inventory-container h2 {
+      margin-bottom: 15px;
+    }
+
+    .inventory-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      text-align: center;
+      padding: 10px;
+    }
+
+    th {
+      background: #4a86c5;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background: #f2f8ff;
+    }
+
+    .add-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .delete-btn {
+      background: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .apply-btn {
+      background: #357edd;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
