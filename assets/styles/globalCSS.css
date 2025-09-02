@@ -22,8 +22,13 @@
   transition: 0.3s;
   background-color: #E0EFFF;
   border-right: #777777 1px solid;
+  z-index: 1000;
 }
+/* Active Section Sidebar */
 
+.active{
+background-color: #4682B4;
+}
 .sidebar.show {
   left: 0;
 }
@@ -54,7 +59,9 @@
     object-fit: cover;
 }
 .sidebar ul li{
-  padding: 15px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
   border-bottom: 1px solid #777777;
   transition: all 0.3s ease-in-out;
 }
@@ -62,7 +69,8 @@
   color: #333;
   display: block;
   text-decoration: none;
-  padding: 5px 0;
+  padding: 15px 0;
+  width: 100%;
 }
 .sidebar ul li:hover{
   background-color: #4682B4;
@@ -99,3 +107,5 @@
 .close-button:hover {
   background-color: red;
 }
+
+/* Tables */

@@ -9,12 +9,17 @@
 
     .inventory-controls {
       display: flex;
-      justify-content: center;
+      
       align-items: center;
       gap: 10px;
       margin-bottom: 20px;
     }
-
+    .inventory-controls select, .inventory-controls input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 200px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
