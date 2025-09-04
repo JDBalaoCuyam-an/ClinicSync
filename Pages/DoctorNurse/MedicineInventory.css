@@ -1,106 +1,175 @@
 .inventory-container {
-      padding: 20px;
-      text-align: center;
-    }
+  padding: 20px;
+  text-align: center;
+}
 
-    .inventory-container h2 {
-      margin-bottom: 15px;
-    }
+.inventory-container h2 {
+  margin-bottom: 15px;
+}
 
-    .inventory-controls {
-      display: flex;
-      
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .inventory-controls select, .inventory-controls input {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      width: 200px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+.inventory-controls {
+  display: flex;
 
-    table, th, td {
-      border: 1px solid #ccc;
-    }
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.inventory-controls select,
+.inventory-controls input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 200px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-    th, td {
-      text-align: center;
-      padding: 10px;
-    }
+table,
+th,
+td {
+  border: 1px solid #ccc;
+}
 
-    th {
-      background: #4a86c5;
-      color: white;
-    }
+th,
+td {
+  text-align: center;
+  padding: 10px;
+}
 
-    tr:nth-child(even) {
-      background: #f2f8ff;
-    }
+th {
+  background: #4a86c5;
+  color: white;
+}
 
-    .add-btn {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+tr:nth-child(even) {
+  background: #f2f8ff;
+}
 
-    .delete-btn {
-      background: red;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+tr {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+tr:hover {
+  background-color: #4a86c5;
+}
 
-    .apply-btn {
-      background: #357edd;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+.add-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-    /* Add Medicine Form */ 
-    .add-medicine{
-      display: none;
-      width: 50%;
-      height: auto;
-      border: #4a86c5 solid 2px;
-      border-radius: 5px;
-      padding: 10px;
-      background-color: white;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, 50%);
-      z-index: 3;
-    }
-    .add-medicine.show{
-      display: block;
-    }
-    #add-medicine-form{
-      display: flex;
-      flex-direction: column;
-    }
-    #add-medicine-form input{
-      text-align: left;
-      margin-bottom: 10px;
-      height: 35px;
-      border: #4a86c5 solid 1px;
-      padding: 5px;
-    }
-    #add-medicine-form button{
-      height: 35px;
-      margin-top: 10px;
-    }
+.delete-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
+
+
+/* Add Medicine Form */
+.add-medicine {
+  display: none;
+  width: 50%;
+  height: auto;
+  border: #4a86c5 solid 2px;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: white;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+}
+.add-medicine.show {
+  display: block;
+}
+#add-medicine-form {
+  display: flex;
+  flex-direction: column;
+}
+#add-medicine-form input {
+  text-align: left;
+  margin-bottom: 10px;
+  height: 35px;
+  border: #4a86c5 solid 1px;
+  padding: 5px;
+}
+#add-medicine-form button {
+  height: 35px;
+  margin-top: 10px;
+}
+
+#category-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.category-option {
+  background: #f9f9f9;
+  border: 1px solid #4a86c5;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.category-option input {
+  accent-color: #4a86c5; /* makes checkboxes match theme */
+}
+
+.category-option:hover {
+  background: #e6f0fa;
+  border-color: #357edd;
+}
+
+/* dispense Medicine Form */
+.dispense-medicine {
+  display: none;
+  width: 50%;
+  height: auto;
+  border: #4a86c5 solid 2px;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: white;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+}
+.dispense-medicine.show {
+  display: block;
+}
+#dispense-medicine-form {
+  display: flex;
+  flex-direction: column;
+}
+#dispense-medicine-form input {
+  text-align: left;
+  margin-bottom: 10px;
+  height: 35px;
+  width: 100%;
+  border: #4a86c5 solid 1px;
+  padding: 5px;
+}
+#dispense-medicine-form button {
+  height: 35px;
+  margin-top: 10px;
+}

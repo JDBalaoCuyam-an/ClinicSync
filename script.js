@@ -4,13 +4,22 @@ function toggleSidebar() {
 }
 
 // Medicine Inventory Functions
-function addMedicine() {
+function addMedicineOverlay() {
   document.getElementById("add-medicine").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
 }
 
-// Close Button Function
-function closeButton() {
+function dispenseMedicineOverlay() {
+  document.getElementById("dispense-medicine").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
+}
+// Close Button Function and Background Click Blocker
+function closeButtonOverlay() {
   if (document.getElementById("add-medicine").classList.contains("show")) {
     document.getElementById("add-medicine").classList.remove("show");
   }
+  if (document.getElementById("dispense-medicine").classList.contains("show")) {
+    document.getElementById("dispense-medicine").classList.remove("show");
+  }
+    document.getElementById("overlay").classList.remove("show");
 }

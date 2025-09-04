@@ -149,3 +149,4 @@ if (!window.location.pathname.includes("Login.html") && !window.location.pathnam
 }
 
 
+export { db, auth};
