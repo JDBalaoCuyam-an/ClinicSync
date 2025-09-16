@@ -1,94 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clinic Inventory</title>
-  <script type="module" src="../../firebaseconfig.js"></script>
-  <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
-  <link rel="stylesheet" href="ClinicInventory.css" />
-</head>
-<body>
-  <!-- NavBar -->
-  <header class="navbar">
-    <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-    <h1>ClinicSync</h1>
-  </header>
-
-  <!-- SideBar -->
-  <div id="sidebar" class="sidebar">
-    <div class="current-user">
-      <div class="user-info">
-        <div class="user-icon">
-          <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon"/>
-        </div>
-        <div class="user-name">Dr. John Doe</div>
-        <div class="user-role"><b>Doctor</b></div>
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clinic Inventory</title>
+    <script type="module" src="../../firebaseconfig.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+    <link rel="stylesheet" href="ClinicInventory.css" />
+  </head>
+  <body>
+    <!-- NavBar -->
+    <header class="navbar">
       <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-    </div>
-    <ul>
-      <li><a href="DoctorNurseDashboard.html">Home</a></li>
-      <li><a href="MedicalRecords.html">Medical Records</a></li>
-      <li><a href="Schedules.html">Schedules</a></li>
-      <li><a href="MedicineInventory.html" >Medicine Inventory</a></li>
-      <li class="active"><a href="ClinicInventory.html" >Clinic Inventory</a></li>
-    </ul>
-    <form>
-      <button type="submit" id="logout-button">Log Out</button>
-    </form>
-  </div>
+      <h1>ClinicSync</h1>
+    </header>
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <h2>Clinic Inventory</h2>
-    <div class="inventory-header">
-      <button class="new-btn">+ New Borrower</button>
+    <!-- SideBar -->
+    <div id="sidebar" class="sidebar">
+      <div class="current-user">
+        <div class="user-info">
+          <div class="user-icon">
+            <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
+          </div>
+          <div class="user-name">Dr. John Doe</div>
+          <div class="user-role"><b>Doctor</b></div>
+        </div>
+        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+      </div>
+      <ul>
+        <li><a href="DoctorNurseDashboard.html">Home</a></li>
+        <li><a href="MedicalRecords.html">Medical Records</a></li>
+        <li><a href="Schedules.html">Schedules</a></li>
+        <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
+        <li class="active">
+          <a href="ClinicInventory.html">Clinic Inventory</a>
+        </li>
+      </ul>
+      <form>
+        <button type="submit" id="logout-button">Log Out</button>
+      </form>
+    </div>
+
+    <div id="overlay" class="overlay"></div>
+
+    <!-- Container -->
+    <div class="clinic-inventory-container">
+      <div class="inventory-header">
+        <h2>Clinic Inventory</h2>
+      </div>
+      <div class="inventory-controls">
+        <button class="add-btn" onclick="addBorrowerOverlay()">
+          + Add Medicine
+        </button>
       <input type="text" placeholder="Search by Name" class="search-bar" />
       <select>
         <option value="all">All</option>
         <option value="borrowed">Borrowed</option>
         <option value="returned">Returned</option>
       </select>
+      </div>
+      <table class="inventory-table">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>qty.</th>
+            <th>Borrower’s Name</th>
+            <th>Personnel Incharge</th>
+            <th>Date Borrowed</th>
+            <th>Status</th>
+            <th>Date Returned</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Water Bag</td>
+            <td>1</td>
+            <td>IPSUM, Lorem X.</td>
+            <td>IPSUM, Lorem X.</td>
+            <td>22/10/2025</td>
+            <td>Borrowed</td>
+            <td>30/10/2025</td>
+            <td><button class="check-btn">✔️</button></td>
+          </tr>
+          <tr>
+            <td>Ice Bag</td>
+            <td>1</td>
+            <td>IPSUM, Lorem X.</td>
+            <td>IPSUM, Lorem X.</td>
+            <td>22/10/2025</td>
+            <td>Returned</td>
+            <td>15/11/2025</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+<!-- add Borrower Form -->
+    <div class="add-borrower" id="add-borrower">
+      <h2>New Borrower</h2>
+        <h2 class="close-button" onclick="closeButtonOverlay()">&times;</h2>
 
-    <table class="inventory-table">
-      <thead>
-        <tr>
-          <th>Item Name</th>
-          <th>qty.</th>
-          <th>Borrower’s Name</th>
-          <th>Personnel Incharge</th>
-          <th>Date Borrowed</th>
-          <th>Status</th>
-          <th>Date Returned</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Water Bag</td>
-          <td>1</td>
-          <td>IPSUM, Lorem X.</td>
-          <td>IPSUM, Lorem X.</td>
-          <td>22/10/2025</td>
-          <td>Borrowed</td>
-          <td>30/10/2025</td>
-          <td><button class="check-btn">✔️</button></td>
-        </tr>
-        <tr>
-          <td>Ice Bag</td>
-          <td>1</td>
-          <td>IPSUM, Lorem X.</td>
-          <td>IPSUM, Lorem X.</td>
-          <td>22/10/2025</td>
-          <td>Returned</td>
-          <td>15/11/2025</td>
-          <td></td>
-        </tr>
-      </tbody>
-    </table>
-  </main>
-</body>
+      <form id="add-borrower-form">
+        <label for="item-name">Item Name:</label>
+        <input type="text" id="item-name" name="item-name" required />
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" required />
+
+        <label for="borrower-name">Borrower's Name:</label>
+        <input type="text" id="borrower-name" name="borrower-name" required />
+
+        <label for="personnel-incharge">Personnel Incharge:</label>
+        <input
+          type="text"
+          id="personnel-incharge"
+          name="personnel-incharge"
+          required
+        />
+
+        <label for="date-borrowed">Date Borrowed:</label>
+        <input type="date" id="date-borrowed" name="date-borrowed" required />
+
+        <input type="text" id="status" name="status" value="Borrowed" hidden />
+
+        <label for="date-returned">Date Returned:</label>
+        <input type="date" id="date-returned" name="date-returned" />
+
+        <button type="submit" class="submit-btn">Submit</button>
+
+      </form>
+    </div>
+  </body>
+  <script type="module">
+    import { db } from "../../firebaseconfig.js";
+    import {
+      collection,
+      addDoc,
+      getDocs,
+      updateDoc,
+      deleteDoc,
+      doc,
+    } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  </script>
   <script src="../../script.js"></script>
 </html>

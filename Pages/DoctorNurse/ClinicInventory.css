@@ -1,54 +1,42 @@
-/* === Item Inventory Page === */
 
-.main-content {
+
+.clinic-inventory-container {
   padding: 20px;
-  background: #f0f7ff;
-  min-height: 100vh;
+  text-align: center;
 }
 
-.main-content h2 {
-  font-size: 22px;
-  color: #2a4d6c;
+.inventory-container h2 {
   margin-bottom: 15px;
 }
 
-/* Header Controls */
-.inventory-header {
+/* Inventory Controls */
+.inventory-controls {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+}
+.inventory-controls select,
+.inventory-controls input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 200px;
 }
 
-.new-btn {
-  background: #4CAF50;
+.add-btn {
+  background: #28a745;
   color: white;
-  padding: 8px 14px;
   border: none;
+  padding: 8px 12px;
   border-radius: 6px;
-  font-size: 14px;
   cursor: pointer;
-  font-weight: bold;
 }
 .new-btn:hover {
   background: #3d8b41;
 }
 
-.search-bar {
-  padding: 6px 10px;
-  border: 1px solid #9bb6d0;
-  border-radius: 5px;
-  font-size: 14px;
-  flex: 1;
-  max-width: 200px;
-}
 
-.inventory-header select {
-  padding: 6px 10px;
-  border: 1px solid #9bb6d0;
-  border-radius: 5px;
-  font-size: 14px;
-}
 
 /* Table */
 .inventory-table {
@@ -67,7 +55,7 @@
 }
 
 .inventory-table th {
-  background: #3f74a5;
+  background: #4a86c5;
   color: white;
 }
 
@@ -88,4 +76,39 @@
 }
 .check-btn:hover {
   color: #3f74a5;
+}
+
+
+.add-borrower{
+  display: none;
+  width: 50%;
+  height: auto;
+  border: #4a86c5 solid 2px;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: white;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+}
+.add-borrower.show{
+  display: block;
+}
+.add-borrower form{
+  display: flex;
+  flex-direction: column;
+}
+
+#add-borrower-form input {
+  text-align: left;
+  margin-bottom: 10px;
+  height: 35px;
+  border: #4a86c5 solid 1px;
+  padding: 5px;
+}
+#add-borrower-form button {
+  height: 35px;
+  margin-top: 10px;
 }

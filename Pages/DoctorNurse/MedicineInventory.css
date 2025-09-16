@@ -7,9 +7,9 @@
   margin-bottom: 15px;
 }
 
+/* Inventory Controls */
 .inventory-controls {
   display: flex;
-
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
@@ -21,6 +21,7 @@
   border-radius: 6px;
   width: 200px;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
