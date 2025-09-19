@@ -91,6 +91,43 @@ background-color: #4682B4;
   font-size: 24px;
   cursor: pointer;
 }
+/* Table Styles */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table,
+th,
+td {
+  border: 1px solid #ccc;
+}
+
+th,
+td {
+  text-align: center;
+  padding: 10px;
+}
+
+th {
+  background: #4a86c5;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background: #f2f8ff;
+}
+
+tr {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+tr:hover {
+  background-color: #E0EFFF;
+}
+
+
 
 /* Close Button */
 .close-button {

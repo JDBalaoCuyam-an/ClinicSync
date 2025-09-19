@@ -1,78 +1,30 @@
-/* === Medical Records Page === */
-
-/* Main Content Layout */
-.main-content {
-
+.records-container {
   padding: 20px;
-  background: #f0f7ff;
-  min-height: 100vh;
+  text-align: center;
 }
-
-/* Header */
-.records-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.records-container h2 {
   margin-bottom: 15px;
 }
-
-.records-header h2 {
-  font-size: 22px;
-  color: #2a4d6c;
-}
-
-/* Filters */
-.filters {
+/* Inventory Controls */
+.controls {
   display: flex;
+  align-items: center;
   gap: 10px;
+  margin-bottom: 20px;
+}
+.controls select,
+.controls input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 200px;
 }
 
-.filters input,
-.filters select {
-  padding: 6px 10px;
-  border: 1px solid #9bb6d0;
-  border-radius: 5px;
-  font-size: 14px;
-}
-
-/* Table Styles */
-.records-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.records-table th,
-.records-table td {
-  border: 1px solid #b5cde6;
-  padding: 10px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.records-table th {
-  background: #3f74a5;
+.add-btn {
+  background: #28a745;
   color: white;
-  font-weight: bold;
-}
-
-.records-table tr:nth-child(even) {
-  background: #eaf3ff;
-}
-
-.records-table tr:hover {
-  background: #d3e6ff;
-  cursor: pointer;
-}
-
-/* Action Button */
-.view-btn {
-  background: none;
   border: none;
-  font-size: 18px;
+  padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
-}
-.view-btn:hover {
-  color: #3f74a5;
 }

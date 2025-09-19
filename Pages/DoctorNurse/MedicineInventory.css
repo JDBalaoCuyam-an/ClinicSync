@@ -22,39 +22,6 @@
   width: 200px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-table,
-th,
-td {
-  border: 1px solid #ccc;
-}
-
-th,
-td {
-  text-align: center;
-  padding: 10px;
-}
-
-th {
-  background: #4a86c5;
-  color: white;
-}
-
-tr:nth-child(even) {
-  background: #f2f8ff;
-}
-
-tr {
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-tr:hover {
-  background-color: #4a86c5;
-}
 
 .add-btn {
   background: #28a745;

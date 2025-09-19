@@ -40,10 +40,12 @@
   </div>
 
   <!-- Main Content -->
-  <main class="main-content">
+  <div class="records-container">
     <div class="records-header">
-      <h2>Medical Records</h2>
-      <div class="filters">
+        <h2>Medical Records</h2>
+    </div>
+      <div class="controls">
+        <button class="add-btn">+ New Patient</button>
         <input type="text" placeholder="Search by Name" class="search-bar" />
         <select>
           <option value="all">All</option>
@@ -56,7 +58,7 @@
           <option value="faculty">Faculty</option>
         </select>
       </div>
-    </div>
+    
 
     <table class="records-table">
       <thead>
@@ -85,7 +87,7 @@
         <!-- More rows dynamically inserted here -->
       </tbody>
     </table>
-  </main>
+  </div>
 
 </body>
   <script src="../../script.js"></script>
