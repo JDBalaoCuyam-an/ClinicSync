@@ -192,77 +192,117 @@
 
       // Render borrowers with search & filter
       function renderBorrowers() {
-        const searchValue = searchBar.value.toLowerCase();
-        const filterValue = filter.value;
+  const searchValue = searchBar.value.toLowerCase();
+  const filterValue = filter.value;
 
-        tableBody.innerHTML = "";
+  tableBody.innerHTML = "";
 
-        const filtered = borrowers.filter((b) => {
-          const name = (b.borrowerName || "").toLowerCase();
-          const status = (b.status || "").toLowerCase();
+  const filtered = borrowers.filter((b) => {
+    const name = (b.borrowerName || "").toLowerCase();
+    const status = (b.status || "").toLowerCase();
 
-          const matchesSearch = name.includes(searchValue.toLowerCase());
-          const matchesFilter = filterValue === "all" || status === filterValue;
+    const matchesSearch = name.includes(searchValue.toLowerCase());
+    const matchesFilter = filterValue === "all" || status === filterValue;
 
-          return matchesSearch && matchesFilter;
-        });
+    return matchesSearch && matchesFilter;
+  });
 
-        filtered.forEach((b) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-  <td>${b.itemName || "-"}</td>
-  <td>${b.quantity || "-"}</td>
-  <td>${b.borrowerName || "-"}</td>
-  <td>${b.personnel || "-"}</td>
-  <td>${b.dateBorrowed || "-"}</td>
-  <td>${b.status || "-"}</td>
-  <td>${b.dateReturned || "-"}</td>
-  <td>
-    ${
-      (b.status || "").toLowerCase() === "borrowed"
-        ? `<button class="check-btn" data-id="${b.id}">Return</button>`
-        : ""
-    }
-  </td>
-`;
-          tableBody.appendChild(row);
-        });
+  filtered.forEach((b) => {
+    const status = (b.status || "").toLowerCase();
+    const statusColor =
+      status === "borrowed"
+        ? "#EF4000" // Borrowed = Red-Orange
+        : status === "returned"
+        ? "#66BB6A" // Returned = Green
+        : "gray";
 
-        // Add listeners
-        document.querySelectorAll(".check-btn").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const id = btn.getAttribute("data-id");
-            const borrower = borrowers.find((b) => b.id === id);
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${b.itemName || "-"}</td>
+      <td>${b.quantity || "-"}</td>
+      <td>${b.borrowerName || "-"}</td>
+      <td>${b.personnel || "-"}</td>
+      <td>${b.dateBorrowed || "-"}</td>
+      <td>
+        <span style="
+          background-color:${statusColor};
+          color:white;
+          padding:2px 8px;
+          border-radius:12px;
+          font-weight:bold;
+          text-transform:capitalize;
+        ">
+          ${b.status || "-"}
+        </span>
+      </td>
+      <td>${b.dateReturned || "-"}</td>
+      <td>
+        ${
+          status === "borrowed"
+            ? `<button class="check-btn" data-id="${b.id}">Return</button>`
+            : `<button class="undo-btn" data-id="${b.id}">Undo</button>`
+        }
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
 
-            if (!borrower) return;
+  // Handle Return button
+  document.querySelectorAll(".check-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-id");
+      const borrower = borrowers.find((b) => b.id === id);
 
-            // Ask for confirmation
-            const confirmReturn = confirm(
-              `Mark "${borrower.itemName}" borrowed by ${borrower.borrowerName} as returned?`
-            );
+      if (!borrower) return;
 
-            if (!confirmReturn) return;
+      const confirmReturn = confirm(
+        `Mark "${borrower.itemName}" borrowed by ${borrower.borrowerName} as returned?`
+      );
 
-            const today = new Date().toISOString().split("T")[0];
+      if (!confirmReturn) return;
 
-            await updateDoc(doc(db, "ClinicInventory", id), {
-              status: "Returned",
-              dateReturned: today,
-            });
+      const now = new Date();
+      const today = now.toISOString().split("T")[0];
+      const currentTime = now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
-            alert("✅ Item marked as returned.");
-            loadBorrowers();
-          });
-        });
+      await updateDoc(doc(db, "ClinicInventory", id), {
+        status: "Returned",
+        dateReturned: `${today} ${currentTime}`,
+      });
 
-        // document.querySelectorAll(".delete-btn").forEach((btn) => {
-        //   btn.addEventListener("click", async () => {
-        //     const id = btn.getAttribute("data-id");
-        //     await deleteDoc(doc(db, "ClinicInventory", id));
-        //     loadBorrowers();
-        //   });
-        // });
-      }
+      alert("✅ Item marked as returned.");
+      loadBorrowers();
+    });
+  });
+
+  // Handle Undo button
+  document.querySelectorAll(".undo-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-id");
+      const borrower = borrowers.find((b) => b.id === id);
+
+      if (!borrower) return;
+
+      const confirmUndo = confirm(
+        `Undo return for "${borrower.itemName}" borrowed by ${borrower.borrowerName}?`
+      );
+
+      if (!confirmUndo) return;
+
+      await updateDoc(doc(db, "ClinicInventory", id), {
+        status: "Borrowed",
+        dateReturned: "", // clear returned date
+      });
+
+      alert("↩️ Undo successful. Marked back as Borrowed.");
+      loadBorrowers();
+    });
+  });
+}
+
 
       searchBar.addEventListener("input", renderBorrowers);
       filter.addEventListener("change", renderBorrowers);

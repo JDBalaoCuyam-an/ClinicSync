@@ -35,6 +35,14 @@
 .new-btn:hover {
   background: #3d8b41;
 }
+.check-btn, .undo-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
 /* New Borrower Form*/
 .add-borrower{

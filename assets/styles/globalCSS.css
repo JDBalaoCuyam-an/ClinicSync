@@ -1,8 +1,10 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap'); */
 *{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     position: relative;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 .color{
     color: #4682B4;
