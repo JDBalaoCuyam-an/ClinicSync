@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Container Tab Navigation</title>
+    <script type="module" src="../../firebaseconfig.js"></script>
+    <link rel="stylesheet" href="ViewPatient.css" />
+    <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+  </head>
+  <body>
+    <!-- NavBar -->
+    <header class="navbar">
+      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+      <h1>ClinicSync</h1>
+    </header>
+
+    <!-- SideBar -->
+    <div id="sidebar" class="sidebar">
+      <div class="current-user">
+        <div class="user-info">
+          <div class="user-icon">
+            <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
+          </div>
+          <div class="user-name">Dr. John Doe</div>
+          <div class="user-role"><b>Doctor</b></div>
+        </div>
+        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+      </div>
+      <ul>
+        <li><a href="DoctorNurseDashboard.html">Home</a></li>
+        <li class="active">
+          <a href="MedicalRecords.html">Medical Records</a>
+        </li>
+        <li><a href="Schedules.html">Schedules</a></li>
+        <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
+        <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
+      </ul>
+      <form>
+        <button type="submit" id="logout-button">Log Out</button>
+      </form>
+    </div>
+
+    <div style="display: flex; justify-content: space-between">
+      <button
+        id="back-to-records"
+        onclick="window.location.href='MedicalRecords.html'"
+      >
+        Back
+      </button>
+      <button id="make-appointment">Make Appointment</button>
+    </div>
+
+    <div class="view-patient-container">
+      <div class="patient-contacts">
+      <h2>Name</h2>
+      <button class="edit-btn">Edit</button>
+      <h3>Contact Details</h3>
+      <input
+        type="text"
+        id="phone-number"
+        name="phone-number"
+        value="+63 912 345 6789"
+      />
+      <input type="text" id="email-address" name="email-address" value="2025-09-27@kcp.edu.ph" />
+      <input type="text" id="home-address" name="home-address" value="Pico, La Trinidad" />
+      <input
+        type="text"
+        id="guardian-name"
+        name="guardian-name"
+        value="Guardian Name"
+      />
+      <input
+        type="text"
+        id="guardian-phone"
+        name="guardian-phone"
+        value="+63 912 345 6789"
+      />
+    </div>
+    <!-- Patient Records -->
+    <div class="patient-records">
+      <!-- Tabs -->
+      <input type="radio" id="patient-info" name="tab" checked />
+      <label for="patient-info">Patient Info</label>
+
+      <input type="radio" id="medical-history" name="tab" />
+      <label for="medical-history">Medical History</label>
+
+      <input type="radio" id="medical-records" name="tab" />
+      <label for="medical-records">Medical Records</label>
+
+      <input type="radio" id="dental-records" name="tab" />
+      <label for="dental-records">Dental Records</label>
+
+      <input type="radio" id="physical-examination" name="tab" />
+      <label for="physical-examination">Physical Examination</label>
+
+      <!-- Tab Contents -->
+      <div class="tab-content content-1">
+        <h2>Patient Information</h2>
+        <p>Basic patient details go here...</p>
+      </div>
+
+      <div class="tab-content content-2">
+        <h2>Medical History</h2>
+        <p>Previous illnesses, medications, allergies...</p>
+      </div>
+
+      <div class="tab-content content-3">
+        <h2>Medical Records</h2>
+        <p>Files, attachments, and lab results...</p>
+      </div>
+
+      <div class="tab-content content-4">
+        <h2>Dental Records</h2>
+        <p>Files, attachments, and lab results...</p>
+      </div>
+
+      <div class="tab-content content-5">
+        <h2>Physical Examination</h2>
+        <p>Files, attachments, and lab results...</p>
+      </div>
+    </div>
+    </div>
+  </body>
+  <script src="../../script.js"></script>
+</html>

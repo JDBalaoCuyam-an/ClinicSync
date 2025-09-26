@@ -1,0 +1,55 @@
+.view-patient-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+#back-to-records,
+#make-appointment {
+  background: #4682b4;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px ;
+  cursor: pointer;
+  margin: 10px 10px;
+}
+
+.patient-contacts{
+width: 25%;
+border: 2px solid #4682b4;
+border-radius: 5px;
+display: flex;
+flex-direction: column;
+gap: 5px;
+
+}
+.patient-records {
+  width: 75%;
+  border: 2px solid #4682b4;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* Hide radio buttons */
+.patient-records input[type="radio"] {
+  display: none;
+}
+
+/* Active Tab Style */
+.patient-records input:checked + label {
+  background: #007bff;
+  color: white;
+  border-bottom: 2px solid #0056b3;
+}
+/* Show content of active tab */
+.tab-content {
+  display: none;
+  padding: 20px;
+}
+#patient-info:checked ~ .content-1,
+#medical-history:checked ~ .content-2,
+#medical-records:checked ~ .content-3,
+#dental-records:checked ~ .content-4,
+#physical-examination:checked ~ .content-5 {
+  display: block;
+}
