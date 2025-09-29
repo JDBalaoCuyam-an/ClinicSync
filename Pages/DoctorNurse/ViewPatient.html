@@ -43,7 +43,7 @@
 
     <div style="display: flex; justify-content: space-between">
       <button
-        id="back-to-records"
+        id="back-to-lists"
         onclick="window.location.href='MedicalRecords.html'"
       >
         Back
@@ -52,75 +52,291 @@
     </div>
 
     <div class="view-patient-container">
-      <div class="patient-contacts">
-      <h2>Name</h2>
-      <button class="edit-btn">Edit</button>
-      <h3>Contact Details</h3>
-      <input
-        type="text"
-        id="phone-number"
-        name="phone-number"
-        value="+63 912 345 6789"
-      />
-      <input type="text" id="email-address" name="email-address" value="2025-09-27@kcp.edu.ph" />
-      <input type="text" id="home-address" name="home-address" value="Pico, La Trinidad" />
-      <input
-        type="text"
-        id="guardian-name"
-        name="guardian-name"
-        value="Guardian Name"
-      />
-      <input
-        type="text"
-        id="guardian-phone"
-        name="guardian-phone"
-        value="+63 912 345 6789"
-      />
-    </div>
-    <!-- Patient Records -->
-    <div class="patient-records">
-      <!-- Tabs -->
-      <input type="radio" id="patient-info" name="tab" checked />
-      <label for="patient-info">Patient Info</label>
-
-      <input type="radio" id="medical-history" name="tab" />
-      <label for="medical-history">Medical History</label>
-
-      <input type="radio" id="medical-records" name="tab" />
-      <label for="medical-records">Medical Records</label>
-
-      <input type="radio" id="dental-records" name="tab" />
-      <label for="dental-records">Dental Records</label>
-
-      <input type="radio" id="physical-examination" name="tab" />
-      <label for="physical-examination">Physical Examination</label>
-
-      <!-- Tab Contents -->
-      <div class="tab-content content-1">
-        <h2>Patient Information</h2>
-        <p>Basic patient details go here...</p>
+      <div class="left-container">
+        <div class="patient-contacts">
+          <div style="display: flex; justify-content: space-between">
+            <h2>Lorem Ipsum</h2>
+            <button class="edit-btn">Edit</button>
+          </div>
+          <h3>Contact Details</h3>
+          <input
+            type="text"
+            id="phone-number"
+            name="phone-number"
+            value="+63 912 345 6789"
+            disabled
+          />
+          <input
+            type="text"
+            id="email-address"
+            name="email-address"
+            value="2025-09-27@kcp.edu.ph"
+            disabled
+          />
+          <input
+            type="text"
+            id="home-address"
+            name="home-address"
+            value="Pico, La Trinidad"
+            disabled
+          />
+          <input
+            type="text"
+            id="guardian-name"
+            name="guardian-name"
+            value="Guardian Name"
+            disabled
+          />
+          <input
+            type="text"
+            id="guardian-phone"
+            name="guardian-phone"
+            value="+63 912 345 6789"
+            disabled
+          />
+        </div>
+        <div class="patient-documents">
+          <h3>Documents :</h3>
+          <button class="upload-btn">Upload Files</button>
+          <ul class="documents-list">
+            <li>Ovarian Scan, Nov 25 (2.7 MB)</li>
+            <li>XYV Blood Test (0.7 MB)</li>
+            <li>Blood Test XYZ (2.7 MB)</li>
+          </ul>
+        </div>
       </div>
+      <!-- Patient Records -->
+      <div class="right-container">
+        <div class="patient-records">
+          <!-- Tabs -->
+          <input type="radio" id="patient-info" name="tab" checked />
+          <label class="radio-tabs" for="patient-info">Patient Info</label>
 
-      <div class="tab-content content-2">
-        <h2>Medical History</h2>
-        <p>Previous illnesses, medications, allergies...</p>
-      </div>
+          <input type="radio" id="medical-history" name="tab" />
+          <label class="radio-tabs" for="medical-history"
+            >Medical History</label
+          >
 
-      <div class="tab-content content-3">
-        <h2>Medical Records</h2>
-        <p>Files, attachments, and lab results...</p>
-      </div>
+          <input type="radio" id="medical-records" name="tab" />
+          <label class="radio-tabs" for="medical-records"
+            >Medical Records</label
+          >
 
-      <div class="tab-content content-4">
-        <h2>Dental Records</h2>
-        <p>Files, attachments, and lab results...</p>
-      </div>
+          <input type="radio" id="dental-records" name="tab" />
+          <label class="radio-tabs" for="dental-records">Dental Records</label>
 
-      <div class="tab-content content-5">
-        <h2>Physical Examination</h2>
-        <p>Files, attachments, and lab results...</p>
+          <input type="radio" id="physical-examination" name="tab" />
+          <label class="radio-tabs" for="physical-examination"
+            >Physical Examination</label
+          >
+
+          <!-- Tab Contents -->
+          <div class="tab-content patient-info-content">
+            <div class="header-row">
+              <h2>Patient Information</h2>
+              <button class="edit-btn">✏️ Edit</button>
+            </div>
+
+            <div class="info-grid">
+              <label
+                >Last Name : <input type="text" value="IPSUM" disabled
+              /></label>
+              <label
+                >First Name : <input type="text" value="Lorem" disabled
+              /></label>
+              <label
+                >Middle Name : <input type="text" value="X" disabled
+              /></label>
+              <label
+                >Ext. Name : <input type="text" value="-" disabled
+              /></label>
+              <label
+                >Gender : <input type="text" value="Male" disabled
+              /></label>
+
+              <label
+                >Birthdate : <input type="date" value="2025-07-04" disabled
+              /></label>
+              <label>Age : <input type="number" value="21" disabled /></label>
+              <label
+                >Civil Status : <input type="text" value="Single" disabled
+              /></label>
+              <label
+                >Nationality : <input type="text" value="Filipino" disabled
+              /></label>
+              <label
+                >Religion : <input type="text" value="Catholic" disabled
+              /></label>
+
+              <label
+                >School ID : <input type="text" value="2025-07-1030" disabled
+              /></label>
+              <label
+                >Role : <input type="text" value="Student" disabled
+              /></label>
+              <label
+                >Department : <input type="text" value="CIT" disabled
+              /></label>
+              <label
+                >Course : <input type="text" value="BSIT" disabled
+              /></label>
+              <label>Year : <input type="number" value="3" disabled /></label>
+            </div>
+
+            <br />
+            <hr />
+            <br />
+
+            <h3>Parent’s Information</h3>
+            <div class="info-grid">
+              <label
+                >Father’s Name :
+                <input type="text" value="Lorem Ipsum" disabled
+              /></label>
+              <label>Age : <input type="number" value="48" disabled /></label>
+              <label
+                >Occupation : <input type="text" value="Doctor" disabled
+              /></label>
+              <label
+                >Health Status :
+                <input type="text" value="Lorem Ipsum" disabled
+              /></label>
+
+              <label
+                >Mother’s Name :
+                <input type="text" value="Lorem Ipsum" disabled
+              /></label>
+              <label>Age : <input type="number" value="48" disabled /></label>
+              <label
+                >Occupation : <input type="text" value="Doctor" disabled
+              /></label>
+              <label
+                >Health Status :
+                <input type="text" value="Lorem Ipsum" disabled
+              /></label>
+            </div>
+          </div>
+
+          <div class="tab-content medical-history-content">
+            <div class="header-row">
+              <h2>Medical History :</h2>
+              <button class="edit-btn" onclick="toggleEdit(this)">
+                ✏️ Edit
+              </button>
+            </div>
+
+            <div class="history-grid">
+              <div class="history-card">
+                <h3>Past Medical History</h3>
+                <textarea disabled>
+Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum culpa numquam! Quisquam debitis at cum velit tenetur, eius inventore id quae vero, autem, ullam eum voluptatum provident sit?</textarea
+                >
+              </div>
+
+              <div class="history-card">
+                <h3>Family History</h3>
+                <textarea disabled>
+Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum culpa numquam! Quisquam debitis at cum velit tenetur, eius inventore id quae vero, autem, ullam eum voluptatum provident sit?</textarea
+                >
+              </div>
+
+              <div class="history-card">
+                <h3>Past Surgical History</h3>
+                <textarea disabled></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content medical-records-content">
+            <h2>Medical Consultation Records :</h2>
+
+            <button class="new-btn">+ New</button>
+
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Cons. Dr.</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Chief Complaint</th>
+                  <th>Diagnosis</th>
+                  <th>Meds.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>📄</td>
+                  <td>Dr. John Doe</td>
+                  <td>10/07/2025</td>
+                  <td>10:00 AM</td>
+                  <td>Head Ache</td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr>
+                <tr>
+                  <td>📄</td>
+                  <td>Dr. John Doe</td>
+                  <td>04/07/2025</td>
+                  <td>10:00 AM</td>
+                  <td>Head Ache</td>
+                  <td>Tension Head Ache</td>
+                  <td>Paracetamol</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tab-content dental-records-content">
+            <h3>Dental Records :</h3>
+            <button class="new-btn">+ New</button>
+
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Const. Dr.</th>
+                  <th>Date</th>
+                  <th>Tooth</th>
+                  <th>Procedure</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>📄</td>
+                  <td>Dr. John Doe</td>
+                  <td>04/09/2025</td>
+                  <td>28</td>
+                  <td>Extraction</td>
+                  <td>Mild Bleeding</td>
+                </tr>
+                <tr>
+                  <td>📄</td>
+                  <td>Dr. John Doe</td>
+                  <td>04/08/2025</td>
+                  <td>14</td>
+                  <td>Composite Filling</td>
+                  <td>Mo Surface</td>
+                </tr>
+                <tr>
+                  <td>📄</td>
+                  <td>Dr. John Doe</td>
+                  <td>04/07/2025</td>
+                  <td>-</td>
+                  <td>Oral Exam</td>
+                  <td>-</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-content physical-examination-content">
+          <h2>Physical Examination</h2>
+          <p>Files, attachments, and lab results...</p>
+        </div>
       </div>
-    </div>
     </div>
   </body>
   <script src="../../script.js"></script>
