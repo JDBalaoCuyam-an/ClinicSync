@@ -55,7 +55,7 @@
       <div class="left-container">
         <div class="patient-contacts">
           <div style="display: flex; justify-content: space-between">
-            <h2>Lorem Ipsum</h2>
+            <h2>(Patient Name)</h2>
             <button class="edit-btn">Edit</button>
           </div>
           <h3>Contact Details</h3>
@@ -139,48 +139,42 @@
 
             <div class="info-grid">
               <label
-                >Last Name : <input type="text" value="IPSUM" disabled
+                >Last Name : <input id="lastName" type="text" disabled
               /></label>
               <label
-                >First Name : <input type="text" value="Lorem" disabled
+                >First Name : <input id="firstName" type="text" disabled
               /></label>
               <label
-                >Middle Name : <input type="text" value="X" disabled
+                >Middle Name : <input id="middleName" type="text" disabled
               /></label>
               <label
-                >Ext. Name : <input type="text" value="-" disabled
+                >Ext. Name : <input id="extName" type="text" disabled
+              /></label>
+              <label>Gender : <input id="gender" type="text" disabled /></label>
+
+              <label
+                >Birthdate : <input id="birthdate" type="date" disabled
+              /></label>
+              <label>Age : <input id="age" type="number" disabled /></label>
+              <label
+                >Civil Status : <input id="civilStatus" type="text" disabled
               /></label>
               <label
-                >Gender : <input type="text" value="Male" disabled
+                >Nationality : <input id="nationality" type="text" disabled
+              /></label>
+              <label
+                >Religion : <input id="religion" type="text" disabled
               /></label>
 
               <label
-                >Birthdate : <input type="date" value="2025-07-04" disabled
+                >School ID : <input id="schoolId" type="text" disabled
               /></label>
-              <label>Age : <input type="number" value="21" disabled /></label>
+              <label>Role : <input id="role" type="text" disabled /></label>
               <label
-                >Civil Status : <input type="text" value="Single" disabled
+                >Department : <input id="department" type="text" disabled
               /></label>
-              <label
-                >Nationality : <input type="text" value="Filipino" disabled
-              /></label>
-              <label
-                >Religion : <input type="text" value="Catholic" disabled
-              /></label>
-
-              <label
-                >School ID : <input type="text" value="2025-07-1030" disabled
-              /></label>
-              <label
-                >Role : <input type="text" value="Student" disabled
-              /></label>
-              <label
-                >Department : <input type="text" value="CIT" disabled
-              /></label>
-              <label
-                >Course : <input type="text" value="BSIT" disabled
-              /></label>
-              <label>Year : <input type="number" value="3" disabled /></label>
+              <label>Course : <input id="course" type="text" disabled /></label>
+              <label>Year : <input id="year" type="number" disabled /></label>
             </div>
 
             <br />
@@ -188,31 +182,35 @@
             <br />
 
             <h3>Parent’s Information</h3>
-            <div class="info-grid">
+            <div class="info-grid" id="parent-info-grid">
               <label
-                >Father’s Name :
-                <input type="text" value="Lorem Ipsum" disabled
-              /></label>
-              <label>Age : <input type="number" value="48" disabled /></label>
-              <label
-                >Occupation : <input type="text" value="Doctor" disabled
+                >Father’s Name : <input id="fatherName" type="text" disabled
               /></label>
               <label
-                >Health Status :
-                <input type="text" value="Lorem Ipsum" disabled
+                >Father's Age : <input id="fatherAge" type="number" disabled
+              /></label>
+              <label
+                >Father's Occupation :
+                <input id="fatherOccupation" type="text" disabled
+              /></label>
+              <label
+                >Father's Health Status :
+                <input id="fatherHealth" type="text" disabled
               /></label>
 
               <label
-                >Mother’s Name :
-                <input type="text" value="Lorem Ipsum" disabled
-              /></label>
-              <label>Age : <input type="number" value="48" disabled /></label>
-              <label
-                >Occupation : <input type="text" value="Doctor" disabled
+                >Mother’s Name : <input id="motherName" type="text" disabled
               /></label>
               <label
-                >Health Status :
-                <input type="text" value="Lorem Ipsum" disabled
+                >Mother's Age : <input id="motherAge" type="number" disabled
+              /></label>
+              <label
+                >Mother's Occupation :
+                <input id="motherOccupation" type="text" disabled
+              /></label>
+              <label
+                >Mother's Health Status :
+                <input id="motherHealth" type="text" disabled
               /></label>
             </div>
           </div>
@@ -340,4 +338,133 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
     </div>
   </body>
   <script src="../../script.js"></script>
+  <script type="module">
+  import { db } from "../../firebaseconfig.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+  // helpers
+  function toIsoDateString(value) {
+    // Accept string "YYYY-MM-DD", Date object, or Firestore Timestamp (has toDate())
+    if (!value) return "";
+    if (typeof value === "string") {
+      // Accept already-correct format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+      // Try to parse other date strings
+      const parsed = new Date(value);
+      if (!isNaN(parsed)) return parsed.toISOString().split("T")[0];
+      return "";
+    }
+    if (value instanceof Date) return value.toISOString().split("T")[0];
+    if (typeof value.toDate === "function") {
+      const d = value.toDate();
+      return d.toISOString().split("T")[0];
+    }
+    return "";
+  }
+
+  function safeNumber(value) {
+    if (value === undefined || value === null || value === "") return "";
+    // allow numeric strings too
+    const n = Number(value);
+    return Number.isFinite(n) ? n : "";
+  }
+
+  // Get ID from URL (e.g., ?id=xxxx)
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get("id");
+
+  async function loadPatient() {
+    if (!patientId) {
+      console.warn("No patient ID provided in URL");
+      return;
+    }
+
+    try {
+      const patientRef = doc(db, "patients", patientId);
+      const patientSnap = await getDoc(patientRef);
+
+      if (!patientSnap.exists()) {
+        alert("Patient not found!");
+        return;
+      }
+
+      const data = patientSnap.data();
+
+      // Build display name safely
+      const displayName = `${data.lastName + "," || ""} ${data.firstName || ""}`.trim();
+
+      // set left panel title (if present)
+      const leftNameEl = document.querySelector(".patient-contacts h2");
+      if (leftNameEl) leftNameEl.textContent = displayName || "Unnamed Patient";
+
+      // set tab header title inside patient-info-content header-row (if present)
+      const tabHeaderH2 = document.querySelector(".patient-info-content .header-row h2");
+      if (tabHeaderH2) tabHeaderH2.textContent = "Patient Information";
+
+      // fill patient basic fields by ID
+      const setIfExists = (id, value) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        // date input
+        if (el.type === "date") {
+          el.value = toIsoDateString(value);
+        } else if (el.type === "number") {
+          el.value = safeNumber(value);
+        } else {
+          el.value = value ?? "";
+        }
+      };
+
+      setIfExists("lastName", data.lastName ?? "");
+      setIfExists("firstName", data.firstName ?? "");
+      setIfExists("middleName", data.middleName ?? "");
+      setIfExists("extName", data.extName ?? "");
+      setIfExists("gender", data.gender ?? "");
+      setIfExists("birthdate", data.birthdate ?? "");
+      setIfExists("age", data.age ?? "");
+      setIfExists("civilStatus", data.civilStatus ?? "");
+      setIfExists("nationality", data.nationality ?? "");
+      setIfExists("religion", data.religion ?? "");
+      setIfExists("schoolId", data.schoolId ?? "");
+      setIfExists("role", data.role ?? "");
+      setIfExists("department", data.department ?? "");
+      setIfExists("course", data.course ?? "");
+      setIfExists("year", data.year ?? "");
+
+      // parent info
+      setIfExists("fatherName", data.fatherName ?? "");
+      setIfExists("fatherAge", data.fatherAge ?? "");
+      setIfExists("fatherOccupation", data.fatherOccupation ?? "");
+      setIfExists("fatherHealth", data.fatherHealth ?? "");
+      setIfExists("motherName", data.motherName ?? "");
+      setIfExists("motherAge", data.motherAge ?? "");
+      setIfExists("motherOccupation", data.motherOccupation ?? "");
+      setIfExists("motherHealth", data.motherHealth ?? "");
+
+      // left panel contact fields (IDs used in your markup)
+      const phoneEl = document.getElementById("phone-number");
+      if (phoneEl) phoneEl.value = data.contact || "";
+
+      const emailEl = document.getElementById("email-address");
+      if (emailEl) emailEl.value = data.email || "";
+
+      const addrEl = document.getElementById("home-address");
+      if (addrEl) addrEl.value = data.address || "";
+
+      const guardianNameEl = document.getElementById("guardian-name");
+      if (guardianNameEl) guardianNameEl.value = data.guardianName || "";
+
+      const guardianPhoneEl = document.getElementById("guardian-phone");
+      if (guardianPhoneEl) guardianPhoneEl.value = data.guardianPhone || "";
+
+    } catch (err) {
+      console.error("Error fetching patient:", err);
+      alert("Error loading patient (see console).");
+    }
+  }
+
+  // run
+  loadPatient();
+</script>
+
 </html>

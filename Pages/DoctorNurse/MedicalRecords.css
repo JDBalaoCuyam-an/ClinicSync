@@ -28,3 +28,101 @@
   border-radius: 6px;
   cursor: pointer;
 }
+/* Overlay behind modal */
+.overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Popup container (you already started this) */
+.add-new-patient {
+  display: none; /* Hide by default, toggle with JS */
+  width: 80%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: #4a86c5 solid 2px;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #fff;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+#add-new-patient.show{
+  display: block;
+}
+/* Form inside modal */
+.add-new-patient form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Grid layout for fields */
+.add-new-patient .info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+.add-new-patient label {
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-new-patient input,
+.add-new-patient select,
+.add-new-patient textarea {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Header */
+.add-new-patient h2 {
+  margin-top: 0;
+  text-align: center;
+  color: #4a86c5;
+}
+
+/* Buttons row */
+.add-new-patient button {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px;
+  transition: 0.2s ease;
+}
+
+.add-new-patient .save-btn {
+  background: #4a86c5;
+  color: white;
+  border: none;
+}
+
+.add-new-patient .save-btn:hover {
+  background: #3a6ea3;
+}
+
+.add-new-patient .cancel-btn {
+  background: #eee;
+  border: 1px solid #ccc;
+}
+
+.add-new-patient .cancel-btn:hover {
+  background: #ddd;
+}
