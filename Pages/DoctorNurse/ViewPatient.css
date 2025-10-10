@@ -32,7 +32,7 @@
   gap: 5px;
   padding: 10px;
 }
-.patient-contacts input[type="text"]:disabled {
+.patient-contacts input:disabled, .patient-info-content input:disabled {
   width: 100%;
   padding: 5px 3px;
   background-color: #e0efff;
@@ -40,7 +40,7 @@
   font-size: 14px;
   color: #333;
 }
-.patient-contacts input[type="text"]:enabled {
+.patient-contacts input:enabled, .patient-info-content input:enabled {
   width: 100%;
   padding: 5px 3px;
   border: 1px solid #4682b4;

@@ -522,6 +522,66 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
         }
       }
     });
+    
+    // Edit/Save toggle for Patient Information
+    const editPatientInfoBtn = document.querySelector(
+      ".patient-info-content .edit-btn"
+    );
+
+    editPatientInfoBtn.addEventListener("click", async () => {
+      const infoInputs = document.querySelectorAll(
+        ".patient-info-content .info-grid input"
+      );
+
+      if (editPatientInfoBtn.textContent.includes("✏️")) {
+        // Enable editing
+        infoInputs.forEach((input) => input.removeAttribute("disabled"));
+        editPatientInfoBtn.textContent = "💾 Save";
+      } else {
+        // Gather updated values
+        const updatedData = {
+          lastName: document.getElementById("lastName").value,
+          firstName: document.getElementById("firstName").value,
+          middleName: document.getElementById("middleName").value,
+          extName: document.getElementById("extName").value,
+          gender: document.getElementById("gender").value,
+          birthdate: document.getElementById("birthdate").value,
+          age: Number(document.getElementById("age").value),
+          civilStatus: document.getElementById("civilStatus").value,
+          nationality: document.getElementById("nationality").value,
+          religion: document.getElementById("religion").value,
+          schoolId: document.getElementById("schoolId").value,
+          role: document.getElementById("role").value,
+          department: document.getElementById("department").value,
+          course: document.getElementById("course").value,
+          year: Number(document.getElementById("year").value),
+
+          // Parent info
+          fatherName: document.getElementById("fatherName").value,
+          fatherAge: Number(document.getElementById("fatherAge").value),
+          fatherOccupation: document.getElementById("fatherOccupation").value,
+          fatherHealth: document.getElementById("fatherHealth").value,
+          motherName: document.getElementById("motherName").value,
+          motherAge: Number(document.getElementById("motherAge").value),
+          motherOccupation: document.getElementById("motherOccupation").value,
+          motherHealth: document.getElementById("motherHealth").value,
+        };
+
+        try {
+          const patientRef = doc(db, "patients", patientId);
+          await updateDoc(patientRef, updatedData);
+
+          alert("Patient information updated successfully!");
+
+          // Disable editing again
+          infoInputs.forEach((input) => input.setAttribute("disabled", "true"));
+          editPatientInfoBtn.textContent = "✏️ Edit";
+        } catch (err) {
+          console.error("Error updating patient information:", err);
+          alert("Failed to update patient information.");
+        }
+      }
+    });
 
     // Initial load
     loadPatient();
