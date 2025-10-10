@@ -83,7 +83,7 @@
           <input
             type="text"
             id="guardian-name"
-            name="guardian-name"   
+            name="guardian-name"
             placeholder="Guardian's Name"
             disabled
           />
@@ -339,128 +339,191 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
   </body>
   <script src="../../script.js"></script>
   <script type="module">
-  import { db } from "../../firebaseconfig.js";
-  import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { db } from "../../firebaseconfig.js";
+    import {
+      doc,
+      getDoc,
+      updateDoc,
+    } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-  // Get ID from URL (?id=xxxx)
-  const urlParams = new URLSearchParams(window.location.search);
-  const patientId = urlParams.get("id");
-  let isEditingContacts = false;
+    // Get ID from URL (?id=xxxx)
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get("id");
+    let isEditingContacts = false;
 
-  // Load patient data
-  async function loadPatient() {
-    if (!patientId) {
-      alert("No patient ID provided");
-      return;
-    }
-
-    try {
-      const patientRef = doc(db, "patients", patientId);
-      const patientSnap = await getDoc(patientRef);
-
-      if (patientSnap.exists()) {
-        const data = patientSnap.data();
-
-        // Set name header
-        document.querySelector(".patient-contacts h2").textContent =
-          `${data.lastName + "," || ""} ${data.firstName || ""}`.trim();
-
-        // Fill contact details
-        document.getElementById("phone-number").value = data.contact || "";
-        document.getElementById("email-address").value = data.email || "";
-        document.getElementById("home-address").value = data.address || "";
-        document.getElementById("guardian-name").value = data.guardianName || "";
-        document.getElementById("guardian-phone").value = data.guardianPhone || "";
-
-        // Fill patient info (basic example)
-        const infoFields = {
-          lastName: data.lastName,
-          firstName: data.firstName,
-          middleName: data.middleName || "",
-          extName: data.extName || "",
-          gender: data.gender,
-          birthdate: data.birthdate,
-          age: data.age,
-          civilStatus: data.civilStatus || "",
-          nationality: data.nationality || "",
-          religion: data.religion || "",
-          schoolId: data.schoolId,
-          role: data.role,
-          department: data.department || "",
-          course: data.course || "",
-          year: data.year || "",
-        };
-
-        const infoInputs = document.querySelectorAll(".patient-info-content .info-grid input");
-        Object.values(infoFields).forEach((val, i) => {
-          if (infoInputs[i]) infoInputs[i].value = val;
-        });
-
-        
-        // Fill parent info
-const parentFields = {
-  fatherName: data.fatherName || "",
-  fatherAge: data.fatherAge || "",
-  fatherOccupation: data.fatherOccupation || "",
-  fatherHealth: data.fatherHealth || "",
-  motherName: data.motherName || "",
-  motherAge: data.motherAge || "",
-  motherOccupation: data.motherOccupation || "",
-  motherHealth: data.motherHealth || "",
-};
-
-const parentInputs = document.querySelectorAll("#parent-info-grid input");
-Object.values(parentFields).forEach((val, i) => {
-  if (parentInputs[i]) parentInputs[i].value = val;
-});
-
-      } else {
-        alert("Patient not found!");
+    // Load patient data
+    async function loadPatient() {
+      if (!patientId) {
+        // alert("No patient ID provided");
+        return;
       }
-    } catch (err) {
-      console.error("Error fetching patient:", err);
-    }
-  }
-
-  // Edit/Save toggle for Contact Details
-  document.getElementById("edit-contacts").addEventListener("click", async () => {
-    const inputs = document.querySelectorAll(".patient-contacts input");
-
-    if (!isEditingContacts) {
-      // Enable editing
-      inputs.forEach((inp) => inp.removeAttribute("disabled"));
-      document.getElementById("edit-contacts").textContent = "💾 Save";
-      isEditingContacts = true;
-    } else {
-      // Save updated data
-      const updatedData = {
-        contact: document.getElementById("phone-number").value,
-        email: document.getElementById("email-address").value,
-        address: document.getElementById("home-address").value,
-        guardianName: document.getElementById("guardian-name").value,
-        guardianPhone: document.getElementById("guardian-phone").value,
-      };
 
       try {
         const patientRef = doc(db, "patients", patientId);
-        await updateDoc(patientRef, updatedData);
+        const patientSnap = await getDoc(patientRef);
 
-        alert("Contact details updated!");
+        if (patientSnap.exists()) {
+          const data = patientSnap.data();
 
-        // Disable editing again
-        inputs.forEach((inp) => inp.setAttribute("disabled", "true"));
-        document.getElementById("edit-contacts").textContent = "✏️ Edit";
-        isEditingContacts = false;
+          // Set name header
+          document.querySelector(".patient-contacts h2").textContent = `${
+            data.lastName + "," || ""
+          } ${data.firstName || ""}`.trim();
+
+          // Fill contact details
+          document.getElementById("phone-number").value = data.contact || "";
+          document.getElementById("email-address").value = data.email || "";
+          document.getElementById("home-address").value = data.address || "";
+          document.getElementById("guardian-name").value =
+            data.guardianName || "";
+          document.getElementById("guardian-phone").value =
+            data.guardianPhone || "";
+
+          // Fill patient info (basic example)
+          const infoFields = {
+            lastName: data.lastName,
+            firstName: data.firstName,
+            middleName: data.middleName || "",
+            extName: data.extName || "",
+            gender: data.gender,
+            birthdate: data.birthdate,
+            age: data.age,
+            civilStatus: data.civilStatus || "",
+            nationality: data.nationality || "",
+            religion: data.religion || "",
+            schoolId: data.schoolId,
+            role: data.role,
+            department: data.department || "",
+            course: data.course || "",
+            year: data.year || "",
+          };
+
+          const infoInputs = document.querySelectorAll(
+            ".patient-info-content .info-grid input"
+          );
+          Object.values(infoFields).forEach((val, i) => {
+            if (infoInputs[i]) infoInputs[i].value = val;
+          });
+
+          // Fill parent info
+          const parentFields = {
+            fatherName: data.fatherName || "",
+            fatherAge: data.fatherAge || "",
+            fatherOccupation: data.fatherOccupation || "",
+            fatherHealth: data.fatherHealth || "",
+            motherName: data.motherName || "",
+            motherAge: data.motherAge || "",
+            motherOccupation: data.motherOccupation || "",
+            motherHealth: data.motherHealth || "",
+          };
+
+          // Fill medical history
+          const medFields = {
+            pastMedicalHistory: data.pastMedicalHistory || "",
+            familyHistory: data.familyHistory || "",
+            pastSurgicalHistory: data.pastSurgicalHistory || "",
+          };
+
+          const medTextareas = document.querySelectorAll(
+            ".medical-history-content textarea"
+          );
+          Object.values(medFields).forEach((val, i) => {
+            if (medTextareas[i]) medTextareas[i].value = val;
+          });
+
+          const parentInputs = document.querySelectorAll(
+            "#parent-info-grid input"
+          );
+          Object.values(parentFields).forEach((val, i) => {
+            if (parentInputs[i]) parentInputs[i].value = val;
+          });
+        } else {
+          alert("Patient not found!");
+        }
       } catch (err) {
-        console.error("Error updating contact details:", err);
-        alert("Failed to update contact details.");
+        console.error("Error fetching patient:", err);
       }
     }
-  });
 
-  // Initial load
-  loadPatient();
-</script>
+    // Edit/Save toggle for Contact Details
+    document
+      .getElementById("edit-contacts")
+      .addEventListener("click", async () => {
+        const inputs = document.querySelectorAll(".patient-contacts input");
 
+        if (!isEditingContacts) {
+          // Enable editing
+          inputs.forEach((inp) => inp.removeAttribute("disabled"));
+          document.getElementById("edit-contacts").textContent = "💾 Save";
+          isEditingContacts = true;
+        } else {
+          // Save updated data
+          const updatedData = {
+            contact: document.getElementById("phone-number").value,
+            email: document.getElementById("email-address").value,
+            address: document.getElementById("home-address").value,
+            guardianName: document.getElementById("guardian-name").value,
+            guardianPhone: document.getElementById("guardian-phone").value,
+          };
 
+          try {
+            const patientRef = doc(db, "patients", patientId);
+            await updateDoc(patientRef, updatedData);
+
+            alert("Contact details updated!");
+
+            // Disable editing again
+            inputs.forEach((inp) => inp.setAttribute("disabled", "true"));
+            document.getElementById("edit-contacts").textContent = "✏️ Edit";
+            isEditingContacts = false;
+          } catch (err) {
+            console.error("Error updating contact details:", err);
+            alert("Failed to update contact details.");
+          }
+        }
+      });
+
+    // Edit/Save toggle for Medical History
+    const editHistoryBtn = document.querySelector(
+      ".medical-history-content .edit-btn"
+    );
+
+    editHistoryBtn.addEventListener("click", async () => {
+      const textareas = document.querySelectorAll(
+        ".medical-history-content textarea"
+      );
+
+      if (editHistoryBtn.textContent.includes("✏️")) {
+        // Enable editing
+        textareas.forEach((ta) => ta.removeAttribute("disabled"));
+        editHistoryBtn.textContent = "💾 Save";
+      } else {
+        // Collect updated values
+        const [pastMedical, familyHistory, pastSurgical] = Array.from(
+          textareas
+        ).map((ta) => ta.value.trim());
+
+        try {
+          const patientRef = doc(db, "patients", patientId);
+          await updateDoc(patientRef, {
+            pastMedicalHistory: pastMedical,
+            familyHistory: familyHistory,
+            pastSurgicalHistory: pastSurgical,
+          });
+
+          alert("Medical History updated!");
+
+          // Disable editing again
+          textareas.forEach((ta) => ta.setAttribute("disabled", "true"));
+          editHistoryBtn.textContent = "✏️ Edit";
+        } catch (err) {
+          console.error("Error updating medical history:", err);
+          alert("Failed to update medical history.");
+        }
+      }
+    });
+
+    // Initial load
+    loadPatient();
+  </script>
 </html>
