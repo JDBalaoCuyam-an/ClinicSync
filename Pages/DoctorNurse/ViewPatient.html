@@ -333,6 +333,31 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
               <button onclick="closeButtonOverlay()">Cancel</button>
             </form>
           </div>
+          <div id="consultation-overview" class="consultation-modal">
+            <div class="modal-content">
+              <h2>Consultation Overview</h2>
+              <div class="overview-details">
+                <p><strong>Doctor:</strong> <span id="ovr-doctor"></span></p>
+                <p><strong>Date:</strong> <span id="ovr-date"></span></p>
+                <p><strong>Time:</strong> <span id="ovr-time"></span></p>
+                <p>
+                  <strong>Chief Complaint:</strong>
+                  <span id="ovr-complaint"></span>
+                </p>
+                <p>
+                  <strong>Diagnosis:</strong> <span id="ovr-diagnosis"></span>
+                </p>
+                <p><strong>Medications:</strong> <span id="ovr-meds"></span></p>
+                <h4>Vital Signs</h4>
+                <p><strong>BP:</strong> <span id="ovr-bp"></span></p>
+                <p><strong>T (°C):</strong> <span id="ovr-temp"></span></p>
+                <p><strong>SpO₂:</strong> <span id="ovr-spo2"></span></p>
+                <p><strong>PR (bpm):</strong> <span id="ovr-pr"></span></p>
+                <p><strong>LMP:</strong> <span id="ovr-lmp"></span></p>
+              </div>
+              <button onclick="closeOverview()">Close</button>
+            </div>
+          </div>
 
           <!-- <div class="tab-content dental-records-content">
             <h3>Dental Records :</h3>
@@ -393,6 +418,9 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
       doc,
       getDoc,
       updateDoc,
+      collection,
+      addDoc,
+      getDocs,
     } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     // Get ID from URL (?id=xxxx)
@@ -631,8 +659,103 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
         }
       }
     });
+    document
+      .getElementById("consultation-form")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const consultData = {
+          consultingDoctor: document.getElementById("consult-doctor").value,
+          date: document.getElementById("consult-date").value,
+          time: document.getElementById("consult-time").value,
+          complaint: document.getElementById("consult-complaint").value,
+          diagnosis: document.getElementById("consult-diagnosis").value,
+          meds: document.getElementById("consult-meds").value,
+          vitals: {
+            bp: document.getElementById("vital-bp").value,
+            temp: document.getElementById("vital-temp").value,
+            spo2: document.getElementById("vital-spo2").value,
+            pr: document.getElementById("vital-pr").value,
+            lmp: document.getElementById("vital-lmp").value,
+          },
+          createdAt: new Date(),
+        };
+
+        try {
+          const consultRef = collection(
+            db,
+            "patients",
+            patientId,
+            "consultations"
+          );
+          await addDoc(consultRef, consultData);
+          alert("Consultation Record Saved!");
+          loadConsultations();
+          closeButtonOverlay();
+        } catch (err) {
+          console.error("Error adding consultation:", err);
+          alert("Failed to save consultation record.");
+        }
+      });
+
+    async function loadConsultations() {
+      const tableBody = document.querySelector(
+        ".medical-records-content tbody"
+      );
+      tableBody.innerHTML = ""; // Clear old rows
+
+      try {
+        const consultRef = collection(
+          db,
+          "patients",
+          patientId,
+          "consultations"
+        );
+        const snapshot = await getDocs(consultRef);
+
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+        <td>${data.consultingDoctor}</td>
+        <td>${data.date}</td>
+        <td>${data.time}</td>
+        <td>${data.complaint}</td>
+        <td>${data.diagnosis || "-"}</td>
+        <td>${data.meds || "-"}</td>
+      `;
+
+          tr.addEventListener("click", () => showConsultationDetails(data));
+          tableBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Error loading consultations:", err);
+      }
+    }
+    window.showConsultationDetails = function (data) {
+      document.getElementById("ovr-doctor").textContent = data.consultingDoctor;
+      document.getElementById("ovr-date").textContent = data.date;
+      document.getElementById("ovr-time").textContent = data.time;
+      document.getElementById("ovr-complaint").textContent = data.complaint;
+      document.getElementById("ovr-diagnosis").textContent =
+        data.diagnosis || "-";
+      document.getElementById("ovr-meds").textContent = data.meds || "-";
+      document.getElementById("ovr-bp").textContent = data.vitals.bp || "-";
+      document.getElementById("ovr-temp").textContent = data.vitals.temp || "-";
+      document.getElementById("ovr-spo2").textContent = data.vitals.spo2 || "-";
+      document.getElementById("ovr-pr").textContent = data.vitals.pr || "-";
+      document.getElementById("ovr-lmp").textContent = data.vitals.lmp || "-";
+
+      document.getElementById("consultation-overview").classList.add("show");
+    };
+
+    window.closeOverview = function () {
+      document.getElementById("consultation-overview").classList.remove("show");
+    };
 
     // Initial load
+
     loadPatient();
+    await loadConsultations();
   </script>
 </html>
