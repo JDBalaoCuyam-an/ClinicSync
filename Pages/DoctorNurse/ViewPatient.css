@@ -204,3 +204,121 @@
   font-weight: bold;
   cursor: pointer;
 }
+
+/* Consultation Record Modal */
+#add-consultation-record {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  max-width: 700px;
+  background-color: #fff;
+  border: 2px solid #4682b4;
+  border-radius: 10px;
+  padding: 20px 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  display: none;
+}
+
+#add-consultation-record.show {
+  display: block;
+}
+
+#add-consultation-record h2 {
+  text-align: center;
+  color: #2b4c7e;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #4682b4;
+  padding-bottom: 10px;
+}
+
+#consultation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#consultation-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+#consultation-form input[type="text"],
+#consultation-form input[type="date"],
+#consultation-form input[type="time"] {
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #4682b4;
+  border-radius: 4px;
+  margin-top: 3px;
+}
+
+#consultation-form input:focus {
+  outline: none;
+  border-color: #2b4c7e;
+  background-color: #f0f8ff;
+}
+
+/* Vital Signs Section */
+.vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #cce0ff;
+  border-radius: 6px;
+  background-color: #f7fbff;
+}
+
+.vitals-grid label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.vitals-grid input {
+  margin-top: 3px;
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #4682b4;
+  border-radius: 4px;
+}
+
+/* Buttons */
+#consultation-form .save-btn,
+#consultation-form button[type="button"],
+#consultation-form button:not(.save-btn) {
+  margin-top: 15px;
+  padding: 8px 0;
+  border: none;
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-btn {
+  background-color: #4682b4;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.save-btn:hover {
+  background-color: #2b4c7e;
+}
+
+#consultation-form button:not(.save-btn) {
+  background-color: #ccc;
+  color: #333;
+}
+
+#consultation-form button:not(.save-btn):hover {
+  background-color: #bbb;
+}
+
+

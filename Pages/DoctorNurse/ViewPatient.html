@@ -40,6 +40,7 @@
         <button type="submit" id="logout-button">Log Out</button>
       </form>
     </div>
+    <div id="overlay" class="overlay"></div>
 
     <div style="display: flex; justify-content: space-between">
       <button
@@ -119,11 +120,11 @@
 
           <input type="radio" id="medical-records" name="tab" />
           <label class="radio-tabs" for="medical-records"
-            >Medical Records</label
+            >Medical Consultation Records</label
           >
-
-          <input type="radio" id="dental-records" name="tab" />
-          <label class="radio-tabs" for="dental-records">Dental Records</label>
+          <!-- Dental Records -->
+          <!-- <input type="radio" id="dental-records" name="tab" />
+          <label class="radio-tabs" for="dental-records">Dental Records</label> -->
 
           <input type="radio" id="physical-examination" name="tab" />
           <label class="radio-tabs" for="physical-examination"
@@ -248,12 +249,13 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
           <div class="tab-content medical-records-content">
             <h2>Medical Consultation Records :</h2>
 
-            <button class="new-btn">+ New</button>
+            <button onclick="addConsultationRecordOverlay()" class="new-btn">
+              + New
+            </button>
 
             <table>
               <thead>
                 <tr>
-                  <th></th>
                   <th>Cons. Dr.</th>
                   <th>Date</th>
                   <th>Time</th>
@@ -264,7 +266,6 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
               </thead>
               <tbody>
                 <tr>
-                  <td>📄</td>
                   <td>Dr. John Doe</td>
                   <td>10/07/2025</td>
                   <td>10:00 AM</td>
@@ -273,7 +274,6 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
                   <td>-</td>
                 </tr>
                 <tr>
-                  <td>📄</td>
                   <td>Dr. John Doe</td>
                   <td>04/07/2025</td>
                   <td>10:00 AM</td>
@@ -284,15 +284,64 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
               </tbody>
             </table>
           </div>
+          <!-- New Consultation Record -->
+          <div id="add-consultation-record">
+            <h2>New Consultation Record</h2>
 
-          <div class="tab-content dental-records-content">
+            <form id="consultation-form">
+              <label
+                >Consulting Doctor:<input
+                  type="text"
+                  id="consult-doctor"
+                  required
+              /></label>
+              <label
+                >Date:<input type="date" id="consult-date" required
+              /></label>
+              <label
+                >Time:<input type="time" id="consult-time" required
+              /></label>
+              <label
+                >Chief Complaint:<input
+                  type="text"
+                  id="consult-complaint"
+                  required
+              /></label>
+              <label
+                >Diagnosis:<input type="text" id="consult-diagnosis"
+              /></label>
+              <label>Medications:<input type="text" id="consult-meds" /></label>
+
+              <h4>Vital Signs</h4>
+              <div class="vitals-grid">
+                <label
+                  >BP:<input type="text" id="vital-bp" placeholder="120/80"
+                /></label>
+                <label
+                  >T (°C):<input type="text" id="vital-temp" placeholder="36.5"
+                /></label>
+                <label
+                  >SpO₂ (%):<input type="text" id="vital-spo2" placeholder="98"
+                /></label>
+                <label
+                  >PR (bpm):<input type="text" id="vital-pr" placeholder="75"
+                /></label>
+                <label>LMP:<input type="date" id="vital-lmp" /></label>
+              </div>
+
+              <button type="submit" class="save-btn">Save</button>
+              <button onclick="closeButtonOverlay()">Cancel</button>
+            </form>
+          </div>
+
+          <!-- <div class="tab-content dental-records-content">
             <h3>Dental Records :</h3>
             <button class="new-btn">+ New</button>
 
             <table>
               <thead>
                 <tr>
-                  <th></th>
+                  
                   <th>Const. Dr.</th>
                   <th>Date</th>
                   <th>Tooth</th>
@@ -302,7 +351,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
               </thead>
               <tbody>
                 <tr>
-                  <td>📄</td>
+                  
                   <td>Dr. John Doe</td>
                   <td>04/09/2025</td>
                   <td>28</td>
@@ -310,7 +359,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
                   <td>Mild Bleeding</td>
                 </tr>
                 <tr>
-                  <td>📄</td>
+                  
                   <td>Dr. John Doe</td>
                   <td>04/08/2025</td>
                   <td>14</td>
@@ -318,7 +367,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
                   <td>Mo Surface</td>
                 </tr>
                 <tr>
-                  <td>📄</td>
+                  
                   <td>Dr. John Doe</td>
                   <td>04/07/2025</td>
                   <td>-</td>
@@ -327,7 +376,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
                 </tr>
               </tbody>
             </table>
-          </div>
+          </div> -->
         </div>
 
         <div class="tab-content physical-examination-content">
@@ -522,7 +571,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
         }
       }
     });
-    
+
     // Edit/Save toggle for Patient Information
     const editPatientInfoBtn = document.querySelector(
       ".patient-info-content .edit-btn"
