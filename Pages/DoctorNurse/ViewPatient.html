@@ -100,7 +100,7 @@
           <h3>Documents :</h3>
           <button class="upload-btn">Upload Files</button>
           <ul class="documents-list">
-            <li>Ovarian Scan, Nov 25 (2.7 MB)</li>
+            <li>Skull X-ray, Nov 25 (2.7 MB)</li>
             <li>XYV Blood Test (0.7 MB)</li>
             <li>Blood Test XYZ (2.7 MB)</li>
           </ul>
@@ -118,13 +118,10 @@
             >Medical History</label
           >
 
-          <input type="radio" id="medical-records" name="tab" />
-          <label class="radio-tabs" for="medical-records"
+          <input type="radio" id="medical-consultation" name="tab" />
+          <label class="radio-tabs" for="medical-consultation"
             >Medical Consultation Records</label
           >
-          <!-- Dental Records -->
-          <!-- <input type="radio" id="dental-records" name="tab" />
-          <label class="radio-tabs" for="dental-records">Dental Records</label> -->
 
           <input type="radio" id="physical-examination" name="tab" />
           <label class="radio-tabs" for="physical-examination"
@@ -219,24 +216,18 @@
           <div class="tab-content medical-history-content">
             <div class="header-row">
               <h2>Medical History :</h2>
-              <button class="edit-btn" onclick="toggleEdit(this)">
-                ✏️ Edit
-              </button>
+              <button class="edit-btn">✏️ Edit</button>
             </div>
 
             <div class="history-grid">
               <div class="history-card">
                 <h3>Past Medical History</h3>
-                <textarea disabled>
-Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum culpa numquam! Quisquam debitis at cum velit tenetur, eius inventore id quae vero, autem, ullam eum voluptatum provident sit?</textarea
-                >
+                <textarea disabled>---</textarea>
               </div>
 
               <div class="history-card">
                 <h3>Family History</h3>
-                <textarea disabled>
-Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum culpa numquam! Quisquam debitis at cum velit tenetur, eius inventore id quae vero, autem, ullam eum voluptatum provident sit?</textarea
-                >
+                <textarea disabled>---</textarea>
               </div>
 
               <div class="history-card">
@@ -246,7 +237,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
             </div>
           </div>
 
-          <div class="tab-content medical-records-content">
+          <div class="tab-content medical-consultation-content">
             <h2>Medical Consultation Records :</h2>
 
             <button onclick="addConsultationRecordOverlay()" class="new-btn">
@@ -328,6 +319,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
                 /></label>
                 <label>LMP:<input type="date" id="vital-lmp" /></label>
               </div>
+              <label>Notes:<input type="text" id="consult-notes" /></label>
 
               <button type="submit" class="save-btn">Save</button>
               <button onclick="closeButtonOverlay()">Cancel</button>
@@ -354,65 +346,23 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
                 <p><strong>SpO₂:</strong> <span id="ovr-spo2"></span></p>
                 <p><strong>PR (bpm):</strong> <span id="ovr-pr"></span></p>
                 <p><strong>LMP:</strong> <span id="ovr-lmp"></span></p>
+                <p><strong>Notes:</strong> <span id="ovr-notes"></span></p>
               </div>
               <button onclick="closeOverview()">Close</button>
             </div>
           </div>
-
-          <!-- <div class="tab-content dental-records-content">
-            <h3>Dental Records :</h3>
-            <button class="new-btn">+ New</button>
-
-            <table>
-              <thead>
-                <tr>
-                  
-                  <th>Const. Dr.</th>
-                  <th>Date</th>
-                  <th>Tooth</th>
-                  <th>Procedure</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  
-                  <td>Dr. John Doe</td>
-                  <td>04/09/2025</td>
-                  <td>28</td>
-                  <td>Extraction</td>
-                  <td>Mild Bleeding</td>
-                </tr>
-                <tr>
-                  
-                  <td>Dr. John Doe</td>
-                  <td>04/08/2025</td>
-                  <td>14</td>
-                  <td>Composite Filling</td>
-                  <td>Mo Surface</td>
-                </tr>
-                <tr>
-                  
-                  <td>Dr. John Doe</td>
-                  <td>04/07/2025</td>
-                  <td>-</td>
-                  <td>Oral Exam</td>
-                  <td>-</td>
-                </tr>
-              </tbody>
-            </table>
-          </div> -->
-        </div>
-
-        <div class="tab-content physical-examination-content">
-          <h2>Physical Examination</h2>
-          <p>Files, attachments, and lab results...</p>
+          <div class="tab-content physical-examination-content">
+            <h2>Physical Examination</h2>
+          </div>
         </div>
       </div>
     </div>
   </body>
   <script src="../../script.js"></script>
   <script type="module">
+    /* -----------------------------------------------
+     🔹 FIREBASE IMPORTS & INITIAL SETUP
+  ----------------------------------------------- */
     import { db } from "../../firebaseconfig.js";
     import {
       doc,
@@ -423,106 +373,104 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
       getDocs,
     } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-    // Get ID from URL (?id=xxxx)
     const urlParams = new URLSearchParams(window.location.search);
     const patientId = urlParams.get("id");
     let isEditingContacts = false;
 
-    // Load patient data
+    /* -----------------------------------------------
+     🔹 LOAD PATIENT DATA
+  ----------------------------------------------- */
     async function loadPatient() {
-      if (!patientId) {
-        // alert("No patient ID provided");
-        return;
-      }
+      if (!patientId) return;
 
       try {
         const patientRef = doc(db, "patients", patientId);
         const patientSnap = await getDoc(patientRef);
 
-        if (patientSnap.exists()) {
-          const data = patientSnap.data();
-
-          // Set name header
-          document.querySelector(".patient-contacts h2").textContent = `${
-            data.lastName + "," || ""
-          } ${data.firstName || ""}`.trim();
-
-          // Fill contact details
-          document.getElementById("phone-number").value = data.contact || "";
-          document.getElementById("email-address").value = data.email || "";
-          document.getElementById("home-address").value = data.address || "";
-          document.getElementById("guardian-name").value =
-            data.guardianName || "";
-          document.getElementById("guardian-phone").value =
-            data.guardianPhone || "";
-
-          // Fill patient info (basic example)
-          const infoFields = {
-            lastName: data.lastName,
-            firstName: data.firstName,
-            middleName: data.middleName || "",
-            extName: data.extName || "",
-            gender: data.gender,
-            birthdate: data.birthdate,
-            age: data.age,
-            civilStatus: data.civilStatus || "",
-            nationality: data.nationality || "",
-            religion: data.religion || "",
-            schoolId: data.schoolId,
-            role: data.role,
-            department: data.department || "",
-            course: data.course || "",
-            year: data.year || "",
-          };
-
-          const infoInputs = document.querySelectorAll(
-            ".patient-info-content .info-grid input"
-          );
-          Object.values(infoFields).forEach((val, i) => {
-            if (infoInputs[i]) infoInputs[i].value = val;
-          });
-
-          // Fill parent info
-          const parentFields = {
-            fatherName: data.fatherName || "",
-            fatherAge: data.fatherAge || "",
-            fatherOccupation: data.fatherOccupation || "",
-            fatherHealth: data.fatherHealth || "",
-            motherName: data.motherName || "",
-            motherAge: data.motherAge || "",
-            motherOccupation: data.motherOccupation || "",
-            motherHealth: data.motherHealth || "",
-          };
-
-          // Fill medical history
-          const medFields = {
-            pastMedicalHistory: data.pastMedicalHistory || "",
-            familyHistory: data.familyHistory || "",
-            pastSurgicalHistory: data.pastSurgicalHistory || "",
-          };
-
-          const medTextareas = document.querySelectorAll(
-            ".medical-history-content textarea"
-          );
-          Object.values(medFields).forEach((val, i) => {
-            if (medTextareas[i]) medTextareas[i].value = val;
-          });
-
-          const parentInputs = document.querySelectorAll(
-            "#parent-info-grid input"
-          );
-          Object.values(parentFields).forEach((val, i) => {
-            if (parentInputs[i]) parentInputs[i].value = val;
-          });
-        } else {
+        if (!patientSnap.exists()) {
           alert("Patient not found!");
+          return;
         }
+
+        const data = patientSnap.data();
+
+        // 🧾 Header Name
+        document.querySelector(".patient-contacts h2").textContent = `${
+          data.lastName + "," || ""
+        } ${data.firstName || ""}`.trim();
+
+        // 🧩 Contact Details
+        document.getElementById("phone-number").value = data.contact || "";
+        document.getElementById("email-address").value = data.email || "";
+        document.getElementById("home-address").value = data.address || "";
+        document.getElementById("guardian-name").value =
+          data.guardianName || "";
+        document.getElementById("guardian-phone").value =
+          data.guardianPhone || "";
+
+        // 🧩 Basic Info
+        const infoFields = {
+          lastName: data.lastName,
+          firstName: data.firstName,
+          middleName: data.middleName || "",
+          extName: data.extName || "",
+          gender: data.gender,
+          birthdate: data.birthdate,
+          age: data.age,
+          civilStatus: data.civilStatus || "",
+          nationality: data.nationality || "",
+          religion: data.religion || "",
+          schoolId: data.schoolId,
+          role: data.role,
+          department: data.department || "",
+          course: data.course || "",
+          year: data.year || "",
+        };
+        const infoInputs = document.querySelectorAll(
+          ".patient-info-content .info-grid input"
+        );
+        Object.values(infoFields).forEach((val, i) => {
+          if (infoInputs[i]) infoInputs[i].value = val;
+        });
+
+        // 🧩 Parent Info
+        const parentFields = {
+          fatherName: data.fatherName || "",
+          fatherAge: data.fatherAge || "",
+          fatherOccupation: data.fatherOccupation || "",
+          fatherHealth: data.fatherHealth || "",
+          motherName: data.motherName || "",
+          motherAge: data.motherAge || "",
+          motherOccupation: data.motherOccupation || "",
+          motherHealth: data.motherHealth || "",
+        };
+        const parentInputs = document.querySelectorAll(
+          "#parent-info-grid input"
+        );
+        Object.values(parentFields).forEach((val, i) => {
+          if (parentInputs[i]) parentInputs[i].value = val;
+        });
+
+        // 🧩 Medical History
+        const medFields = {
+          pastMedicalHistory: data.pastMedicalHistory || "",
+          familyHistory: data.familyHistory || "",
+          pastSurgicalHistory: data.pastSurgicalHistory || "",
+        };
+        const medTextareas = document.querySelectorAll(
+          ".medical-history-content textarea"
+        );
+        Object.values(medFields).forEach((val, i) => {
+          if (medTextareas[i]) medTextareas[i].value = val;
+        });
       } catch (err) {
         console.error("Error fetching patient:", err);
       }
     }
 
-    // Edit/Save toggle for Contact Details
+    /* -----------------------------------------------
+     🔹 EDIT/SAVE CONTACT DETAILS
+  ----------------------------------------------- */
     document
       .getElementById("edit-contacts")
       .addEventListener("click", async () => {
@@ -534,7 +482,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
           document.getElementById("edit-contacts").textContent = "💾 Save";
           isEditingContacts = true;
         } else {
-          // Save updated data
+          // Save updated contact info
           const updatedData = {
             contact: document.getElementById("phone-number").value,
             email: document.getElementById("email-address").value,
@@ -544,12 +492,8 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
           };
 
           try {
-            const patientRef = doc(db, "patients", patientId);
-            await updateDoc(patientRef, updatedData);
-
+            await updateDoc(doc(db, "patients", patientId), updatedData);
             alert("Contact details updated!");
-
-            // Disable editing again
             inputs.forEach((inp) => inp.setAttribute("disabled", "true"));
             document.getElementById("edit-contacts").textContent = "✏️ Edit";
             isEditingContacts = false;
@@ -560,37 +504,31 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
         }
       });
 
-    // Edit/Save toggle for Medical History
+    /* -----------------------------------------------
+     🔹 EDIT/SAVE MEDICAL HISTORY
+  ----------------------------------------------- */
     const editHistoryBtn = document.querySelector(
       ".medical-history-content .edit-btn"
     );
-
     editHistoryBtn.addEventListener("click", async () => {
       const textareas = document.querySelectorAll(
         ".medical-history-content textarea"
       );
 
       if (editHistoryBtn.textContent.includes("✏️")) {
-        // Enable editing
         textareas.forEach((ta) => ta.removeAttribute("disabled"));
         editHistoryBtn.textContent = "💾 Save";
       } else {
-        // Collect updated values
         const [pastMedical, familyHistory, pastSurgical] = Array.from(
           textareas
         ).map((ta) => ta.value.trim());
-
         try {
-          const patientRef = doc(db, "patients", patientId);
-          await updateDoc(patientRef, {
+          await updateDoc(doc(db, "patients", patientId), {
             pastMedicalHistory: pastMedical,
             familyHistory: familyHistory,
             pastSurgicalHistory: pastSurgical,
           });
-
           alert("Medical History updated!");
-
-          // Disable editing again
           textareas.forEach((ta) => ta.setAttribute("disabled", "true"));
           editHistoryBtn.textContent = "✏️ Edit";
         } catch (err) {
@@ -600,57 +538,51 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
       }
     });
 
-    // Edit/Save toggle for Patient Information
+    /* -----------------------------------------------
+     🔹 EDIT/SAVE PATIENT INFORMATION
+  ----------------------------------------------- */
     const editPatientInfoBtn = document.querySelector(
       ".patient-info-content .edit-btn"
     );
-
     editPatientInfoBtn.addEventListener("click", async () => {
       const infoInputs = document.querySelectorAll(
         ".patient-info-content .info-grid input"
       );
 
       if (editPatientInfoBtn.textContent.includes("✏️")) {
-        // Enable editing
         infoInputs.forEach((input) => input.removeAttribute("disabled"));
         editPatientInfoBtn.textContent = "💾 Save";
       } else {
-        // Gather updated values
         const updatedData = {
-          lastName: document.getElementById("lastName").value,
-          firstName: document.getElementById("firstName").value,
-          middleName: document.getElementById("middleName").value,
-          extName: document.getElementById("extName").value,
-          gender: document.getElementById("gender").value,
-          birthdate: document.getElementById("birthdate").value,
-          age: Number(document.getElementById("age").value),
-          civilStatus: document.getElementById("civilStatus").value,
-          nationality: document.getElementById("nationality").value,
-          religion: document.getElementById("religion").value,
-          schoolId: document.getElementById("schoolId").value,
-          role: document.getElementById("role").value,
-          department: document.getElementById("department").value,
-          course: document.getElementById("course").value,
-          year: Number(document.getElementById("year").value),
+          lastName: lastName.value,
+          firstName: firstName.value,
+          middleName: middleName.value,
+          extName: extName.value,
+          gender: gender.value,
+          birthdate: birthdate.value,
+          age: Number(age.value),
+          civilStatus: civilStatus.value,
+          nationality: nationality.value,
+          religion: religion.value,
+          schoolId: schoolId.value,
+          role: role.value,
+          department: department.value,
+          course: course.value,
+          year: Number(year.value),
 
-          // Parent info
-          fatherName: document.getElementById("fatherName").value,
-          fatherAge: Number(document.getElementById("fatherAge").value),
-          fatherOccupation: document.getElementById("fatherOccupation").value,
-          fatherHealth: document.getElementById("fatherHealth").value,
-          motherName: document.getElementById("motherName").value,
-          motherAge: Number(document.getElementById("motherAge").value),
-          motherOccupation: document.getElementById("motherOccupation").value,
-          motherHealth: document.getElementById("motherHealth").value,
+          fatherName: fatherName.value,
+          fatherAge: Number(fatherAge.value),
+          fatherOccupation: fatherOccupation.value,
+          fatherHealth: fatherHealth.value,
+          motherName: motherName.value,
+          motherAge: Number(motherAge.value),
+          motherOccupation: motherOccupation.value,
+          motherHealth: motherHealth.value,
         };
 
         try {
-          const patientRef = doc(db, "patients", patientId);
-          await updateDoc(patientRef, updatedData);
-
-          alert("Patient information updated successfully!");
-
-          // Disable editing again
+          await updateDoc(doc(db, "patients", patientId), updatedData);
+          alert("Patient information updated!");
           infoInputs.forEach((input) => input.setAttribute("disabled", "true"));
           editPatientInfoBtn.textContent = "✏️ Edit";
         } catch (err) {
@@ -659,6 +591,10 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
         }
       }
     });
+
+    /* -----------------------------------------------
+     🔹 CONSULTATION FORM SUBMIT
+  ----------------------------------------------- */
     document
       .getElementById("consultation-form")
       .addEventListener("submit", async (e) => {
@@ -671,6 +607,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
           complaint: document.getElementById("consult-complaint").value,
           diagnosis: document.getElementById("consult-diagnosis").value,
           meds: document.getElementById("consult-meds").value,
+          notes: document.getElementById("consult-notes").value,
           vitals: {
             bp: document.getElementById("vital-bp").value,
             temp: document.getElementById("vital-temp").value,
@@ -698,11 +635,14 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
         }
       });
 
+    /* -----------------------------------------------
+     🔹 LOAD CONSULTATION RECORDS
+  ----------------------------------------------- */
     async function loadConsultations() {
       const tableBody = document.querySelector(
-        ".medical-records-content tbody"
+        ".medical-consultation-content tbody"
       );
-      tableBody.innerHTML = ""; // Clear old rows
+      tableBody.innerHTML = "";
 
       try {
         const consultRef = collection(
@@ -717,14 +657,13 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
           const data = docSnap.data();
           const tr = document.createElement("tr");
           tr.innerHTML = `
-        <td>${data.consultingDoctor}</td>
-        <td>${data.date}</td>
-        <td>${data.time}</td>
-        <td>${data.complaint}</td>
-        <td>${data.diagnosis || "-"}</td>
-        <td>${data.meds || "-"}</td>
-      `;
-
+          <td>${data.consultingDoctor}</td>
+          <td>${data.date}</td>
+          <td>${data.time}</td>
+          <td>${data.complaint}</td>
+          <td>${data.diagnosis || "-"}</td>
+          <td>${data.meds || "-"}</td>
+        `;
           tr.addEventListener("click", () => showConsultationDetails(data));
           tableBody.appendChild(tr);
         });
@@ -732,6 +671,10 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
         console.error("Error loading consultations:", err);
       }
     }
+
+    /* -----------------------------------------------
+     🔹 SHOW CONSULTATION DETAILS (MODAL)
+  ----------------------------------------------- */
     window.showConsultationDetails = function (data) {
       document.getElementById("ovr-doctor").textContent = data.consultingDoctor;
       document.getElementById("ovr-date").textContent = data.date;
@@ -740,6 +683,9 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
       document.getElementById("ovr-diagnosis").textContent =
         data.diagnosis || "-";
       document.getElementById("ovr-meds").textContent = data.meds || "-";
+      document.getElementById("ovr-notes").textContent = data.notes || "-";
+
+      // Vital Signs
       document.getElementById("ovr-bp").textContent = data.vitals.bp || "-";
       document.getElementById("ovr-temp").textContent = data.vitals.temp || "-";
       document.getElementById("ovr-spo2").textContent = data.vitals.spo2 || "-";
@@ -753,8 +699,9 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi repellat laborum 
       document.getElementById("consultation-overview").classList.remove("show");
     };
 
-    // Initial load
-
+    /* -----------------------------------------------
+     🔹 INITIAL LOAD
+  ----------------------------------------------- */
     loadPatient();
     await loadConsultations();
   </script>

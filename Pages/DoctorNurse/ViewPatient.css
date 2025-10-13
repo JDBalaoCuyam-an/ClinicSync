@@ -93,7 +93,7 @@
 }
 #patient-info:checked ~ .patient-info-content,
 #medical-history:checked ~ .medical-history-content,
-#medical-records:checked ~ .medical-records-content,
+#medical-consultation:checked ~ .medical-consultation-content,
 #dental-records:checked ~ .dental-records-content,
 #physical-examination:checked ~ .physical-examination-content {
   display: block;
@@ -181,13 +181,13 @@
   padding: 6px;
 }
 
-.medical-records-content {
+.medical-consultation-content {
   position: relative;
   padding: 1rem;
   background: #fff;
 }
 
-.medical-records-content h2 {
+.medical-consultation-content h2 {
   margin-bottom: 10px;
   font-size: 18px;
 }
