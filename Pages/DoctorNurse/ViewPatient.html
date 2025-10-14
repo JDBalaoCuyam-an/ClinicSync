@@ -235,6 +235,94 @@
                 <textarea disabled></textarea>
               </div>
             </div>
+            <!-- end of history-grid -->
+
+            <!-- Additional Medical Info Section -->
+            <div class="additional-info">
+              <div class="history-card">
+                <h3>Nutritional Supplements / Vitamins / Other Medications</h3>
+                <textarea
+                  disabled
+                  placeholder="Enter details here..."
+                ></textarea>
+              </div>
+
+              <div class="history-card">
+                <h3>Allergies</h3>
+                <textarea
+                  disabled
+                  placeholder="List allergies here..."
+                ></textarea>
+              </div>
+
+              <!-- 🔹 Immunization Section -->
+              <div class="history-card immunization-card">
+                <h3>Immunization</h3>
+                <div class="immunization-form">
+                  <div class="immunization-row">
+                    <label>BCG:</label><input name="bcg" type="text" disabled />
+                    <label>DPT:</label><input name="dpt" type="text" disabled />
+                    <label>OPV:</label><input name="opv" type="text" disabled />
+                  </div>
+                  <div class="immunization-row">
+                    <label>HEP. B:</label><input name="hepb" type="text" disabled />
+                    <label>MMR:</label><input name="mmr" type="text" disabled />
+                    <label>MEASLES:</label><input name="measles" type="text" disabled />
+                  </div>
+                  <div class="immunization-row">
+                    <label>OTHERS:</label
+                    ><input type="text" name="others" disabled style="flex: 1" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 🔹 OB-GYNE History Section -->
+              <div class="history-card obgyne-card">
+                <h3>OB-GYNE History (Female Only)</h3>
+                <div class="obgyne-form">
+                  <div class="ob-row">
+                    <label>Age of First Menstrual Period:</label>
+                    <input type="text" name="menarcheAge" disabled />
+                  </div>
+
+                  <div class="ob-row">
+                    <label>Duration/Days:</label>
+                    <input type="text" name="durationDays" disabled />
+                    <label>Napkin/s per Day:</label>
+                    <input type="text" name="napkinsPerDay" disabled />
+                    <label>Interval:</label>
+                    <input type="text" name="interval" disabled />
+                  </div>
+
+                  <div class="ob-row dysmenorrhea-row">
+                    <label>Dysmenorrhea:</label>
+                    <div class="radio-group">
+                      <label
+                        ><input type="radio" name="dysmenorrhea" value="No" disabled />
+                        No</label
+                      >
+                      <label
+                        ><input type="radio" name="dysmenorrhea" value="Sometimes" disabled />
+                        Sometimes</label
+                      >
+                      <label
+                        ><input type="radio" name="dysmenorrhea" value="Moderate" disabled />
+                        Moderate</label
+                      >
+                      <label
+                        ><input type="radio" name="dysmenorrhea" value="Severe" disabled />
+                        Severe</label
+                      >
+                    </div>
+                  </div>
+
+                  <div class="ob-row">
+                    <label>Last Menstrual:</label>
+                    <input type="date" name="lastMenstrual" disabled />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="tab-content medical-consultation-content">
@@ -451,18 +539,62 @@
           if (parentInputs[i]) parentInputs[i].value = val;
         });
 
-        // 🧩 Medical History
+        // 🧩 Medical History + Additional Info
         const medFields = {
           pastMedicalHistory: data.pastMedicalHistory || "",
           familyHistory: data.familyHistory || "",
           pastSurgicalHistory: data.pastSurgicalHistory || "",
+          supplements: data.supplements || "",
+          allergies: data.allergies || "",
         };
+
+        // set textareas (first 5)
         const medTextareas = document.querySelectorAll(
           ".medical-history-content textarea"
         );
         Object.values(medFields).forEach((val, i) => {
           if (medTextareas[i]) medTextareas[i].value = val;
         });
+
+        // set immunization fields
+        const immunizationFields = [
+          "bcg",
+          "dpt",
+          "opv",
+          "hepb",
+          "mmr",
+          "measles",
+          "others",
+        ];
+        immunizationFields.forEach((key) => {
+          const input = document.querySelector(
+            `.immunization-form input[name='${key}']`
+          );
+          if (input) input.value = data[key] || "";
+        });
+
+        // set OB-GYNE fields
+        const obgyneFields = [
+          "menarcheAge",
+          "durationDays",
+          "napkinsPerDay",
+          "interval",
+          "lastMenstrual",
+        ];
+        obgyneFields.forEach((key) => {
+          const input = document.querySelector(
+            `.obgyne-form input[name='${key}']`
+          );
+          if (input) input.value = data[key] || "";
+        });
+
+        // set Dysmenorrhea radio
+        if (data.dysmenorrhea) {
+          const radio = document.querySelector(
+            `.obgyne-form input[type='radio'][value='${data.dysmenorrhea}']`
+          );
+          if (radio) radio.checked = true;
+        }
       } catch (err) {
         console.error("Error fetching patient:", err);
       }
@@ -511,31 +643,63 @@
       ".medical-history-content .edit-btn"
     );
     editHistoryBtn.addEventListener("click", async () => {
-      const textareas = document.querySelectorAll(
-        ".medical-history-content textarea"
-      );
+      const editableFields = document.querySelectorAll(
+  ".medical-history-content textarea, .medical-history-content input"
+);
 
-      if (editHistoryBtn.textContent.includes("✏️")) {
-        textareas.forEach((ta) => ta.removeAttribute("disabled"));
-        editHistoryBtn.textContent = "💾 Save";
-      } else {
-        const [pastMedical, familyHistory, pastSurgical] = Array.from(
-          textareas
-        ).map((ta) => ta.value.trim());
-        try {
-          await updateDoc(doc(db, "patients", patientId), {
-            pastMedicalHistory: pastMedical,
-            familyHistory: familyHistory,
-            pastSurgicalHistory: pastSurgical,
-          });
-          alert("Medical History updated!");
-          textareas.forEach((ta) => ta.setAttribute("disabled", "true"));
-          editHistoryBtn.textContent = "✏️ Edit";
-        } catch (err) {
-          console.error("Error updating medical history:", err);
-          alert("Failed to update medical history.");
-        }
-      }
+if (editHistoryBtn.textContent.includes("✏️")) {
+  editableFields.forEach((el) => el.removeAttribute("disabled"));
+  editHistoryBtn.textContent = "💾 Save";
+} else {
+  const [
+    pastMedical,
+    familyHistory,
+    pastSurgical,
+    supplements,
+    allergies,
+  ] = Array.from(
+    document.querySelectorAll(".medical-history-content textarea")
+  ).map((ta) => ta.value.trim());
+
+  // get immunization values
+  const immunizationData = {};
+  document
+    .querySelectorAll(".immunization-form input")
+    .forEach((input) => (immunizationData[input.name] = input.value.trim()));
+
+  // get OB-GYNE values
+  const obgyneData = {};
+  document
+    .querySelectorAll(
+      ".obgyne-form input[type='text'], .obgyne-form input[type='date']"
+    )
+    .forEach((input) => (obgyneData[input.name] = input.value.trim()));
+
+  const dysmenorrhea =
+    document.querySelector(".obgyne-form input[type='radio']:checked")
+      ?.value || "";
+
+  try {
+    await updateDoc(doc(db, "patients", patientId), {
+      pastMedicalHistory: pastMedical,
+      familyHistory,
+      pastSurgicalHistory: pastSurgical,
+      supplements,
+      allergies,
+      ...immunizationData,
+      ...obgyneData,
+      dysmenorrhea,
+    });
+
+    alert("Medical History updated!");
+    editableFields.forEach((el) => el.setAttribute("disabled", "true"));
+    editHistoryBtn.textContent = "✏️ Edit";
+  } catch (err) {
+    console.error("Error updating medical history:", err);
+    alert("Failed to update medical history.");
+  }
+}
+
     });
 
     /* -----------------------------------------------

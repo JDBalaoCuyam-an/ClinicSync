@@ -1,8 +1,27 @@
+/* ======================================================
+   🔹 GLOBAL CONTAINERS
+====================================================== */
 .view-patient-container {
   display: flex;
   gap: 20px;
   padding: 20px;
 }
+
+.left-container {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-container {
+  width: 75%;
+  border-radius: 5px;
+}
+
+/* ======================================================
+   🔹 BUTTONS
+====================================================== */
 #back-to-lists,
 #make-appointment {
   background: #4682b4;
@@ -13,16 +32,23 @@
   cursor: pointer;
   margin: 10px 10px;
 }
-.left-container {
-  width: 25%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+
+.new-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #00cc44;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
 }
-.right-container {
-  width: 75%;
-  border-radius: 5px;
-}
+
+/* ======================================================
+   🔹 PATIENT CONTACTS
+====================================================== */
 .patient-contacts {
   width: 100%;
   border: 2px solid #4682b4;
@@ -32,7 +58,9 @@
   gap: 5px;
   padding: 10px;
 }
-.patient-contacts input:disabled, .patient-info-content input:disabled {
+
+.patient-contacts input:disabled,
+.patient-info-content input:disabled {
   width: 100%;
   padding: 5px 3px;
   background-color: #e0efff;
@@ -40,14 +68,19 @@
   font-size: 14px;
   color: #333;
 }
-.patient-contacts input:enabled, .patient-info-content input:enabled {
+
+.patient-contacts input:enabled,
+.patient-info-content input:enabled {
   width: 100%;
   padding: 5px 3px;
   border: 1px solid #4682b4;
-  
   font-size: 14px;
   color: #333;
 }
+
+/* ======================================================
+   🔹 PATIENT RECORDS (Tabs)
+====================================================== */
 .patient-records {
   width: 100%;
   border: 2px solid #4682b4;
@@ -59,19 +92,40 @@
 .patient-records input[type="radio"] {
   display: none;
 }
+
+/* Tab labels */
 .patient-records .radio-tabs {
   display: inline-block;
   padding: 10px 15px;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
 }
-/* Active Tab Style */
+
+/* Active tab */
 .patient-records input:checked + label {
   background: #4682b4;
   color: white;
   border-bottom: 2px solid #4682b4;
 }
 
+/* Tab content */
+.tab-content {
+  display: none;
+  padding: 20px;
+}
+
+#patient-info:checked ~ .patient-info-content,
+#medical-history:checked ~ .medical-history-content,
+#medical-consultation:checked ~ .medical-consultation-content,
+#dental-records:checked ~ .dental-records-content,
+#physical-examination:checked ~ .physical-examination-content {
+  display: block;
+  border-top: 2px solid #4682b4;
+}
+
+/* ======================================================
+   🔹 PATIENT DOCUMENTS
+====================================================== */
 .patient-documents {
   width: 100%;
   border: 2px solid #4682b4;
@@ -86,26 +140,15 @@
   margin: 5px 0;
 }
 
-/* Show content of active tab */
-.tab-content {
-  display: none;
-  padding: 20px;
-}
-#patient-info:checked ~ .patient-info-content,
-#medical-history:checked ~ .medical-history-content,
-#medical-consultation:checked ~ .medical-consultation-content,
-#dental-records:checked ~ .dental-records-content,
-#physical-examination:checked ~ .physical-examination-content {
-  display: block;
-  border-top: 2px solid #4682b4;
-}
-
-/* Patient Info */
+/* ======================================================
+   🔹 PATIENT INFO SECTION
+====================================================== */
 .header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -126,19 +169,23 @@
   background: transparent;
   font-size: 14px;
   padding: 2px 4px;
-  pointer-events: none; /* makes them non-editable */
+  pointer-events: none;
 }
+
 .info-grid input[disabled] {
   color: #000;
 }
 
-/* When editing, add a class to allow typing */
+/* Editing state */
 .editing .info-grid input {
   border: 1px solid #aaa;
   background: #fff;
   pointer-events: auto;
 }
 
+/* ======================================================
+   🔹 MEDICAL HISTORY / SHARED CARD STYLE
+====================================================== */
 .history-grid {
   display: flex;
   gap: 20px;
@@ -147,15 +194,21 @@
 
 .history-card {
   flex: 1;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 10px;
-  background: #fff;
+  background: #f9fbff;
+  border: 1px solid #c6d8f0;
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 60, 120, 0.1);
 }
 
 .history-card h3 {
-  font-size: 14px;
-  margin-bottom: 8px;
+  color: #1f4e79;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 2px solid #c6d8f0;
+  padding-bottom: 5px;
+  margin-bottom: 15px;
 }
 
 .history-card textarea {
@@ -181,6 +234,96 @@
   padding: 6px;
 }
 
+/* ======================================================
+   🔹 IMMUNIZATION SECTION
+====================================================== */
+.immunization-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.immunization-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.immunization-row label {
+  min-width: 70px;
+  font-weight: 600;
+  color: #333;
+}
+
+.immunization-row input {
+  width: 100px;
+  padding: 5px 8px;
+  border: 1px solid #aac7e3;
+  border-radius: 5px;
+  background: #eef5ff;
+  font-size: 13px;
+}
+
+.immunization-row input:disabled {
+  color: #555;
+  opacity: 0.8;
+}
+
+/* ======================================================
+   🔹 OB-GYNE SECTION
+====================================================== */
+.obgyne-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ob-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ob-row label {
+  font-weight: 600;
+  min-width: 170px;
+  color: #333;
+}
+
+.ob-row input[type="text"],
+.ob-row input[type="date"] {
+  padding: 5px 8px;
+  border: 1px solid #aac7e3;
+  border-radius: 5px;
+  background: #eef5ff;
+  font-size: 13px;
+}
+
+/* Radio buttons */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-left: 10px;
+}
+
+.radio-group label {
+  font-weight: 500;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.radio-group input[type="radio"] {
+  accent-color: #1f4e79;
+  display: block;
+}
+
+/* ======================================================
+   🔹 MEDICAL CONSULTATION
+====================================================== */
 .medical-consultation-content {
   position: relative;
   padding: 1rem;
@@ -192,20 +335,37 @@
   font-size: 18px;
 }
 
-.new-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #00cc44;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
+/* Consultation Modal */
+.consultation-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1002;
 }
 
-/* Consultation Record Modal */
+.consultation-modal.show {
+  display: flex;
+}
+
+.consultation-modal .modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 2px solid #4682b4;
+}
+
+/* ======================================================
+   🔹 ADD CONSULTATION FORM
+====================================================== */
 #add-consultation-record {
   position: fixed;
   top: 50%;
@@ -234,6 +394,9 @@
   padding-bottom: 10px;
 }
 
+/* ======================================================
+   🔹 CONSULTATION FORM
+====================================================== */
 #consultation-form {
   display: flex;
   flex-direction: column;
@@ -264,7 +427,7 @@
   background-color: #f0f8ff;
 }
 
-/* Vital Signs Section */
+/* Vital Signs */
 .vitals-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -289,7 +452,9 @@
   border-radius: 4px;
 }
 
-/* Buttons */
+/* ======================================================
+   🔹 CONSULTATION FORM BUTTONS
+====================================================== */
 #consultation-form .save-btn,
 #consultation-form button[type="button"],
 #consultation-form button:not(.save-btn) {
@@ -320,31 +485,3 @@
 #consultation-form button:not(.save-btn):hover {
   background-color: #bbb;
 }
-
-.consultation-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 1002;
-}
-
-.consultation-modal.show {
-  display: flex;
-}
-
-.consultation-modal .modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 400px;
-  max-height: 80vh;
-  overflow-y: auto;
-  border: 2px solid #4682b4;
-}
-
