@@ -260,18 +260,28 @@
                 <h3>Immunization</h3>
                 <div class="immunization-form">
                   <div class="immunization-row">
-                    <label>BCG:</label><input name="bcg" type="text" disabled />
-                    <label>DPT:</label><input name="dpt" type="text" disabled />
+                    <label>BCG:</label
+                    ><input name="bcg" type="text" disabled />
+                    <label>DPT:</label
+                    ><input name="dpt" type="text" disabled />
                     <label>OPV:</label><input name="opv" type="text" disabled />
                   </div>
                   <div class="immunization-row">
-                    <label>HEP. B:</label><input name="hepb" type="text" disabled />
-                    <label>MMR:</label><input name="mmr" type="text" disabled />
-                    <label>MEASLES:</label><input name="measles" type="text" disabled />
+                    <label>HEP. B:</label
+                    ><input name="hepb" type="text" disabled />
+                    <label>MMR:</label
+                    ><input name="mmr" type="text" disabled />
+                    <label>MEASLES:</label
+                    ><input name="measles" type="text" disabled />
                   </div>
                   <div class="immunization-row">
                     <label>OTHERS:</label
-                    ><input type="text" name="others" disabled style="flex: 1" />
+                    ><input
+                      type="text"
+                      name="others"
+                      disabled
+                      style="flex: 1"
+                    />
                   </div>
                 </div>
               </div>
@@ -298,19 +308,39 @@
                     <label>Dysmenorrhea:</label>
                     <div class="radio-group">
                       <label
-                        ><input type="radio" name="dysmenorrhea" value="No" disabled />
+                        ><input
+                          type="radio"
+                          name="dysmenorrhea"
+                          value="No"
+                          disabled
+                        />
                         No</label
                       >
                       <label
-                        ><input type="radio" name="dysmenorrhea" value="Sometimes" disabled />
+                        ><input
+                          type="radio"
+                          name="dysmenorrhea"
+                          value="Sometimes"
+                          disabled
+                        />
                         Sometimes</label
                       >
                       <label
-                        ><input type="radio" name="dysmenorrhea" value="Moderate" disabled />
+                        ><input
+                          type="radio"
+                          name="dysmenorrhea"
+                          value="Moderate"
+                          disabled
+                        />
                         Moderate</label
                       >
                       <label
-                        ><input type="radio" name="dysmenorrhea" value="Severe" disabled />
+                        ><input
+                          type="radio"
+                          name="dysmenorrhea"
+                          value="Severe"
+                          disabled
+                        />
                         Severe</label
                       >
                     </div>
@@ -440,7 +470,141 @@
             </div>
           </div>
           <div class="tab-content physical-examination-content">
-            <h2>Physical Examination</h2>
+            <h2>Physical Examination :</h2>
+
+            <button onclick="addPhysicalExamOverlay()" class="new-btn">
+              + New
+            </button>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>BP</th>
+                  <th>PR</th>
+                  <th>Weight (kg)</th>
+                  <th>Height (cm)</th>
+                  <th>BMI</th>
+                  <th>Findings</th>
+                </tr>
+              </thead>
+              <tbody id="physical-exam-list"></tbody>
+            </table>
+
+            <div id="add-physical-exam">
+              <h2>Physical Examination</h2>
+
+              <p>
+                <em><strong>TO BE FILLED OUT BY CLINIC PERSONNEL</strong></em>
+              </p>
+              <p><em>PHYSICAL EXAMINATION</em></p>
+
+              <form id="physical-exam-form">
+                <div class="vitals">
+                  <label
+                    >Date: <input type="date" id="exam-date" required
+                  /></label>
+                  <label
+                    >BP: <input type="text" id="exam-bp" placeholder="120/80"
+                  /></label>
+                  <label
+                    >PR: <input type="text" id="exam-pr" placeholder="75"
+                  /></label>
+                  <label
+                    >Weight (kg): <input type="number" id="exam-weight"
+                  /></label>
+                  <label
+                    >Height (cm): <input type="number" id="exam-height"
+                  /></label>
+                  <label
+                    >BMI: <input type="number" id="exam-bmi" step="0.1"
+                  /></label>
+                  <label
+                    >Visual Acuity (OS): <input type="text" id="exam-visual-os"
+                  /></label>
+                  <label>OD: <input type="text" id="exam-visual-od" /></label>
+                  <label
+                    >With Glasses: <input type="checkbox" id="exam-glasses"
+                  /></label>
+                </div>
+
+                <div class="exam-section">
+                  <div class="left-col">
+                    <label>HEENT: <input type="text" id="exam-heent" /></label>
+                    <label>TEETH: <input type="text" id="exam-teeth" /></label>
+                    <label>NECK: <input type="text" id="exam-neck" /></label>
+                    <label>CHEST: <input type="text" id="exam-chest" /></label>
+                    <label>LUNGS: <input type="text" id="exam-lungs" /></label>
+                    <label>HEART: <input type="text" id="exam-heart" /></label>
+                    <label
+                      >BREAST: <input type="text" id="exam-breast"
+                    /></label>
+                    <label>SKIN: <input type="text" id="exam-skin" /></label>
+                    <label
+                      >ABDOMEN: <input type="text" id="exam-abdomen"
+                    /></label>
+                  </div>
+
+                  <div class="right-col">
+                    <label
+                      >BACK/FLANKS: <input type="text" id="exam-back"
+                    /></label>
+                    <label
+                      >ANUS/RECTUM: <input type="text" id="exam-anus"
+                    /></label>
+                    <label
+                      >GENITALIA: <input type="text" id="exam-genitalia"
+                    /></label>
+                    <label
+                      >EXTREMITIES: <input type="text" id="exam-extremities"
+                    /></label>
+                    <label
+                      >CLEANLINESS (Nails, Hair, Ears):
+                      <input type="text" id="exam-cleanliness"
+                    /></label>
+                    <label
+                      >POSTURE: <input type="text" id="exam-posture"
+                    /></label>
+                    <label
+                      >NUTRITION: <input type="text" id="exam-nutrition"
+                    /></label>
+                    <label
+                      >DEFORMITY: <input type="text" id="exam-deformity"
+                    /></label>
+                    <label
+                      >OTHERS: <input type="text" id="exam-others"
+                    /></label>
+                  </div>
+                </div>
+
+                <h4>Laboratory and Ancillary Procedure</h4>
+                <label
+                  >Present: <input type="text" id="exam-lab-present"
+                /></label>
+                <label
+                  >Recommendations:
+                  <input type="text" id="exam-recommendations"
+                /></label>
+
+                <div class="form-buttons">
+                  <button type="submit" class="save-btn">Save</button>
+                  <button type="button" onclick="closeButtonOverlay()">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+            <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
+            <div id="exam-overview-modal">
+              <div class="overview-content">
+                <h2>Physical Examination Overview</h2>
+                <div id="overview-details"></div>
+
+                <button class="close-btn" onclick="closeExamOverview()">
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -644,62 +808,63 @@
     );
     editHistoryBtn.addEventListener("click", async () => {
       const editableFields = document.querySelectorAll(
-  ".medical-history-content textarea, .medical-history-content input"
-);
+        ".medical-history-content textarea, .medical-history-content input"
+      );
 
-if (editHistoryBtn.textContent.includes("✏️")) {
-  editableFields.forEach((el) => el.removeAttribute("disabled"));
-  editHistoryBtn.textContent = "💾 Save";
-} else {
-  const [
-    pastMedical,
-    familyHistory,
-    pastSurgical,
-    supplements,
-    allergies,
-  ] = Array.from(
-    document.querySelectorAll(".medical-history-content textarea")
-  ).map((ta) => ta.value.trim());
+      if (editHistoryBtn.textContent.includes("✏️")) {
+        editableFields.forEach((el) => el.removeAttribute("disabled"));
+        editHistoryBtn.textContent = "💾 Save";
+      } else {
+        const [
+          pastMedical,
+          familyHistory,
+          pastSurgical,
+          supplements,
+          allergies,
+        ] = Array.from(
+          document.querySelectorAll(".medical-history-content textarea")
+        ).map((ta) => ta.value.trim());
 
-  // get immunization values
-  const immunizationData = {};
-  document
-    .querySelectorAll(".immunization-form input")
-    .forEach((input) => (immunizationData[input.name] = input.value.trim()));
+        // get immunization values
+        const immunizationData = {};
+        document
+          .querySelectorAll(".immunization-form input")
+          .forEach(
+            (input) => (immunizationData[input.name] = input.value.trim())
+          );
 
-  // get OB-GYNE values
-  const obgyneData = {};
-  document
-    .querySelectorAll(
-      ".obgyne-form input[type='text'], .obgyne-form input[type='date']"
-    )
-    .forEach((input) => (obgyneData[input.name] = input.value.trim()));
+        // get OB-GYNE values
+        const obgyneData = {};
+        document
+          .querySelectorAll(
+            ".obgyne-form input[type='text'], .obgyne-form input[type='date']"
+          )
+          .forEach((input) => (obgyneData[input.name] = input.value.trim()));
 
-  const dysmenorrhea =
-    document.querySelector(".obgyne-form input[type='radio']:checked")
-      ?.value || "";
+        const dysmenorrhea =
+          document.querySelector(".obgyne-form input[type='radio']:checked")
+            ?.value || "";
 
-  try {
-    await updateDoc(doc(db, "patients", patientId), {
-      pastMedicalHistory: pastMedical,
-      familyHistory,
-      pastSurgicalHistory: pastSurgical,
-      supplements,
-      allergies,
-      ...immunizationData,
-      ...obgyneData,
-      dysmenorrhea,
-    });
+        try {
+          await updateDoc(doc(db, "patients", patientId), {
+            pastMedicalHistory: pastMedical,
+            familyHistory,
+            pastSurgicalHistory: pastSurgical,
+            supplements,
+            allergies,
+            ...immunizationData,
+            ...obgyneData,
+            dysmenorrhea,
+          });
 
-    alert("Medical History updated!");
-    editableFields.forEach((el) => el.setAttribute("disabled", "true"));
-    editHistoryBtn.textContent = "✏️ Edit";
-  } catch (err) {
-    console.error("Error updating medical history:", err);
-    alert("Failed to update medical history.");
-  }
-}
-
+          alert("Medical History updated!");
+          editableFields.forEach((el) => el.setAttribute("disabled", "true"));
+          editHistoryBtn.textContent = "✏️ Edit";
+        } catch (err) {
+          console.error("Error updating medical history:", err);
+          alert("Failed to update medical history.");
+        }
+      }
     });
 
     /* -----------------------------------------------
@@ -862,11 +1027,152 @@ if (editHistoryBtn.textContent.includes("✏️")) {
     window.closeOverview = function () {
       document.getElementById("consultation-overview").classList.remove("show");
     };
+    /* -----------------------------------------------
+ 🔹 SAVE PHYSICAL EXAMINATION RECORD
+----------------------------------------------- */
+    document
+      .getElementById("physical-exam-form")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const physicalData = {
+          date: document.getElementById("exam-date").value,
+          bp: document.getElementById("exam-bp").value,
+          pr: document.getElementById("exam-pr").value,
+          weight: Number(document.getElementById("exam-weight").value),
+          height: Number(document.getElementById("exam-height").value),
+          bmi: Number(document.getElementById("exam-bmi").value),
+          visualAcuity: {
+            os: document.getElementById("exam-visual-os").value,
+            od: document.getElementById("exam-visual-od").value,
+            glasses: document.getElementById("exam-glasses").checked,
+          },
+          findings: {
+            heent: document.getElementById("exam-heent").value,
+            teeth: document.getElementById("exam-teeth").value,
+            neck: document.getElementById("exam-neck").value,
+            chest: document.getElementById("exam-chest").value,
+            lungs: document.getElementById("exam-lungs").value,
+            heart: document.getElementById("exam-heart").value,
+            breast: document.getElementById("exam-breast").value,
+            skin: document.getElementById("exam-skin").value,
+            abdomen: document.getElementById("exam-abdomen").value,
+            back: document.getElementById("exam-back").value,
+            anus: document.getElementById("exam-anus").value,
+            genitalia: document.getElementById("exam-genitalia").value,
+            extremities: document.getElementById("exam-extremities").value,
+            cleanliness: document.getElementById("exam-cleanliness").value,
+            posture: document.getElementById("exam-posture").value,
+            nutrition: document.getElementById("exam-nutrition").value,
+            deformity: document.getElementById("exam-deformity").value,
+            others: document.getElementById("exam-others").value,
+          },
+          labPresent: document.getElementById("exam-lab-present").value,
+          recommendations: document.getElementById("exam-recommendations")
+            .value,
+          createdAt: new Date(),
+        };
+
+        try {
+          const examRef = collection(
+            db,
+            "patients",
+            patientId,
+            "physicalExaminations"
+          );
+          await addDoc(examRef, physicalData);
+          alert("Physical Examination Record Saved!");
+          loadPhysicalExaminations();
+          closeButtonOverlay();
+          e.target.reset();
+        } catch (err) {
+          console.error("Error saving physical examination:", err);
+          alert("Failed to save Physical Examination.");
+        }
+      });
+
+    /* -----------------------------------------------
+ 🔹 LOAD PHYSICAL EXAMINATION RECORDS
+----------------------------------------------- */
+    async function loadPhysicalExaminations() {
+      const tableBody = document.getElementById("physical-exam-list");
+      tableBody.innerHTML = "";
+
+      try {
+        const examRef = collection(
+          db,
+          "patients",
+          patientId,
+          "physicalExaminations"
+        );
+        const snapshot = await getDocs(examRef);
+
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+    <td>${data.date || "-"}</td>
+    <td>${data.bp || "-"}</td>
+    <td>${data.pr || "-"}</td>
+    <td>${data.weight || "-"}</td>
+    <td>${data.height || "-"}</td>
+    <td>${data.bmi || "-"}</td>
+    <td>${data.findings?.others || "Normal physical findings"}</td>
+  `;
+
+          // 👇 Add click event to show overview
+          tr.addEventListener("click", () => showExamOverview(data));
+          tableBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Error loading physical examinations:", err);
+      }
+    }
+    // Overview Modal for Physical Exam
+    window.showExamOverview = function (data) {
+      const overviewDiv = document.getElementById("overview-details");
+
+      overviewDiv.innerHTML = `
+    <p><strong>Date:</strong> ${data.date || "-"}</p>
+    <p><strong>BP:</strong> ${data.bp || "-"}</p>
+    <p><strong>PR:</strong> ${data.pr || "-"}</p>
+    <p><strong>Weight:</strong> ${data.weight || "-"} kg</p>
+    <p><strong>Height:</strong> ${data.height || "-"} cm</p>
+    <p><strong>BMI:</strong> ${data.bmi || "-"}</p>
+    
+    <h4>👁️ Visual Acuity</h4>
+    <p><strong>OS:</strong> ${data.visualAcuity?.os || "-"}</p>
+    <p><strong>OD:</strong> ${data.visualAcuity?.od || "-"}</p>
+    <p><strong>Glasses:</strong> ${
+      data.visualAcuity?.glasses ? "Yes" : "No"
+    }</p>
+
+    <h4>🩺 Physical Findings</h4>
+    ${Object.entries(data.findings || {})
+      .map(
+        ([key, val]) =>
+          `<p><strong>${key.toUpperCase()}:</strong> ${val || "-"}</p>`
+      )
+      .join("")}
+
+    <h4>🧪 Laboratory & Recommendations</h4>
+    <p><strong>Laboratory Procedure:</strong> ${data.labPresent || "-"}</p>
+    <p><strong>Recommendations:</strong> ${data.recommendations || "-"}</p>
+  `;
+
+      document.getElementById("exam-overview-modal").style.display = "flex";
+    };
+
+    window.closeExamOverview = function () {
+      document.getElementById("exam-overview-modal").style.display = "none";
+    };
 
     /* -----------------------------------------------
      🔹 INITIAL LOAD
   ----------------------------------------------- */
     loadPatient();
     await loadConsultations();
+    await loadPhysicalExaminations();
   </script>
 </html>
