@@ -36,6 +36,14 @@
   color: #4a86c5;
   margin-bottom: 10px;
 }
+.calendar-header button {
+  background: #4a86c5;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 .calendar-day.today {
   background-color: #4a86c5;
   color: white;
@@ -77,12 +85,7 @@
   max-height: 80vh;
 }
 
-.appointment-category h3 {
-  color: #4a86c5;
-  border-bottom: 1px solid #4a86c5;
-  padding-bottom: 5px;
-  margin-top: 10px;
-}
+
 
 .appointment-category ul {
   list-style: none;
@@ -107,6 +110,37 @@
   padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
+}
+/* Scrollable Lists */
+.scrollable-list {
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 8px;
+  padding-right: 5px;
+  transition: max-height 0.3s ease;
+}
+
+/* Collapsed State */
+.scrollable-list.collapsed {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Category Header Styling */
+.category-header {
+  background-color: #4a86c5;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+  user-select: none;
+  font-size: 16px;
+}
+
+.category-header:hover {
+  background-color: #005fa3;
 }
 
 /* Modal */

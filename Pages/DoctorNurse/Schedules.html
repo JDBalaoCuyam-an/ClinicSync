@@ -56,25 +56,33 @@
           <div id="calendar" class="calendar-grid"></div>
         </div>
 
-        <!-- Appointments -->
+      <!-- Appointments -->
         <div class="appointments-section">
-          <h2>Appointments</h2>
-          <div class="appointments-list">
-            <div class="appointment-category">
-              <h3>Upcoming</h3>
-              <ul id="upcoming-list"></ul>
+            <h2>Appointments</h2>
+            <div class="appointments-list">
+              <div class="appointment-category">
+                <h3 class="category-header" data-target="upcoming-list">
+                  Upcoming (<span id="upcoming-count">0</span>)
+                </h3>
+                <ul id="upcoming-list" class="scrollable-list"></ul>
+              </div>
+
+              <div class="appointment-category">
+                <h3 class="category-header" data-target="missed-list">
+                  Missed (<span id="missed-count">0</span>)
+                </h3>
+                <ul id="missed-list" class="scrollable-list"></ul>
+              </div>
+
+              <div class="appointment-category">
+                <h3 class="category-header" data-target="finished-list">
+                  Finished (<span id="finished-count">0</span>)
+                </h3>
+                <ul id="finished-list" class="scrollable-list"></ul>
+              </div>
             </div>
-            <div class="appointment-category">
-              <h3>Missed</h3>
-              <ul id="missed-list"></ul>
-            </div>
-            <div class="appointment-category">
-              <h3>Finished</h3>
-              <ul id="finished-list"></ul>
-            </div>
-          </div>
         </div>
-      </div>
+
 
       <!-- Modal -->
       <div id="appointment-modal" class="modal hidden">
@@ -250,39 +258,61 @@
 
   // Load appointments
   async function loadAppointments() {
-    upcomingList.innerHTML = "";
-    missedList.innerHTML = "";
-    finishedList.innerHTML = "";
+  upcomingList.innerHTML = "";
+  missedList.innerHTML = "";
+  finishedList.innerHTML = "";
 
-    const q = query(collection(db, "schedules"), orderBy("date"));
-    const snapshot = await getDocs(q);
-    const now = new Date();
+  const q = query(collection(db, "schedules"), orderBy("date"));
+  const snapshot = await getDocs(q);
+  const now = new Date();
 
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <div>
-          <strong>${data.person}</strong> (${data.doctor})<br>
-          ${data.date} - ${data.time}<br>
-          ${data.details}
-        </div>
-      `;
+  let upcomingCount = 0,
+    missedCount = 0,
+    finishedCount = 0;
 
-      const appointmentDate = new Date(`${data.date}T${data.time}`);
-      if (data.status === "finished") {
-        finishedList.appendChild(li);
-      } else if (appointmentDate < now) {
-        missedList.appendChild(li);
-      } else {
-        const doneBtn = document.createElement("button");
-        doneBtn.textContent = "✅ Done";
-        doneBtn.addEventListener("click", () => markFinished(docSnap.id));
-        li.appendChild(doneBtn);
-        upcomingList.appendChild(li);
-      }
-    });
-  }
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <div>
+        <strong>${data.person}</strong> (${data.doctor})<br>
+        ${data.date} - ${data.time}<br>
+        ${data.details}
+      </div>
+    `;
+
+    const appointmentDate = new Date(`${data.date}T${data.time}`);
+    if (data.status === "finished") {
+      finishedList.appendChild(li);
+      finishedCount++;
+    } else if (appointmentDate < now) {
+      missedList.appendChild(li);
+      missedCount++;
+    } else {
+      const doneBtn = document.createElement("button");
+      doneBtn.textContent = "✅ Done";
+      doneBtn.addEventListener("click", () => markFinished(docSnap.id));
+      li.appendChild(doneBtn);
+      upcomingList.appendChild(li);
+      upcomingCount++;
+    }
+  });
+
+  // 🧮 Update Counts
+  document.getElementById("upcoming-count").textContent = upcomingCount;
+  document.getElementById("missed-count").textContent = missedCount;
+  document.getElementById("finished-count").textContent = finishedCount;
+}
+
+// 🔽 Collapsible Category Headers
+document.querySelectorAll(".category-header").forEach((header) => {
+  header.addEventListener("click", () => {
+    const targetList = document.getElementById(header.dataset.target);
+    targetList.classList.toggle("collapsed");
+  });
+});
+
+
 
   async function markFinished(id) {
     const ref = doc(db, "schedules", id);

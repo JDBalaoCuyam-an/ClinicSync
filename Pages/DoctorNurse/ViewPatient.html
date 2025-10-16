@@ -42,6 +42,36 @@
     </div>
     <div id="overlay" class="overlay"></div>
 
+    <!-- Appointment Modal -->
+    <!-- Appointment Modal -->
+    <div id="appointment-modal" class="modal" style="display: none">
+      <div class="appointment-modal-content">
+        <h2>New Appointment</h2>
+        <form id="appointment-form">
+          <label>
+            Doctor:
+            <input type="text" id="appt-doctor" required />
+          </label>
+          <label>
+            Date:
+            <input type="date" id="appt-date" required />
+          </label>
+          <label>
+            Time:
+            <input type="time" id="appt-time" required />
+          </label>
+          <label>
+            Purpose / Details:
+            <input type="text" id="appt-purpose" required />
+          </label>
+          <div class="modal-actions">
+            <button type="submit">Save Appointment</button>
+            <button type="button" id="close-appointment">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div style="display: flex; justify-content: space-between">
       <button
         id="back-to-lists"
@@ -623,6 +653,7 @@
       collection,
       addDoc,
       getDocs,
+      serverTimestamp,
     } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -1168,6 +1199,71 @@
       document.getElementById("exam-overview-modal").style.display = "none";
     };
 
+    // Schedule/Appointment
+    const appointmentModal = document.getElementById("appointment-modal");
+    const makeAppointmentBtn = document.getElementById("make-appointment");
+    const closeAppointmentBtn = document.getElementById("close-appointment");
+    const appointmentForm = document.getElementById("appointment-form");
+
+    // 🔹 Open Modal
+    makeAppointmentBtn.addEventListener("click", () => {
+      appointmentModal.style.display = "flex";
+    });
+
+    // 🔹 Close Modal
+    closeAppointmentBtn.addEventListener("click", () => {
+      appointmentModal.style.display = "none";
+    });
+
+    // 🔹 Save Appointment (with Full Name)
+    appointmentForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const selectedDate = document.getElementById("appt-date").value;
+      const time = document.getElementById("appt-time").value;
+      const doctor = document.getElementById("appt-doctor").value.trim();
+      const details = document.getElementById("appt-purpose").value.trim();
+
+      if (!selectedDate || !time || !doctor || !details) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      try {
+        // 🧠 Fetch patient document to get full name
+        const patientRef = doc(db, "patients", patientId);
+        const patientSnap = await getDoc(patientRef);
+
+        if (!patientSnap.exists()) {
+          alert("Patient record not found!");
+          return;
+        }
+
+        const patientData = patientSnap.data();
+        const fullName = `${patientData.lastName || ""}, ${
+          patientData.firstName || ""
+        }`.trim();
+
+        // 💾 Save appointment with full name as "person"
+        await addDoc(collection(db, "schedules"), {
+          date: selectedDate,
+          time,
+          person: fullName,
+          doctor,
+          details,
+          status: "upcoming",
+          createdAt: serverTimestamp(),
+        });
+
+        alert("✅ Appointment Saved!");
+        appointmentModal.style.display = "none";
+        appointmentForm.reset();
+        
+      } catch (error) {
+        console.error("Error adding appointment:", error);
+        alert("❌ Failed to save appointment. Try again.");
+      }
+    });
     /* -----------------------------------------------
      🔹 INITIAL LOAD
   ----------------------------------------------- */
