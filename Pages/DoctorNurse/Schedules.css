@@ -1,128 +1,158 @@
-/* === Schedules Page === */
-
-.main-content {
-  padding: 20px;
-  background: #f0f7ff;
-  min-height: 100vh;
-}
-
-.main-content h2 {
-  font-size: 22px;
-  color: #2a4d6c;
-  margin-bottom: 15px;
-}
-
-/* Layout: Calendar + Schedule List */
-.schedules-container {
+.calendar-and-appointments {
   display: flex;
   gap: 20px;
-  flex-wrap: wrap;
+  padding: 20px;
 }
 
-/* Calendar */
-.calendar {
-  flex: 1;
-  min-width: 320px;
-  background: #e6f0fb;
-  padding: 15px;
-  border: 1px solid #9bb6d0;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.calendar-section {
+  flex: 7;
+  background: #e0efff;
+  padding: 20px;
+  border-radius: 12px;
 }
 
-.calendar h3 {
-  font-size: 20px;
-  margin-bottom: 5px;
-}
-
-.calendar-nav {
-  display: flex;
-  justify-content: flex-end;
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   gap: 5px;
-  margin: 5px 0 10px;
 }
 
-.calendar-nav button {
-  padding: 4px 8px;
-  border: none;
-  background: #3f74a5;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.calendar-nav button:hover {
-  background: #2a4d6c;
-}
-
-.calendar-table {
-  width: 100%;
-  border-collapse: collapse;
+.calendar-day {
+ padding: 15px 10px;
   text-align: center;
-}
-.calendar-table th {
-  font-weight: bold;
-  padding: 6px 0;
-  color: #2a4d6c;
-}
-.calendar-table td {
-  padding: 8px;
-  border-radius: 5px;
-}
-.calendar-table td.active {
-  background: #3f74a5;
-  color: white;
-  font-weight: bold;
-}
-.calendar-table td.disabled {
-  color: #aaa;
-}
-
-/* Schedule List */
-.schedule-list {
-  flex: 1;
-  min-width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.schedule-item {
-  background: #e6f0fb;
-  padding: 12px;
-  border: 1px solid #9bb6d0;
   border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+  
+}
+.calendar-day:hover {
+  background: #4a86c5;
+  color: white;
+}
+.calendar-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  align-items: center;
+  color: #4a86c5;
+  margin-bottom: 10px;
 }
-
-.schedule-item p {
-  margin: 2px 0;
-  font-size: 14px;
-}
-
-.schedule-item .time {
+.calendar-day.today {
+  background-color: #4a86c5;
+  color: white;
   font-weight: bold;
+  border: 2px solid #2f5e9d;
 }
-
-.schedule-item .doctor {
-  font-size: 13px;
-  color: #444;
+.calendar-day.past-day {
+  color: #aaa;
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
-
-.actions {
-  display: flex;
-  flex-direction: column;
+.calendar-day.past-day:hover {
+  background-color: #f0f0f0;
+}
+.calendar-weekdays, .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
   gap: 5px;
 }
 
-.actions button {
-  background: none;
+.calendar-weekdays div {
+  font-weight: bold;
+  color: #4a86c5;
+}
+
+.calendar-day.inactive {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.appointments-section {
+  flex: 3;
+  background: #e0efff;
+  padding: 20px;
+  border-radius: 12px;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+.appointment-category h3 {
+  color: #4a86c5;
+  border-bottom: 1px solid #4a86c5;
+  padding-bottom: 5px;
+  margin-top: 10px;
+}
+
+.appointment-category ul {
+  list-style: none;
+  padding: 0;
+}
+
+.appointment-category li {
+  background: #f0f8ff;
+  border: 1px solid #4a86c5;
+  border-radius: 8px;
+  margin: 8px 0;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.appointment-category button {
+  background: #4a86c5;
+  color: white;
   border: none;
-  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 6px;
   cursor: pointer;
 }
-.actions button:hover {
-  color: #3f74a5;
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hidden {
+  display: none;
+}
+.modal-content {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+}
+.modal-content label {
+  display: block;
+  margin-top: 10px;
+  color: #4a86c5;
+}
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #4a86c5;
+  border-radius: 6px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+.modal-actions button {
+  margin-left: 10px;
+  background: #4a86c5;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
 }

@@ -1,134 +1,301 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Schedules</title>
     <script type="module" src="../../firebaseconfig.js"></script>
-  <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
-  <link rel="stylesheet" href="Schedules.css" />
-</head>
-<body>
+    <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+    <link rel="stylesheet" href="Schedules.css" />
+  </head>
+  <body>
     <!-- NavBar -->
-  <header class="navbar">
-    <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-    <h1>ClinicSync</h1>
-  </header>
-
-  <!-- SideBar -->
-  <div id="sidebar" class="sidebar">
-    <div class="current-user">
-      <div class="user-info">
-        <div class="user-icon">
-          <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon"/>
-        </div>
-        <div class="user-name">Dr. John Doe</div>
-        <div class="user-role"><b>Doctor</b></div>
-      </div>
+    <header class="navbar">
       <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-    </div>
-    <ul>
-      <li><a href="DoctorNurseDashboard.html">Home</a></li>
-      <li><a href="MedicalRecords.html" >Medical Records</a></li>
-      <li class="active"><a href="Schedules.html" >Schedules</a></li>
-      <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
-      <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
-    </ul>
-    <form>
-      <button type="submit" id="logout-button">Log Out</button>
-    </form>
-  </div>
+      <h1>ClinicSync</h1>
+    </header>
 
-   <!-- Main Content -->
-  <main class="main-content">
-    <h2>Schedules</h2>
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+      <div class="current-user">
+        <div class="user-info">
+          <div class="user-icon">
+            <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
+          </div>
+          <div class="user-name">Dr. John Doe</div>
+          <div class="user-role"><b>Doctor</b></div>
+        </div>
+        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+      </div>
+      <ul>
+        <li><a href="DoctorNurseDashboard.html">Home</a></li>
+        <li><a href="MedicalRecords.html">Medical Records</a></li>
+        <li class="active"><a href="Schedules.html">Schedules</a></li>
+        <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
+        <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
+      </ul>
+      <form>
+        <button type="submit" id="logout-button">Log Out</button>
+      </form>
+    </div>
+
+    <!-- Main Content -->
     <div class="schedules-container">
-      <!-- Calendar -->
-      <div class="calendar">
-        <h3>Calendar</h3>
-        <p>June, 2025</p>
-        <div class="calendar-nav">
-          <button>&lt;</button>
-          <button>&gt;</button>
+      <div class="calendar-and-appointments">
+        <!-- Calendar -->
+        <div class="calendar-section">
+          <div class="calendar-header">
+            <button id="prev-month">◀</button>
+            <h2 id="month-year"></h2>
+            <button id="next-month">▶</button>
+          </div>
+          <div class="calendar-weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div>
+            <div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div id="calendar" class="calendar-grid"></div>
         </div>
-        <table class="calendar-table">
-          <thead>
-            <tr>
-              <th>SUN</th>
-              <th>MON</th>
-              <th>TUE</th>
-              <th>WED</th>
-              <th>THU</th>
-              <th>FRI</th>
-              <th>SAT</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
-            <tr><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td></tr>
-            <tr><td>15</td><td class="active">16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td></tr>
-            <tr><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td></tr>
-            <tr><td>29</td><td>30</td><td class="disabled">1</td><td class="disabled">2</td><td class="disabled">3</td><td class="disabled">4</td><td class="disabled">5</td></tr>
-          </tbody>
-        </table>
+
+        <!-- Appointments -->
+        <div class="appointments-section">
+          <h2>Appointments</h2>
+          <div class="appointments-list">
+            <div class="appointment-category">
+              <h3>Upcoming</h3>
+              <ul id="upcoming-list"></ul>
+            </div>
+            <div class="appointment-category">
+              <h3>Missed</h3>
+              <ul id="missed-list"></ul>
+            </div>
+            <div class="appointment-category">
+              <h3>Finished</h3>
+              <ul id="finished-list"></ul>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Schedule List -->
-      <div class="schedule-list">
-        <div class="schedule-item">
-          <div>
-            <p><b>June 17, 2025</b> <span class="time">10:00</span></p>
-            <p>Mary Grace</p>
-            <p>Dental Appointment</p>
-            <p class="doctor">Dr. John Doe</p>
-          </div>
-          <div class="actions">
-            <button class="edit">✏️</button>
-            <button class="delete">🗑️</button>
-          </div>
-        </div>
-
-        <div class="schedule-item">
-          <div>
-            <p><b>June 18, 2025</b> <span class="time">10:00</span></p>
-            <p>Medicine Restock</p>
-            <p class="doctor">Dr. John Doe</p>
-          </div>
-          <div class="actions">
-            <button class="edit">✏️</button>
-            <button class="delete">🗑️</button>
-          </div>
-        </div>
-
-        <div class="schedule-item">
-          <div>
-            <p><b>June 19, 2025</b> <span class="time">10:00</span></p>
-            <p>Mary Grace</p>
-            <p>Dental Appointment</p>
-            <p class="doctor">Dr. John Doe</p>
-          </div>
-          <div class="actions">
-            <button class="edit">✏️</button>
-            <button class="delete">🗑️</button>
-          </div>
-        </div>
-
-        <div class="schedule-item">
-          <div>
-            <p><b>June 20, 2025</b> <span class="time">10:00</span></p>
-            <p>Mary Grace</p>
-            <p>Dental Appointment</p>
-            <p class="doctor">Dr. John Doe</p>
-          </div>
-          <div class="actions">
-            <button class="edit">✏️</button>
-            <button class="delete">🗑️</button>
+      <!-- Modal -->
+      <div id="appointment-modal" class="modal hidden">
+        <div class="modal-content">
+          <h3>New Appointment</h3>
+          <label>Date:</label>
+          <input type="text" id="selected-date" readonly />
+          <label>Time:</label>
+          <input type="time" id="appointment-time" />
+          <label>With (Patient Name):</label>
+          <input type="text" id="appointment-person" />
+          <label>Doctor/Staff:</label>
+          <input type="text" id="appointment-doctor" />
+          <label>Details:</label>
+          <textarea id="appointment-details"></textarea>
+          <div class="modal-actions">
+            <button id="save-appointment">Save</button>
+            <button id="cancel-appointment">Cancel</button>
           </div>
         </div>
       </div>
     </div>
-  </main>
-</body>
-  <script src="../../script.js"></script>
 
+    <script src="../../script.js"></script>
+    <script type="module">
+  import { db } from "../../firebaseconfig.js";
+  import {
+    collection,
+    addDoc,
+    getDocs,
+    updateDoc,
+    doc,
+    query,
+    orderBy,
+    serverTimestamp,
+  } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+  const calendar = document.getElementById("calendar");
+  const title = document.getElementById("month-year");
+  const prevBtn = document.getElementById("prev-month");
+  const nextBtn = document.getElementById("next-month");
+
+  const modal = document.getElementById("appointment-modal");
+  const selectedDateInput = document.getElementById("selected-date");
+  const saveBtn = document.getElementById("save-appointment");
+  const cancelBtn = document.getElementById("cancel-appointment");
+
+  const upcomingList = document.getElementById("upcoming-list");
+  const missedList = document.getElementById("missed-list");
+  const finishedList = document.getElementById("finished-list");
+
+  let currentDate = new Date();
+  let selectedDate = null;
+
+  // 🗓 Render Calendar
+  function renderCalendar(date) {
+    calendar.innerHTML = "";
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    title.textContent = `${date.toLocaleString("default", {
+      month: "long",
+    })} ${year}`;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // ignore time when comparing
+
+    // Days from previous month
+    for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+      const day = daysInPrevMonth - i;
+      const div = document.createElement("div");
+      div.classList.add("calendar-day", "inactive");
+      div.textContent = day;
+      calendar.appendChild(div);
+    }
+
+    // Days in current month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const div = document.createElement("div");
+      div.classList.add("calendar-day");
+      div.textContent = day;
+
+      const formattedMonth = String(month + 1).padStart(2, "0");
+      const formattedDay = String(day).padStart(2, "0");
+      const dateString = `${year}-${formattedMonth}-${formattedDay}`;
+
+      const thisDate = new Date(`${year}-${formattedMonth}-${formattedDay}`);
+      thisDate.setHours(0, 0, 0, 0);
+
+      // Highlight today
+      if (
+        thisDate.getDate() === today.getDate() &&
+        thisDate.getMonth() === today.getMonth() &&
+        thisDate.getFullYear() === today.getFullYear()
+      ) {
+        div.classList.add("today");
+      }
+
+      // Disable past dates
+      if (thisDate < today) {
+        div.classList.add("past-day");
+      } else {
+        div.addEventListener("click", () => openModal(dateString));
+      }
+
+      calendar.appendChild(div);
+    }
+
+    // Fill empty spaces at the end
+    const totalCells = firstDayOfMonth + daysInMonth;
+    const remaining = 7 - (totalCells % 7);
+    if (remaining < 7) {
+      for (let i = 1; i <= remaining; i++) {
+        const div = document.createElement("div");
+        div.classList.add("calendar-day", "inactive");
+        div.textContent = i;
+        calendar.appendChild(div);
+      }
+    }
+  }
+
+  prevBtn.addEventListener("click", () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar(currentDate);
+  });
+
+  nextBtn.addEventListener("click", () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar(currentDate);
+  });
+
+  // Modal
+  function openModal(date) {
+    selectedDate = date;
+    selectedDateInput.value = date;
+    modal.classList.remove("hidden");
+  }
+  cancelBtn.addEventListener("click", () => modal.classList.add("hidden"));
+
+  // Save appointment
+  saveBtn.addEventListener("click", async () => {
+    const time = document.getElementById("appointment-time").value;
+    const person = document.getElementById("appointment-person").value.trim();
+    const doctor = document.getElementById("appointment-doctor").value.trim();
+    const details = document.getElementById("appointment-details").value.trim();
+
+    if (!time || !person || !doctor || !details) {
+      alert("Please fill out all fields.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "schedules"), {
+        date: selectedDate,
+        time,
+        person,
+        doctor,
+        details,
+        status: "upcoming",
+        createdAt: serverTimestamp(),
+      });
+      alert("Appointment Saved!");
+      modal.classList.add("hidden");
+      loadAppointments();
+    } catch (error) {
+      console.error("Error adding appointment:", error);
+    }
+  });
+
+  // Load appointments
+  async function loadAppointments() {
+    upcomingList.innerHTML = "";
+    missedList.innerHTML = "";
+    finishedList.innerHTML = "";
+
+    const q = query(collection(db, "schedules"), orderBy("date"));
+    const snapshot = await getDocs(q);
+    const now = new Date();
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <div>
+          <strong>${data.person}</strong> (${data.doctor})<br>
+          ${data.date} - ${data.time}<br>
+          ${data.details}
+        </div>
+      `;
+
+      const appointmentDate = new Date(`${data.date}T${data.time}`);
+      if (data.status === "finished") {
+        finishedList.appendChild(li);
+      } else if (appointmentDate < now) {
+        missedList.appendChild(li);
+      } else {
+        const doneBtn = document.createElement("button");
+        doneBtn.textContent = "✅ Done";
+        doneBtn.addEventListener("click", () => markFinished(docSnap.id));
+        li.appendChild(doneBtn);
+        upcomingList.appendChild(li);
+      }
+    });
+  }
+
+  async function markFinished(id) {
+    const ref = doc(db, "schedules", id);
+    await updateDoc(ref, { status: "finished" });
+    loadAppointments();
+  }
+
+  // Auto-refresh
+  setInterval(loadAppointments, 30000);
+
+  renderCalendar(currentDate);
+  loadAppointments();
+</script>
+
+  </body>
 </html>
