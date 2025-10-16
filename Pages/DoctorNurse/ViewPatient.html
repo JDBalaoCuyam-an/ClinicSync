@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>View Patient</title>
     <script type="module" src="../../firebaseconfig.js"></script>
-    <link rel="stylesheet" href="ViewPatient.css" />
+    <link rel="stylesheet" href="../../assets/styles/ViewPatient.css" />
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
   </head>
   <body>
@@ -128,8 +128,9 @@
         </div>
         <div class="patient-documents">
           <h3>Documents :</h3>
-          <button class="upload-btn">Upload Files</button>
-          <ul class="documents-list">
+          <button class="upload-btn" id="upload-btn">Upload Files</button>
+          <input type="file" id="file-input" style="display: none" />
+          <ul class="documents-list" id="documents-list">
             <li>Skull X-ray, Nov 25 (2.7 MB)</li>
             <li>XYV Blood Test (0.7 MB)</li>
             <li>Blood Test XYZ (2.7 MB)</li>
@@ -1258,7 +1259,6 @@
         alert("✅ Appointment Saved!");
         appointmentModal.style.display = "none";
         appointmentForm.reset();
-        
       } catch (error) {
         console.error("Error adding appointment:", error);
         alert("❌ Failed to save appointment. Try again.");
