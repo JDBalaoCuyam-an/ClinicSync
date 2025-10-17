@@ -642,6 +642,7 @@
     </div>
   </body>
   <script src="../../script.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <script type="module">
     /* -----------------------------------------------
      🔹 FIREBASE IMPORTS & INITIAL SETUP
@@ -1267,84 +1268,89 @@
     /* -----------------------------------------------
      🔹 INITIAL LOAD
   ----------------------------------------------- */
+  const SUPABASE_URL = "https://oiskavcbaczvewywuana.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pc2thdmNiYWN6dmV3eXd1YW5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2MjMxODIsImV4cCI6MjA3NjE5OTE4Mn0.ZsDy-ZGwy1ZE3wwydCOgxz5NsI2RyrmUXzDXq1oCegs";
+
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const uploadBtn = document.getElementById("upload-btn");
+  const fileInput = document.getElementById("file-input");
+  const documentsList = document.getElementById("documents-list");
+
+  // 🧩 Get patient ID from URL (same as Firestore)
+  // const urlParams = new URLSearchParams(window.location.search);
+  // const patientId = urlParams.get("id");
+
+  uploadBtn.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file || !patientId) return;
+
+    const fileName = `${Date.now()}_${file.name}`;
+    const filePath = `${patientId}/${fileName}`; // ✅ folder = patientId
+
+    // ✅ Upload file inside that patient’s folder
+    const { data, error } = await supabaseClient.storage
+      .from("patient-documents")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Upload failed:", error);
+      alert("❌ Upload failed: " + error.message);
+      return;
+    }
+
+    // ✅ Get public URL for this file
+    const { data: publicData } = supabaseClient.storage
+      .from("patient-documents")
+      .getPublicUrl(filePath);
+
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    const listItem = document.createElement("li");
+    listItem.innerHTML = `<a href="${publicData.publicUrl}" target="_blank">${file.name}</a> (${fileSizeMB} MB)`;
+    documentsList.appendChild(listItem);
+
+    alert("✅ Upload successful!");
+  });
+
+  // ✅ Load only this patient's files
+  async function loadDocuments() {
+    if (!patientId) return;
+
+    const { data, error } = await supabaseClient.storage
+      .from("patient-documents")
+      .list(patientId + "/", { limit: 100 }); // only inside this folder
+
+    if (error) {
+      console.error("Error loading files:", error);
+      return;
+    }
+
+    documentsList.innerHTML = "";
+    for (const item of data) {
+      const { data: publicData } = supabaseClient.storage
+        .from("patient-documents")
+        .getPublicUrl(`${patientId}/${item.name}`);
+
+      const listItem = document.createElement("li");
+      listItem.innerHTML = `<a href="${publicData.publicUrl}" target="_blank">${item.name}</a>`;
+      documentsList.appendChild(listItem);
+    }
+  }
+
+  loadDocuments();
     loadPatient();
     await loadConsultations();
     await loadPhysicalExaminations();
   </script>
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script>
-    const SUPABASE_URL = "https://oiskavcbaczvewywuana.supabase.co";
-    const SUPABASE_ANON_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pc2thdmNiYWN6dmV3eXd1YW5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2MjMxODIsImV4cCI6MjA3NjE5OTE4Mn0.ZsDy-ZGwy1ZE3wwydCOgxz5NsI2RyrmUXzDXq1oCegs";
+<script>
+  
+  
+</script>
 
-    const supabaseClient = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
-
-    const uploadBtn = document.getElementById("upload-btn");
-    const fileInput = document.getElementById("file-input");
-    const documentsList = document.getElementById("documents-list");
-
-    uploadBtn.addEventListener("click", () => fileInput.click());
-
-    fileInput.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const fileName = `${Date.now()}_${file.name}`;
-
-      // ✅ Upload file to your "patient-documents" bucket
-      const { data, error } = await supabaseClient.storage
-        .from("patient-documents")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (error) {
-        console.error("Upload failed:", error);
-        alert("❌ Upload failed: " + error.message);
-        return;
-      }
-
-      // ✅ Get the public URL
-      const { data: publicData } = supabaseClient.storage
-        .from("patient-documents")
-        .getPublicUrl(fileName);
-
-      // ✅ Add file to list
-      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-      const listItem = document.createElement("li");
-      listItem.innerHTML = `<a href="${publicData.publicUrl}" target="_blank">${file.name}</a> (${fileSizeMB} MB)`;
-      documentsList.appendChild(listItem);
-
-      alert("✅ Upload successful!");
-    });
-
-    // ✅ Load all uploaded files
-    async function loadDocuments() {
-      const { data, error } = await supabaseClient.storage
-        .from("patient-documents")
-        .list("", { limit: 100 });
-
-      if (error) {
-        console.error("Error loading files:", error);
-        return;
-      }
-
-      documentsList.innerHTML = "";
-      for (const item of data) {
-        const { data: publicData } = supabaseClient.storage
-          .from("patient-documents")
-          .getPublicUrl(item.name);
-
-        const listItem = document.createElement("li");
-        listItem.innerHTML = `<a href="${publicData.publicUrl}" target="_blank">${item.name}</a>`;
-        documentsList.appendChild(listItem);
-      }
-    }
-
-    loadDocuments();
-  </script>
 </html>
