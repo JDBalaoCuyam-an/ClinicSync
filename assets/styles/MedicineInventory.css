@@ -22,7 +22,6 @@
   width: 200px;
 }
 
-
 .add-btn {
   background: #28a745;
   color: white;
@@ -40,8 +39,6 @@
   border-radius: 6px;
   cursor: pointer;
 }
-
-
 
 /* Add Medicine Form */
 .add-medicine {

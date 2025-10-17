@@ -96,9 +96,9 @@ if (login) {
               alert("User logged in successfully: " + user.email);
 
               if (userData.role === "admin") {
-                window.location.href = "Pages/Admin/AdminHome.html";
+                window.location.href = "../Pages/Admin/AdminHome.html";
               } else {
-                window.location.href = "Pages/DoctorNurse/DoctorNurseDashboard.html";
+                window.location.href = "../Pages/DoctorNurse/DoctorNurseDashboard.html";
               }
             } else {
               console.error("No user data found in Firestore.");
@@ -128,7 +128,7 @@ if(logoutButton){
     signOut(getAuth(app))
       .then(() => {
         alert("User logged out successfully");
-        window.location.href = "../../Login.html"; // Redirect to login page
+        window.location.href = "../Login.html"; // Redirect to login page
         console.log("User logged out successfully" + user.email);
       })
       .catch((error) => {
