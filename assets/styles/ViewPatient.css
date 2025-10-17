@@ -138,6 +138,7 @@
   padding: 5px 3px;
   background-color: #e0efff;
   margin: 5px 0;
+  overflow: hidden;
 }
 
 /* ======================================================
