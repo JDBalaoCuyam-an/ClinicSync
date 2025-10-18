@@ -128,7 +128,7 @@ if(logoutButton){
     signOut(getAuth(app))
       .then(() => {
         alert("User logged out successfully");
-        window.location.href = "../Login.html"; // Redirect to login page
+        window.location.href = "../../Login.html"; // Redirect to login page
         console.log("User logged out successfully" + user.email);
       })
       .catch((error) => {
