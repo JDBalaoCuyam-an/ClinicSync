@@ -131,10 +131,7 @@
           <h3>Documents :</h3>
           <button class="upload-btn" id="upload-btn">Upload Files</button>
           <input type="file" id="file-input" style="display: none" />
-          <ul class="documents-list" id="documents-list">
-            
-            
-          </ul>
+          <ul class="documents-list" id="documents-list"></ul>
         </div>
       </div>
       <!-- Patient Records -->
@@ -446,11 +443,14 @@
                   type="text"
                   id="consult-complaint"
                   required
+                  name="consult-complaint"
               /></label>
               <label
                 >Diagnosis:<input type="text" id="consult-diagnosis"
               /></label>
-              <label>Medications:<input type="text" id="consult-meds" /></label>
+              <label>Medications Dispensed:</label>
+              <div id="meds-list"></div>
+              <button type="button" id="add-med-btn">+ Add Medicine</button>
 
               <h4>Vital Signs</h4>
               <div class="vitals-grid">
@@ -468,11 +468,27 @@
                 /></label>
                 <label>LMP:<input type="date" id="vital-lmp" /></label>
               </div>
-              <label>Notes:<input type="text" id="consult-notes" /></label>
+              <label for="consult-notes">Notes:</label>
+              <textarea
+                id="consult-notes"
+                placeholder="Enter consultation notes here..."
+              ></textarea>
 
               <button type="submit" class="save-btn">Save</button>
-              <button onclick="closeButtonOverlay()">Cancel</button>
             </form>
+            <button
+              style="
+                padding: 6px 8px;
+                font-size: 14px;
+                border: 1px solid black;
+                border-radius: 4px;
+                margin-top: 3px;
+                width: 100%;
+              "
+              onclick="closeButtonOverlay()"
+            >
+              Cancel
+            </button>
           </div>
           <div id="consultation-overview" class="consultation-modal">
             <div class="modal-content">
@@ -643,12 +659,6 @@
   </body>
   <script src="../../assets/scripts/modal.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script src="../../assets/scripts/ViewPatient.js" type="module">
-    
-  </script>
-<script>
-  
-  
-</script>
-
+  <script src="../../assets/scripts/ViewPatient.js" type="module"></script>
+  <script></script>
 </html>

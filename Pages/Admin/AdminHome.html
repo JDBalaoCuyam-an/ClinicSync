@@ -11,19 +11,37 @@
     You are Currently on Admin Page (For Confirmation)
 
     <h1>Create Account</h1>
-    <form>
-        <label for="reg_email">Email:</label>
-        <input type="email" id="reg_email" name="new_username" >
-        <br>
-        <label for="new_password">Password:</label>
-        <input type="password" id="reg_password" name="new_password" >
-        <br>
-        <input type="checkbox" id="regAsAdmin">
-        <label for="regAsAdmin">Register as admin</label>
-        <button type="submit" id="create-account">Register</button>
-        <br>
-        <form>
-        <button type="submit" id="logout-button">Log Out</button>
-    </form>
+<form>
+    <!-- ✅ Additional User Info -->
+    <label for="first_name">First Name:</label>
+    <input type="text" id="first_name"><br>
+
+    <label for="middle_name">Middle Name:</label>
+    <input type="text" id="middle_name"><br>
+
+    <label for="last_name">Last Name:</label>
+    <input type="text" id="last_name"><br>
+
+    <label for="ext_name">Extension (Jr., Sr., III):</label>
+    <input type="text" id="ext_name"><br>
+
+    <label for="contact_number">Contact Number:</label>
+    <input type="text" id="contact_number"><br>
+
+    <!-- ✅ Your Existing Fields (UNCHANGED) -->
+    <label for="reg_email">Email:</label>
+    <input type="email" id="reg_email" name="new_username">
+    <br>
+    <label for="new_password">Password:</label>
+    <input type="password" id="reg_password" name="new_password">
+    <br>
+    <input type="checkbox" id="regAsAdmin">
+    <label for="regAsAdmin">Register as admin</label>
+    <button type="submit" id="create-account">Register</button>
+</form>
+
+      <button type="submit" id="logout-button">Log Out</button>
+
 </body>
+
 </html>

@@ -6,7 +6,10 @@
     <title>Document</title>
     <script type="module" src="../../firebaseconfig.js"></script>
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
-    <link rel="stylesheet" href="../../assets/styles/DoctorNurseDashboard.css" />
+    <link
+      rel="stylesheet"
+      href="../../assets/styles/DoctorNurseDashboard.css"
+    />
   </head>
   <body>
     <!-- NavBar -->
@@ -20,25 +23,26 @@
       <div class="current-user">
         <div class="user-info">
           <div class="user-icon">
-            <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon"/>
+            <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
           </div>
-          <div class="user-name">Dr. John Doe</div>
+          <div class="user-name" id="displayName">Loading...</div>
+
           <div class="user-role"><b>Doctor</b></div>
         </div>
         <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       </div>
       <ul>
-        <li class="active"><a href="DoctorNurseDashboard.html" >Home</a></li>
+        <li class="active"><a href="DoctorNurseDashboard.html">Home</a></li>
         <li><a href="MedicalRecords.html">Medical Records</a></li>
         <li><a href="Schedules.html">Schedules</a></li>
         <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
         <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
+        <li><a href="ActivityLogs.html">Activity Logs</a></li>
       </ul>
       <form>
-      <button type="submit" id="logout-button">Log Out</button>
-    </form>
+        <button type="submit" id="logout-button">Log Out</button>
+      </form>
     </div>
-
 
     <main class="dashboard">
       <!-- Top Stats -->
@@ -103,7 +107,10 @@
         </div>
       </div>
     </main>
-    
   </body>
   <script src="../../assets/scripts/modal.js"></script>
+  <script
+    src="../../assets/scripts/DoctorNurseDashboard.js"
+    type="module"
+  ></script>
 </html>

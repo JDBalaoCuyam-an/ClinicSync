@@ -1,4 +1,4 @@
-// Import the functions you need from the SDKs you need
+// Import Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import {
   getAuth,
@@ -11,11 +11,9 @@ import {
   getFirestore,
   doc,
   setDoc,
-  getDoc
+  getDoc,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyApDZ5ddxJUqhJdvX8SiM3glJjeHE7g43U",
   authDomain: "clinicsync-62b40.firebaseapp.com",
@@ -27,53 +25,65 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-
-
-//Registeration functionality
+// ✅ Create Account WITHOUT Logging Out Admin
 const register = document.getElementById("create-account");
-if(register){
-  register.addEventListener("click", function (event) {
-  event.preventDefault();
+if (register) {
+  register.addEventListener("click", async function (event) {
+    event.preventDefault();
 
-  const email = document.getElementById("reg_email").value;
-  const password = document.getElementById("reg_password").value;
-  const isAdmin = document.getElementById("regAsAdmin").checked;
-  const role = isAdmin ? "admin" : "DoctorNurse";
+    // Get Current Admin Session
+    const admin = auth.currentUser;
+    const adminEmail = admin.email;
+    const adminPassword = prompt("Enter your Admin password:");
 
-  createUserWithEmailAndPassword(getAuth(app), email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      var userData = {
-        email: user.email,
-        uid: user.uid,
-        role: role
-      }
-      const docRef = doc(db, "users", user.uid);
-      setDoc(docRef, userData)
-        .then(() => {
-          console.log("User data written to Firestore successfully");
-          
-        })
-        .catch((error) => {
-          console.error("Error writing user data to Firestore:", error);
-        });
-      alert("User registered successfully: UID : " + user.uid + " Email: " + user.email + " Role: " + userData.role);
-      
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.error("Error registering user:", errorCode, errorMessage);
-    });
-});
+    // Get new user data
+    const email = document.getElementById("reg_email").value;
+    const password = document.getElementById("reg_password").value;
+    const isAdmin = document.getElementById("regAsAdmin").checked;
+    const role = isAdmin ? "admin" : "DoctorNurse";
+
+    const firstName = document.getElementById("first_name").value;
+    const middleName = document.getElementById("middle_name").value;
+    const lastName = document.getElementById("last_name").value;
+    const extName = document.getElementById("ext_name").value;
+    const contact = document.getElementById("contact_number").value;
+
+    try {
+      // ✅ Create new Firebase Auth user (This logs in NEW user)
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const newUser = userCredential.user;
+
+      // ✅ Save user info in Firestore
+      await setDoc(doc(db, "users", newUser.uid), {
+        email: newUser.email,
+        uid: newUser.uid,
+        role: role,
+        firstName,
+        middleName: middleName || "",
+        lastName,
+        extName: extName || "",
+        contact,
+        createdAt: new Date(),
+      });
+
+      alert("✅ User Created Successfully!");
+
+      // ✅ IMPORTANT: SIGN BACK IN THE ADMIN
+      await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+      console.log("✅ Admin session restored!");
+
+    } catch (error) {
+      console.error("Error creating account:", error);
+      alert("❌ Failed: " + error.message);
+    }
+  });
 }
 
-//Login functionality
+// ✅ Login Functionality
 const login = document.getElementById("login-button");
-
 if (login) {
   login.addEventListener("click", function (event) {
     event.preventDefault();
@@ -81,72 +91,51 @@ if (login) {
     const email = document.getElementById("login-email").value;
     const password = document.getElementById("login-password").value;
 
-    signInWithEmailAndPassword(getAuth(app), email, password)
-      .then((userCredential) => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then(async (userCredential) => {
         const user = userCredential.user;
 
-        // Get user role from Firestore
-        const db = getFirestore(app);
         const userDocRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userDocRef);
 
-        getDoc(userDocRef)
-          .then((docSnap) => {
-            if (docSnap.exists()) {
-              const userData = docSnap.data();
-              alert("User logged in successfully: " + user.email);
-
-              if (userData.role === "admin") {
-                window.location.href = "Pages/Admin/AdminHome.html";
-              } else {
-                window.location.href = "Pages/DoctorNurse/DoctorNurseDashboard.html";
-              }
-            } else {
-              console.error("No user data found in Firestore.");
-              alert("Login failed: user data not found.");
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching user data from Firestore:", error);
-            alert("Login failed: could not get user data.");
-          });
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          alert("✅ Logged in as " + user.email);
+          window.location.href =
+            userData.role === "admin"
+              ? "Pages/Admin/AdminHome.html"
+              : "Pages/DoctorNurse/DoctorNurseDashboard.html";
+        } else {
+          alert("❌ No user data found!");
+        }
       })
       .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Error logging in user:", errorCode, errorMessage);
-        alert("Login failed: " + errorMessage);
+        alert("❌ Login error: " + error.message);
       });
   });
 }
 
-
-//Log Out functionality
+// ✅ Logout
 const logoutButton = document.getElementById("logout-button");
-if(logoutButton){
-  logoutButton.addEventListener("click", function (event) {
-    event.preventDefault();
-    signOut(getAuth(app))
-      .then(() => {
-        alert("User logged out successfully");
-        window.location.href = "../../Login.html"; // Redirect to login page
-        console.log("User logged out successfully" + user.email);
-      })
-      .catch((error) => {
-        console.error("Error logging out user:", error);
-      });
+if (logoutButton) {
+  logoutButton.addEventListener("click", function (e) {
+    e.preventDefault();
+    signOut(auth).then(() => {
+      alert("Logged out!");
+      window.location.href = "../../Login.html";
+    });
   });
 }
 
-// Only run this code on protected pages
-if (!window.location.pathname.includes("Login.html") && !window.location.pathname.includes("Register.html")) {
+// ✅ Prevent access without login
+if (!window.location.pathname.includes("Login.html")) {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       window.location.href = "../../Login.html";
-    } else {
+    }else{
       console.log("User is logged in:", user.email);
     }
   });
 }
 
-
-export { db, auth};
+export { db, auth };

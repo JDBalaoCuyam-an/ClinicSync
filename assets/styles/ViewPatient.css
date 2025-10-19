@@ -381,6 +381,9 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   z-index: 1001;
   display: none;
+  overflow-y: auto;
+  max-height: 90vh;
+
 }
 
 #add-consultation-record.show {
@@ -458,7 +461,8 @@
 ====================================================== */
 #consultation-form .save-btn,
 #consultation-form button[type="button"],
-#consultation-form button:not(.save-btn) {
+#consultation-form button:not(.save-btn)
+{
   margin-top: 15px;
   padding: 8px 0;
   border: none;
@@ -486,6 +490,7 @@
 #consultation-form button:not(.save-btn):hover {
   background-color: #bbb;
 }
+/* Consultation Overview */
 
 /* Physical Examination */
 #add-physical-exam {
