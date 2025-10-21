@@ -22,7 +22,7 @@ const firebaseConfig = {
   messagingSenderId: "371279618180",
   appId: "1:371279618180:web:2dc76b34a5aa1a2b42a2d1",
 };
-
+ 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -130,20 +130,15 @@ if (logoutButton) {
 }
 
 // ✅ Prevent access without login
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "../../Login.html";
-  } else {
-    console.log("User is logged in:", user.email);
-
-    // ✅ Fetch user data from Firestore
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      console.log("User Type:", userData.user_type); // ✅ Correct way
+if (!window.location.pathname.includes("Login.html")) {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "../../Login.html";
+    } else {
+      console.log("User is logged in:", user.email);
     }
-  }
-});
+  });
+}
 
 // SideBar name Display
 // ✅ Select the HTML element where name will be displayed
