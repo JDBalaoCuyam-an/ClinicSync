@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../../assets/styles/MedicalRecords.css" />
   </head>
   <body>
-    <!-- NavBar -->
+   <!-- NavBar -->
     <header class="navbar">
       <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       <h1>ClinicSync</h1>
@@ -19,22 +19,20 @@
     <div id="sidebar" class="sidebar">
       <div class="current-user">
         <div class="user-info">
-          <div class="user-icon">
+          <!-- <div class="user-icon">
             <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
-          </div>
-          <div class="user-name">Dr. John Doe</div>
-          <div class="user-role"><b>Doctor</b></div>
+          </div> -->
+          <div class="user-name" id="displayName">Loading...</div>
         </div>
         <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       </div>
       <ul>
         <li><a href="DoctorNurseDashboard.html">Home</a></li>
-        <li class="active">
-          <a href="MedicalRecords.html">Medical Records</a>
-        </li>
+        <li class="active"><a href="MedicalRecords.html">Medical Records</a></li>
         <li><a href="Schedules.html">Schedules</a></li>
         <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
         <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
+        <li><a href="ActivityLogs.html">Activity Logs</a></li>
       </ul>
       <form>
         <button type="submit" id="logout-button">Log Out</button>
