@@ -10,6 +10,8 @@ import {
   addDoc,
   getDocs,
   serverTimestamp,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -332,12 +334,27 @@ addMedBtn.addEventListener("click", () => {
 
   medsListDiv.appendChild(container);
 });
+async function loadComplaints() {
+  const complaintList = document.getElementById("complaint-list");
+  complaintList.innerHTML = ""; // Clear old options
+
+  const querySnapshot = await getDocs(collection(db, "complaints"));
+  querySnapshot.forEach((doc) => {
+    const option = document.createElement("option");
+    option.value = doc.data().name;
+    complaintList.appendChild(option);
+  });
+}
+
+// ✅ Call this once when page loads
+loadComplaints();
 
 document
   .getElementById("consultation-form")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // ✅ Get all meds in the table
     const medsDispensed = Array.from(document.querySelectorAll(".med-row"))
       .map((row) => {
         return {
@@ -347,11 +364,12 @@ document
       })
       .filter((med) => med.name !== "");
 
+    // ✅ Gather consultation data
     const consultData = {
       consultingDoctor: document.getElementById("consult-doctor").value,
       date: document.getElementById("consult-date").value,
       time: document.getElementById("consult-time").value,
-      complaint: document.getElementById("consult-complaint").value,
+      complaint: document.getElementById("consult-complaint").value.trim(),
       diagnosis: document.getElementById("consult-diagnosis").value,
       meds: medsDispensed,
       notes: document.getElementById("consult-notes").value,
@@ -362,16 +380,35 @@ document
         pr: document.getElementById("vital-pr").value,
         lmp: document.getElementById("vital-lmp").value,
       },
-      NurseOnDuty: currentUserName, // ✅ This will store the logged-in user's name
+      NurseOnDuty: currentUserName, // ✅ Logged-in user
       createdAt: new Date(),
     };
 
+    // ✅ Save new complaint to Firestore if it's new
+    const complaintValue = consultData.complaint;
+    if (complaintValue !== "") {
+      const complaintsRef = collection(db, "complaints");
+      const q = query(complaintsRef, where("name", "==", complaintValue));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        await addDoc(complaintsRef, {
+          name: complaintValue,
+          createdAt: new Date(),
+        });
+        console.log("✅ New complaint saved:", complaintValue);
+      }
+    }
+
     try {
+      // ✅ Save consultation record under patient
       const consultRef = collection(db, "patients", patientId, "consultations");
       await addDoc(consultRef, consultData);
+
       alert("Consultation Record Saved!");
       closeButtonOverlay();
       loadConsultations();
+      loadComplaints(); // ✅ Refresh the dropdown with latest list
     } catch (err) {
       console.error("Error adding consultation:", err);
       alert("Failed to save consultation record.");
