@@ -1,7 +1,7 @@
 /* -----------------------------------------------
      🔹 FIREBASE IMPORTS & INITIAL SETUP
   ----------------------------------------------- */
-import { db } from "../../firebaseconfig.js";
+import { db, auth, currentUserName } from "../../firebaseconfig.js";
 import {
   doc,
   getDoc,
@@ -345,7 +345,7 @@ document
           quantity: parseInt(row.querySelector(".med-qty").value) || 0,
         };
       })
-      .filter((med) => med.name !== ""); // remove empty rows
+      .filter((med) => med.name !== "");
 
     const consultData = {
       consultingDoctor: document.getElementById("consult-doctor").value,
@@ -353,7 +353,7 @@ document
       time: document.getElementById("consult-time").value,
       complaint: document.getElementById("consult-complaint").value,
       diagnosis: document.getElementById("consult-diagnosis").value,
-      meds: medsDispensed, // ✅ {name, quantity}
+      meds: medsDispensed,
       notes: document.getElementById("consult-notes").value,
       vitals: {
         bp: document.getElementById("vital-bp").value,
@@ -362,6 +362,7 @@ document
         pr: document.getElementById("vital-pr").value,
         lmp: document.getElementById("vital-lmp").value,
       },
+      NurseOnDuty: currentUserName, // ✅ This will store the logged-in user's name
       createdAt: new Date(),
     };
 
@@ -394,15 +395,17 @@ async function loadConsultations() {
       const data = docSnap.data();
 
       // Convert meds array into a readable string safely
-let medsDisplay = "-";
-if (Array.isArray(data.meds) && data.meds.length > 0) {
-  medsDisplay = data.meds.map((m) => `${m.name} (${m.quantity})`).join(", ");
-}
-
+      let medsDisplay = "-";
+      if (Array.isArray(data.meds) && data.meds.length > 0) {
+        medsDisplay = data.meds
+          .map((m) => `${m.name} (${m.quantity})`)
+          .join(", ");
+      }
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${data.consultingDoctor}</td>
+        <td>${data.NurseOnDuty}</td>
         <td>${data.date}</td>
         <td>${data.time}</td>
         <td>${data.complaint}</td>
@@ -430,11 +433,10 @@ window.showConsultationDetails = function (data) {
   document.getElementById("ovr-diagnosis").textContent = data.diagnosis || "-";
 
   // Format meds list for display
-  document.getElementById("ovr-meds").textContent = 
-  Array.isArray(data.meds) && data.meds.length > 0
-    ? data.meds.map((m) => `${m.name} (${m.quantity})`).join(", ")
-    : "-";
-
+  document.getElementById("ovr-meds").textContent =
+    Array.isArray(data.meds) && data.meds.length > 0
+      ? data.meds.map((m) => `${m.name} (${m.quantity})`).join(", ")
+      : "-";
 
   document.getElementById("ovr-notes").textContent = data.notes || "-";
 

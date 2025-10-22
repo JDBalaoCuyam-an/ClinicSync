@@ -22,7 +22,7 @@ const firebaseConfig = {
   messagingSenderId: "371279618180",
   appId: "1:371279618180:web:2dc76b34a5aa1a2b42a2d1",
 };
- 
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -144,28 +144,30 @@ if (!window.location.pathname.includes("Login.html")) {
 // ✅ Select the HTML element where name will be displayed
 const nameDisplay = document.getElementById("displayName");
 
-// ✅ Listen for logged-in user
+let currentUserName = ""; // 🌟 will store the name of the logged-in user
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // Get additional user details from Firestore
     const userRef = doc(db, "users", user.uid);
     const userData = await getDoc(userRef);
 
     if (userData.exists()) {
       const data = userData.data();
 
-      // Combine full name correctly
       const fullName = `${data.lastName}, ${data.firstName} ${
         data.middleName || ""
       } ${data.extName || ""}`.trim();
 
-      nameDisplay.textContent = fullName; // ✅ Update sidebar with name
+      nameDisplay.textContent = fullName;
+      currentUserName = fullName; // ✅ <-- JUST THIS LINE ADDED
     } else {
-      nameDisplay.textContent = user.email; // Fallback to email
+      nameDisplay.textContent = user.email;
+      currentUserName = user.email; // fallback
     }
   } else {
     nameDisplay.textContent = "Not Logged In";
+    currentUserName = "";
   }
 });
 
-export { db, auth };
+export { db, auth, currentUserName };
