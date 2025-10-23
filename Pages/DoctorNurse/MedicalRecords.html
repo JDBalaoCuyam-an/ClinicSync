@@ -78,6 +78,7 @@
             <select name="role" required>
               <option value="Student">Student</option>
               <option value="Faculty">Faculty</option>
+              <option value="Visitor">Visitor</option>
             </select>
           </label>
           <label>
@@ -94,7 +95,25 @@
             </select>
           </label>
 
-          <label>Course : <input type="text" name="course" /></label>
+          <label>Course/Strand/General Education : <select name="course">
+            <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
+            <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
+            <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
+            <option value="Bachelor of Science in Office Administration">Bachelor of Science in Office Administration</option>
+            <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business Administration</option>
+            <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
+            <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
+            <option value="Bachelor of Science in Social Work">Bachelor of Science in Social Work</option>
+            <option value="Bachelor of Secondary Education">Bachelor of Secondary Education</option>
+            <option value="Technical Vocational Teacher Education">Technical Vocational Teacher Education</option>
+            <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
+            <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+            <option value="Bachelor of Theology">Bachelor of Theology</option>
+            <option value="Accountancy and Business Management">Accountancy and Business Management (ABM)</option>
+            <option value="Science, Technology, Engineering, and Mathematics">Science, Technology, Engineering, and Mathematics (STEM)</option>
+            <option value="Humanities and Sciences">Humanities and Sciences</option>
+            <option value="General Education">General Education(Junior Highschool, Elementary & KinderGarten)</option>
+          </select></label>
           <label>Year : <input type="number" name="year" /></label>
         </div>
 
@@ -161,6 +180,7 @@
           <option value="all">All Roles</option>
           <option value="student">Student</option>
           <option value="faculty">Faculty</option>
+          <option value="visitor">Visitor</option>
         </select>
 
         <select id="filterDept">
@@ -180,10 +200,10 @@
           <tr>
             <th>Patient Name</th>
             <th>School ID</th>
-            <th>Age</th>
-            <th>Sex</th>
-            <th>Role</th>
             <th>Department</th>
+            <th>Course</th>
+            <th>Year/Grade Level</th>
+            <th>Patient Type</th>
             <th>Contact</th>
           </tr>
         </thead>

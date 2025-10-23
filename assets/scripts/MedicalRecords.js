@@ -45,10 +45,10 @@ function displayPatients(patients) {
       data.middleName || ""
     }</td>
         <td>${data.schoolId}</td>
-        <td>${data.age}</td>
-        <td>${data.gender ? data.gender.charAt(0) : "-"}</td>
+        <td>${data.department}</td>
+        <td>${data.course}</td>
+        <td>${data.year || "-"}</td>
         <td>${data.role}</td>
-        <td>${data.department || "-"}</td>
         <td>${data.contact || "-"}</td>
       `;
     row.onclick = () => {

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
   </head>
   <body>
-   <!-- NavBar -->
+    <!-- NavBar -->
     <header class="navbar">
       <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       <h1>ClinicSync</h1>
@@ -28,7 +28,9 @@
       </div>
       <ul>
         <li><a href="DoctorNurseDashboard.html">Home</a></li>
-        <li class="active"><a href="MedicalRecords.html">Medical Records</a></li>
+        <li class="active">
+          <a href="MedicalRecords.html">Medical Records</a>
+        </li>
         <li><a href="Schedules.html">Schedules</a></li>
         <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
         <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
@@ -399,9 +401,7 @@
                   <th>Meds.</th>
                 </tr>
               </thead>
-              <tbody>
-                
-              </tbody>
+              <tbody></tbody>
             </table>
           </div>
           <!-- New Consultation Record -->
@@ -421,10 +421,11 @@
               <label
                 >Time:<input type="time" id="consult-time" required
               /></label>
-              <label>Chief Complaint:
-  <input list="complaint-list" id="consult-complaint" required />
-  <datalist id="complaint-list"></datalist>
-</label>
+              <label
+                >Chief Complaint:
+                <input list="complaint-list" id="consult-complaint" required />
+                <datalist id="complaint-list"></datalist>
+              </label>
 
               <label
                 >Diagnosis:<input type="text" id="consult-diagnosis"
