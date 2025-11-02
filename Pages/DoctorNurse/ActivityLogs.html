@@ -24,12 +24,12 @@
         <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       </div>
       <ul>
-        <li class="active"><a href="DoctorNurseDashboard.html">Home</a></li>
+        <li><a href="DoctorNurseDashboard.html">Home</a></li>
         <li><a href="MedicalRecords.html">Medical Records</a></li>
         <li><a href="Schedules.html">Schedules</a></li>
         <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
         <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
-        <li><a href="ActivityLogs.html">Activity Logs</a></li>
+        <li a class="active"><a href="ActivityLogs.html">Activity Logs</a></li>
       </ul>
       <form>
         <button type="submit" id="logout-button">Log Out</button>
@@ -37,54 +37,22 @@
     </div>
 
     <div class="activity-logs">
-      <input type="radio" id="new-patient-log" name="tab" checked />
-      <label class="radio-tabs" for="new-patient-log">Patient Log</label>
-
-      <input type="radio" id="new-schedule-log" name="tab" />
-      <label class="radio-tabs" for="new-schedule-log">Medical History</label>
+      <input type="radio" id="patient-record-log" name="tab" checked />
+      <label class="radio-tabs" for="patient-record-log">Patient Log</label>
 
       <input type="radio" id="meds-dispension-log" name="tab" />
       <label class="radio-tabs" for="meds-dispension-log"
         >Medicine Dispension</label
       >
-      <input type="radio" id="clinic-inventory-log" name="tab" />
-      <label class="radio-tabs" for="clinic-inventory-log"
-        >Clinic Inventory</label
-      >
 
-      <input type="radio" id="consultation-record-log" name="tab" />
-      <label class="radio-tabs" for="consultation-record-log"
-        >Consultation Record</label
-      >
-
-      <input type="radio" id="physical-exam-log" name="tab" />
-      <label class="radio-tabs" for="physical-exam-log"
-        >Physical Examination</label
-      >
-
-      <div class="new-patient-log-content tab-content">
+      
+      <div class="patient-record-log-content tab-content">
         <!-- Patient Info Logs Content -->
-        <h2>New Patient Log</h2>
-      </div>
-      <div class="new-schedule-log-content tab-content">
-        <!-- Medical History Logs Content -->
-        <h2>New Schedule Log</h2>
+        <h2>Patient Record Log</h2>
       </div>
       <div class="meds-dispension-log-content tab-content">
         <!-- Medical Consultation Logs Content -->
         <h2>Medicine Dispension Log</h2>
-      </div>
-      <div class="clinic-inventory-log-content tab-content">
-        <!-- Dental Records Logs Content -->
-        <h2>Clinic Inventory Log</h2>
-      </div>
-      <div class="consultation-record-log-content tab-content">
-        <!-- Physical Examination Logs Content -->
-        <h2>Consultation Record Log</h2>
-      </div>
-      <div class="physical-exam-log-content tab-content">
-        <!-- Physical Examination Logs Content -->
-        <h2>Physical Examination Log</h2>
       </div>
     <!-- Tab Contents -->
   </body>

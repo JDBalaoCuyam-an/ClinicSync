@@ -42,9 +42,8 @@ if (register) {
     const email = document.getElementById("reg_email").value;
     const password = document.getElementById("reg_password").value;
 
-    // ✅ Change "role" → "user_type"
     const isAdmin = document.getElementById("regAsAdmin").checked;
-    const userType = isAdmin ? "admin" : "staff"; // "DoctorNurse" → "staff"
+    const userType = isAdmin ? "admin" : "staff";
 
     const firstName = document.getElementById("first_name").value;
     const middleName = document.getElementById("middle_name").value;
@@ -60,11 +59,10 @@ if (register) {
       );
       const newUser = userCredential.user;
 
-      // ✅ Save user with `user_type`
       await setDoc(doc(db, "users", newUser.uid), {
         email: newUser.email,
         uid: newUser.uid,
-        user_type: userType, // ✅ Renamed here
+        user_type: userType,
         firstName,
         middleName: middleName || "",
         lastName,
@@ -75,8 +73,20 @@ if (register) {
 
       alert("✅ User Created Successfully!");
 
+      // ✅ Restore admin session
       await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
-      console.log("✅ Admin session restored!");
+
+      // ✅ CLEAR FORM AFTER SUCCESS
+      document.getElementById("reg_email").value = "";
+      document.getElementById("reg_password").value = "";
+      document.getElementById("regAsAdmin").checked = false;
+      document.getElementById("first_name").value = "";
+      document.getElementById("middle_name").value = "";
+      document.getElementById("last_name").value = "";
+      document.getElementById("ext_name").value = "";
+      document.getElementById("contact_number").value = "";
+
+      console.log("✅ Admin session restored & form cleared!");
     } catch (error) {
       console.error("Error creating account:", error);
       alert("❌ Failed: " + error.message);
@@ -154,9 +164,7 @@ onAuthStateChanged(auth, async (user) => {
     if (userData.exists()) {
       const data = userData.data();
 
-      const fullName = `${data.lastName}, ${data.firstName} ${
-        data.middleName || ""
-      } ${data.extName || ""}`.trim();
+      const fullName = `${data.lastName}, ${data.firstName} ${data.extName}`.trim();
 
       nameDisplay.textContent = fullName;
       currentUserName = fullName; // ✅ <-- JUST THIS LINE ADDED

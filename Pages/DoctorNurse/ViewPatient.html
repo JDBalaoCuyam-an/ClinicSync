@@ -195,10 +195,81 @@
                 >School ID : <input id="schoolId" type="text" disabled
               /></label>
               <label>Role : <input id="role" type="text" disabled /></label>
-              <label
-                >Department : <input id="department" type="text" disabled
-              /></label>
-              <label>Course : <input id="course" type="text" disabled /></label>
+              <label>
+                Department :
+                <select id="department" disabled required>
+                  <option value="">Select Department</option>
+                  <option value="CABM">CABM</option>
+                  <option value="CCJE">CCJE</option>
+                  <option value="CIT">CIT</option>
+                  <option value="COT">COT</option>
+                  <option value="TTED">TTED</option>
+                  <option value="CTE">CTE</option>
+                  <option value="BasicEd">BasicEd</option>
+                </select>
+              </label>
+
+              <label>
+                Course/Strand/Gen. Educ. :
+                <select id="course" disabled>
+                  <option value="">Select Course / Strand</option>
+                  <option value="Bachelor of Science in Accountancy">
+                    Bachelor of Science in Accountancy
+                  </option>
+                  <option value="Bachelor of Science in Hospitality Management">
+                    Bachelor of Science in Hospitality Management
+                  </option>
+                  <option value="Bachelor of Science in Information Technology">
+                    Bachelor of Science in Information Technology
+                  </option>
+                  <option value="Bachelor of Science in Office Administration">
+                    Bachelor of Science in Office Administration
+                  </option>
+                  <option
+                    value="Bachelor of Science in Business Administration"
+                  >
+                    Bachelor of Science in Business Administration
+                  </option>
+                  <option value="Bachelor of Elementary Education">
+                    Bachelor of Elementary Education
+                  </option>
+                  <option value="Bachelor of Science in Psychology">
+                    Bachelor of Science in Psychology
+                  </option>
+                  <option value="Bachelor of Science in Social Work">
+                    Bachelor of Science in Social Work
+                  </option>
+                  <option value="Bachelor of Secondary Education">
+                    Bachelor of Secondary Education
+                  </option>
+                  <option value="Technical Vocational Teacher Education">
+                    Technical Vocational Teacher Education
+                  </option>
+                  <option value="Bachelor of Science in Criminology">
+                    Bachelor of Science in Criminology
+                  </option>
+                  <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+                  <option value="Bachelor of Theology">
+                    Bachelor of Theology
+                  </option>
+                  <option value="Accountancy and Business Management">
+                    Accountancy and Business Management (ABM)
+                  </option>
+                  <option
+                    value="Science, Technology, Engineering, and Mathematics"
+                  >
+                    Science, Technology, Engineering, and Mathematics (STEM)
+                  </option>
+                  <option value="Humanities and Sciences">
+                    Humanities and Sciences
+                  </option>
+                  <option value="General Education">
+                    General Education (Junior Highschool, Elementary &
+                    Kindergarten)
+                  </option>
+                </select>
+              </label>
+
               <label>Year : <input id="year" type="number" disabled /></label>
             </div>
 
@@ -476,28 +547,65 @@
             <div class="modal-content">
               <h2>Consultation Overview</h2>
               <div class="overview-details">
-                <p><strong>Doctor:</strong> <span id="ovr-doctor"></span></p>
-                <p><strong>Date:</strong> <span id="ovr-date"></span></p>
-                <p><strong>Time:</strong> <span id="ovr-time"></span></p>
-                <p>
-                  <strong>Chief Complaint:</strong>
-                  <span id="ovr-complaint"></span>
-                </p>
-                <p>
-                  <strong>Diagnosis:</strong> <span id="ovr-diagnosis"></span>
-                </p>
-                <p><strong>Medications:</strong> <span id="ovr-meds"></span></p>
+                <label
+                  ><strong>Doctor:</strong>
+                  <input id="ovr-doctor" type="text" disabled />
+                </label>
+                <label
+                  ><strong>Date:</strong>
+                  <input id="ovr-date" type="date" disabled />
+                </label>
+                <label
+                  ><strong>Time:</strong>
+                  <input id="ovr-time" type="time" disabled />
+                </label>
+                <label
+                  ><strong>Chief Complaint:</strong>
+                  <input id="ovr-complaint" type="text" disabled />
+                </label>
+                <label
+                  ><strong>Diagnosis:</strong>
+                  <input id="ovr-diagnosis" type="text" disabled />
+                </label>
+                <label
+                  ><strong>Medications:</strong>
+                  <textarea id="ovr-meds" disabled></textarea>
+                </label>
+
                 <h4>Vital Signs</h4>
-                <p><strong>BP:</strong> <span id="ovr-bp"></span></p>
-                <p><strong>T (°C):</strong> <span id="ovr-temp"></span></p>
-                <p><strong>SpO₂:</strong> <span id="ovr-spo2"></span></p>
-                <p><strong>PR (bpm):</strong> <span id="ovr-pr"></span></p>
-                <p><strong>LMP:</strong> <span id="ovr-lmp"></span></p>
-                <p><strong>Notes:</strong> <span id="ovr-notes"></span></p>
+                <label
+                  ><strong>BP:</strong>
+                  <input id="ovr-bp" type="text" disabled />
+                </label>
+                <label
+                  ><strong>T (°C):</strong>
+                  <input id="ovr-temp" type="text" disabled />
+                </label>
+                <label
+                  ><strong>SpO₂:</strong>
+                  <input id="ovr-spo2" type="text" disabled />
+                </label>
+                <label
+                  ><strong>PR (bpm):</strong>
+                  <input id="ovr-pr" type="text" disabled />
+                </label>
+                <label
+                  ><strong>LMP:</strong>
+                  <input id="ovr-lmp" type="text" disabled />
+                </label>
+                <label
+                  ><strong>Notes:</strong>
+                  <textarea id="ovr-notes" disabled></textarea>
+                </label>
               </div>
-              <button onclick="closeOverview()">Close</button>
+
+              <div class="modal-buttons">
+                <button id="editOverviewBtn">✏️ Edit</button>
+                <button onclick="closeOverview()">Close</button>
+              </div>
             </div>
           </div>
+
           <div class="tab-content physical-examination-content">
             <h2>Physical Examination :</h2>
 

@@ -11,7 +11,7 @@ import {
   getDocs,
   serverTimestamp,
   query,
-  where
+  where,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -49,29 +49,30 @@ async function loadPatient() {
 
     // 🧩 Basic Info
     const infoFields = {
-      lastName: data.lastName,
-      firstName: data.firstName,
+      lastName: data.lastName || "",
+      firstName: data.firstName || "",
       middleName: data.middleName || "",
       extName: data.extName || "",
-      gender: data.gender,
-      birthdate: data.birthdate,
-      age: data.age,
+      gender: data.gender || "",
+      birthdate: data.birthdate || "",
+      age: data.age || "",
       civilStatus: data.civilStatus || "",
       nationality: data.nationality || "",
       religion: data.religion || "",
-      schoolId: data.schoolId,
-      role: data.role,
-      department: data.department || "",
-      course: data.course || "",
-      year: data.year || "",
+      schoolId: data.schoolId || "",
+      role: data.role || "",
     };
-    const infoInputs = document.querySelectorAll(
-      ".patient-info-content .info-grid input"
-    );
-    Object.values(infoFields).forEach((val, i) => {
-      if (infoInputs[i]) infoInputs[i].value = val;
+
+    // ✅ Set <input> fields only
+    Object.keys(infoFields).forEach((key) => {
+      const input = document.getElementById(key);
+      if (input) input.value = infoFields[key];
     });
 
+    // ✅ Set <select> fields properly
+    document.getElementById("department").value = data.department || "";
+    document.getElementById("course").value = data.course || "";
+    document.getElementById("year").value = data.year || "";
     // 🧩 Parent Info
     const parentFields = {
       fatherName: data.fatherName || "",
@@ -247,9 +248,10 @@ editHistoryBtn.addEventListener("click", async () => {
 const editPatientInfoBtn = document.querySelector(
   ".patient-info-content .edit-btn"
 );
+
 editPatientInfoBtn.addEventListener("click", async () => {
   const infoInputs = document.querySelectorAll(
-    ".patient-info-content .info-grid input"
+    ".patient-info-content .info-grid input, .patient-info-content .info-grid select"
   );
 
   if (editPatientInfoBtn.textContent.includes("✏️")) {
@@ -257,21 +259,21 @@ editPatientInfoBtn.addEventListener("click", async () => {
     editPatientInfoBtn.textContent = "💾 Save";
   } else {
     const updatedData = {
-      lastName: lastName.value,
-      firstName: firstName.value,
-      middleName: middleName.value,
-      extName: extName.value,
-      gender: gender.value,
-      birthdate: birthdate.value,
-      age: Number(age.value),
-      civilStatus: civilStatus.value,
-      nationality: nationality.value,
-      religion: religion.value,
-      schoolId: schoolId.value,
-      role: role.value,
-      department: department.value,
-      course: course.value,
-      year: Number(year.value),
+      lastName: document.getElementById("lastName").value,
+      firstName: document.getElementById("firstName").value,
+      middleName: document.getElementById("middleName").value,
+      extName: document.getElementById("extName").value,
+      gender: document.getElementById("gender").value,
+      birthdate: document.getElementById("birthdate").value,
+      age: Number(document.getElementById("age").value),
+      civilStatus: document.getElementById("civilStatus").value,
+      nationality: document.getElementById("nationality").value,
+      religion: document.getElementById("religion").value,
+      schoolId: document.getElementById("schoolId").value,
+      role: document.getElementById("role").value,
+      department: document.getElementById("department").value,
+      course: document.getElementById("course").value,
+      year: Number(document.getElementById("year").value),
 
       fatherName: fatherName.value,
       fatherAge: Number(fatherAge.value),
@@ -418,10 +420,10 @@ document
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
 ------------------------------------------------ */
+let currentConsultationId = null; // 🔹 Store current consultation ID globally
+
 async function loadConsultations() {
-  const tableBody = document.querySelector(
-    ".medical-consultation-content tbody"
-  );
+  const tableBody = document.querySelector(".medical-consultation-content tbody");
   tableBody.innerHTML = "";
 
   try {
@@ -430,13 +432,11 @@ async function loadConsultations() {
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
+      const consultId = docSnap.id; // ✅ get consultation ID
 
-      // Convert meds array into a readable string safely
       let medsDisplay = "-";
       if (Array.isArray(data.meds) && data.meds.length > 0) {
-        medsDisplay = data.meds
-          .map((m) => `${m.name} (${m.quantity})`)
-          .join(", ");
+        medsDisplay = data.meds.map((m) => `${m.name} (${m.quantity})`).join(", ");
       }
 
       const tr = document.createElement("tr");
@@ -450,8 +450,8 @@ async function loadConsultations() {
         <td>${medsDisplay}</td>
       `;
 
-      // Click row → open overview modal
-      tr.addEventListener("click", () => showConsultationDetails(data));
+      // ✅ Pass both data and ID
+      tr.addEventListener("click", () => showConsultationDetails(data, consultId));
       tableBody.appendChild(tr);
     });
   } catch (err) {
@@ -459,40 +459,103 @@ async function loadConsultations() {
   }
 }
 
+
 /* -----------------------------------------------
    🔹 SHOW CONSULTATION DETAILS IN MODAL
 ------------------------------------------------ */
-window.showConsultationDetails = function (data) {
-  document.getElementById("ovr-doctor").textContent = data.consultingDoctor;
-  document.getElementById("ovr-date").textContent = data.date;
-  document.getElementById("ovr-time").textContent = data.time;
-  document.getElementById("ovr-complaint").textContent = data.complaint;
-  document.getElementById("ovr-diagnosis").textContent = data.diagnosis || "-";
+window.showConsultationDetails = function (data, consultId) {
+  currentConsultationId = consultId; // ✅ save ID for editing later
 
-  // Format meds list for display
-  document.getElementById("ovr-meds").textContent =
+  document.getElementById("ovr-doctor").value = data.consultingDoctor || "";
+  document.getElementById("ovr-date").value = data.date || "";
+  document.getElementById("ovr-time").value = data.time || "";
+  document.getElementById("ovr-complaint").value = data.complaint || "";
+  document.getElementById("ovr-diagnosis").value = data.diagnosis || "";
+  document.getElementById("ovr-notes").value = data.notes || "";
+
+  document.getElementById("ovr-meds").value =
     Array.isArray(data.meds) && data.meds.length > 0
       ? data.meds.map((m) => `${m.name} (${m.quantity})`).join(", ")
       : "-";
 
-  document.getElementById("ovr-notes").textContent = data.notes || "-";
+  const vitals = data.vitals || {};
+  document.getElementById("ovr-bp").value = vitals.bp || "";
+  document.getElementById("ovr-temp").value = vitals.temp || "";
+  document.getElementById("ovr-spo2").value = vitals.spo2 || "";
+  document.getElementById("ovr-pr").value = vitals.pr || "";
+  document.getElementById("ovr-lmp").value = vitals.lmp || "";
 
-  // Vital Signs
-  document.getElementById("ovr-bp").textContent = data.vitals.bp || "-";
-  document.getElementById("ovr-temp").textContent = data.vitals.temp || "-";
-  document.getElementById("ovr-spo2").textContent = data.vitals.spo2 || "-";
-  document.getElementById("ovr-pr").textContent = data.vitals.pr || "-";
-  document.getElementById("ovr-lmp").textContent = data.vitals.lmp || "-";
-
-  // Show Modal + Overlay
   document.getElementById("consultation-overview").classList.add("show");
   document.getElementById("overlay").classList.add("show");
 };
 
-window.closeOverview = function () {
-  document.getElementById("consultation-overview").classList.remove("show");
-  document.getElementById("overlay").classList.remove("show");
-};
+
+/* -----------------------------------------------
+   🔹 EDIT & SAVE CONSULTATION DETAILS
+------------------------------------------------ */
+editOverviewBtn.addEventListener("click", async () => {
+  const inputs = document.querySelectorAll(
+    "#consultation-overview input, #consultation-overview textarea"
+  );
+
+  // --- Enable Edit Mode ---
+  if (editOverviewBtn.textContent.includes("✏️")) {
+    inputs.forEach((input) => input.removeAttribute("disabled"));
+    editOverviewBtn.textContent = "💾 Save";
+    return;
+  }
+
+  // --- Validate we have a consultation ID ---
+  if (!currentConsultationId) {
+    alert("No consultation selected!");
+    return;
+  }
+
+  // --- Gather Updated Data ---
+  const updatedData = {
+    consultingDoctor: document.getElementById("ovr-doctor").value,
+    date: document.getElementById("ovr-date").value,
+    time: document.getElementById("ovr-time").value,
+    complaint: document.getElementById("ovr-complaint").value.trim(),
+    diagnosis: document.getElementById("ovr-diagnosis").value,
+    notes: document.getElementById("ovr-notes").value,
+    vitals: {
+      bp: document.getElementById("ovr-bp").value,
+      temp: document.getElementById("ovr-temp").value,
+      spo2: document.getElementById("ovr-spo2").value,
+      pr: document.getElementById("ovr-pr").value,
+      lmp: document.getElementById("ovr-lmp").value,
+    },
+    meds:
+      document.getElementById("ovr-meds").value.trim() !== "-"
+        ? document
+            .getElementById("ovr-meds")
+            .value.split(",")
+            .map((item) => {
+              const match = item.trim().match(/^(.*)\s\((\d+)\)$/);
+              return match
+                ? { name: match[1].trim(), quantity: parseInt(match[2]) }
+                : { name: item.trim(), quantity: 1 };
+            })
+        : [],
+    updatedAt: new Date(),
+  };
+
+  try {
+    // ✅ Correct Firestore reference
+    const consultRef = doc(db, "patients", patientId, "consultations", currentConsultationId);
+    await updateDoc(consultRef, updatedData);
+
+    alert("✅ Consultation record updated!");
+    inputs.forEach((input) => input.setAttribute("disabled", "true"));
+    editOverviewBtn.textContent = "✏️ Edit";
+    loadConsultations();
+  } catch (err) {
+    console.error("❌ Error updating consultation:", err);
+    alert("Failed to update consultation record.");
+  }
+});
+
 
 /* -----------------------------------------------
  🔹 SAVE PHYSICAL EXAMINATION RECORD

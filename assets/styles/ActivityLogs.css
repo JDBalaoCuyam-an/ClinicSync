@@ -29,11 +29,8 @@
   padding: 20px;
 }
 
-#new-patient-log:checked ~ .new-patient-log-content,
-#new-schedule-log:checked ~ .new-schedule-log-content,
+#patient-record-log:checked ~ .patient-record-log-content,
 #meds-dispension-log:checked ~ .meds-dispension-log-content,
-#clinic-inventory-log:checked ~ .clinic-inventory-log-content,
-#consultation-record-log:checked ~ .consultation-record-log-content,
 #physical-exam-log:checked ~ .physical-exam-log-content {
   display: block;
   border-top: 2px solid #4682b4;
