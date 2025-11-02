@@ -39,7 +39,8 @@ function closeButtonOverlay() {
   const addConsultationRecord = document.getElementById("add-consultation-record");
   const overlay = document.getElementById("overlay");
   const addPhysicalExam = document.getElementById("add-physical-exam");
-
+  const consultationOveriew = document.getElementById("consultation-overview");
+ 
   if (addPhysicalExam && addPhysicalExam.classList.contains("show")) {
     addPhysicalExam.classList.remove("show");
   }
@@ -57,6 +58,10 @@ function closeButtonOverlay() {
   }
   if (addConsultationRecord && addConsultationRecord.classList.contains("show")) {
     addConsultationRecord.classList.remove("show");
+  }
+   
+  if (consultationOveriew && consultationOveriew.classList.contains("show")) {
+    consultationOveriew.classList.remove("show");
   }
   if (overlay) {
     overlay.classList.remove("show");
