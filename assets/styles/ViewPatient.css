@@ -338,8 +338,7 @@
   font-size: 18px;
 }
 
-/* Consultation Modal */
-/* 🔹 Modal Container */
+/* 🔹 Consultation Modal */
 .consultation-modal {
   position: fixed;
   top: 50%;
@@ -352,11 +351,10 @@
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
   padding: 20px 25px;
   overflow-y: auto;
-  z-index: 100;
+  z-index: 1002;
   display: none;
   transition: transform 0.2s ease, opacity 0.2s ease;
   opacity: 0;
-  z-index: 1002;
 }
 
 .consultation-modal.show {
@@ -410,14 +408,14 @@
   resize: none;
 }
 
-/* 🔹 Disabled Inputs (Based on your reference) */
+/* Disabled Inputs */
 .overview-details input:disabled,
 .overview-details textarea:disabled {
   background-color: #e0efff;
   border: none;
 }
 
-/* 🔹 Enabled Inputs (Editable Mode) */
+/* Enabled Inputs */
 .overview-details input:enabled,
 .overview-details textarea:enabled {
   border: 1px solid #4682b4;
@@ -522,7 +520,9 @@
   background-color: #f0f8ff;
 }
 
-/* Vital Signs */
+/* ======================================================
+   🔹 VITAL SIGNS
+====================================================== */
 .vitals-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -580,11 +580,12 @@
 #consultation-form button:not(.save-btn):hover {
   background-color: #bbb;
 }
-/* Consultation Overview */
 
-/* Physical Examination */
+/* ======================================================
+   🔹 PHYSICAL EXAMINATION
+====================================================== */
 #add-physical-exam {
-  display: none; /* use JS to toggle */
+  display: none;
   width: 80%;
   max-width: 900px;
   max-height: 90vh;
@@ -601,6 +602,7 @@
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
   font-family: "Poppins", sans-serif;
 }
+
 #add-physical-exam.show {
   display: block;
 }
@@ -671,140 +673,150 @@
 #add-physical-exam .save-btn:hover {
   background-color: #3b6ea0;
 }
-#exam-overview-modal {
-  display: none;
+
+/* ======================================================
+   🔹 PHYSICAL EXAM OVERVIEW MODAL
+====================================================== */
+.exam-overview-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1002;
-  justify-content: center;
-  align-items: center;
-}
-
-#exam-overview-modal .overview-content {
-  background: #fff;
-  width: 80%;
-  max-width: 800px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: 70%;
   max-height: 90vh;
-  overflow-y: auto;
-  padding: 20px;
+  background: #fff;
   border-radius: 10px;
-  border: 2px solid #4a86c5;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+  padding: 20px 25px;
+  overflow-y: auto;
+  z-index: 1002;
+  display: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  opacity: 0;
 }
 
-#exam-overview-modal h2 {
+.exam-overview-modal.show {
+  display: block;
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+/* 🔹 Modal Header */
+.exam-overview-modal h2 {
   text-align: center;
   margin-bottom: 15px;
-  color: #2a5d9f;
+  color: #2e5fa8;
+  font-size: 22px;
+  font-weight: bold;
+  border-bottom: 2px solid #e0efff;
+  padding-bottom: 8px;
 }
 
-#overview-details p {
-  margin: 6px 0;
-  line-height: 1.5;
+/* 🔹 Overview Details */
+.exam-overview-modal .overview-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  margin-bottom: 15px;
+}
+
+.exam-overview-modal .overview-details h4 {
+  grid-column: span 2;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-size: 16px;
+  color: #2e5fa8;
+}
+
+/* 🔹 Label and Input Layout */
+.exam-overview-modal .overview-details label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #333;
+}
+
+.exam-overview-modal .overview-details input,
+.exam-overview-modal .overview-details textarea,
+.exam-overview-modal .overview-details select {
+  width: 100%;
+  padding: 5px 3px;
+  font-size: 14px;
+  color: #333;
+  border-radius: 5px;
+  resize: none;
+}
+
+/* Disabled Inputs */
+.exam-overview-modal .overview-details input:disabled,
+.exam-overview-modal .overview-details textarea:disabled,
+.exam-overview-modal .overview-details select:disabled {
+  background-color: #e0efff;
+  border: none;
+}
+
+/* Enabled Inputs */
+.exam-overview-modal .overview-details input:enabled,
+.exam-overview-modal .overview-details textarea:enabled,
+.exam-overview-modal .overview-details select:enabled {
+  border: 1px solid #4682b4;
+  background-color: #fff;
+}
+
+/* 🔹 Buttons */
+.exam-overview-modal .modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.exam-overview-modal .modal-buttons button {
+  background-color: #2e5fa8;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
   font-size: 14px;
 }
 
-#exam-overview-modal .close-btn {
-  background: #4a86c5;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 5px;
-  display: block;
-  margin: 20px auto 0;
-  cursor: pointer;
+.exam-overview-modal .modal-buttons button:hover {
+  background-color: #1e4c88;
 }
 
-.appointments-section {
-  flex: 3;
-  background: #e0efff;
-  padding: 20px;
-  border-radius: 12px;
-  overflow-y: auto;
-  max-height: 80vh;
+.exam-overview-modal .modal-buttons button:last-child {
+  background-color: #ccc;
+  color: #333;
 }
 
-.appointment-category h3 {
-  color: #4a86c5;
-  border-bottom: 1px solid #4a86c5;
-  padding-bottom: 5px;
-  margin-top: 10px;
+.exam-overview-modal .modal-buttons button:last-child:hover {
+  background-color: #b3b3b3;
 }
-
-.appointment-category ul {
-  list-style: none;
-  padding: 0;
-}
-
-.appointment-category li {
-  background: #f0f8ff;
-  border: 1px solid #4a86c5;
+.findings-box {
+  grid-column: span 2;
+  background-color: #f4f9ff;
+  border: 1px solid #c9def8;
   border-radius: 8px;
-  margin: 8px 0;
   padding: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.appointment-category button {
-  background: #4a86c5;
-  color: white;
+.findings-box textarea {
+  width: 100%;
+  min-height: 120px;
+  max-height: 300px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
   border: none;
-  padding: 5px 10px;
-  border-radius: 6px;
-  cursor: pointer;
+  background: transparent;
+  resize: vertical;
+  overflow-y: auto;
 }
 
-/* Modal */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1002;
-}
-.hidden {
-  display: none;
-}
-.appointment-modal-content {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  width: 400px;
-}
-.appointment-modal-content label {
-  display: block;
-  margin-top: 10px;
-  color: #4a86c5;
-}
-.appointment-modal-content input,
-.appointment-modal-content textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #4a86c5;
-  border-radius: 6px;
-}
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 15px;
-}
-.modal-actions button {
-  margin-left: 10px;
-  background: #4a86c5;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
+.findings-box textarea:disabled {
+  background: transparent;
+  color: #444;
 }

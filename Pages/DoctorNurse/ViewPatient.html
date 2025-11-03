@@ -732,16 +732,65 @@
               </form>
             </div>
             <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
-            <div id="exam-overview-modal">
-              <div class="overview-content">
-                <h2>Physical Examination Overview</h2>
-                <div id="overview-details"></div>
+            <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
+<div id="exam-overview-modal" class="exam-overview-modal">
+  <div class="modal-content">
+    <h2>Physical Examination Overview</h2>
+    <div class="overview-details">
+      <label><strong>Date:</strong>
+        <input id="ovr-exam-date" type="date" disabled />
+      </label>
+      <label><strong>BP:</strong>
+        <input id="ovr-exam-bp" type="text" disabled />
+      </label>
+      <label><strong>PR:</strong>
+        <input id="ovr-exam-pr" type="text" disabled />
+      </label>
+      <label><strong>Weight (kg):</strong>
+        <input id="ovr-exam-weight" type="number" step="0.1" disabled />
+      </label>
+      <label><strong>Height (cm):</strong>
+        <input id="ovr-exam-height" type="number" step="0.1" disabled />
+      </label>
+      <label><strong>BMI:</strong>
+        <input id="ovr-exam-bmi" type="number" step="0.1" disabled />
+      </label>
 
-                <button class="close-btn" onclick="closeExamOverview()">
-                  Close
-                </button>
-              </div>
-            </div>
+      <h4>👁️ Visual Acuity</h4>
+      <label><strong>OS:</strong>
+        <input id="ovr-exam-os" type="text" disabled />
+      </label>
+      <label><strong>OD:</strong>
+        <input id="ovr-exam-od" type="text" disabled />
+      </label>
+      <label><strong>Glasses:</strong>
+        <select id="ovr-exam-glasses" disabled>
+          <option value="true">Yes</option>
+          <option value="false">No</option>
+        </select>
+      </label>
+
+      <h4>🩺 Physical Findings</h4>
+      <div class="findings-box">
+        <textarea id="ovr-exam-findings" placeholder="Enter findings..." disabled></textarea>
+      </div>
+
+      <h4>🧪 Laboratory & Recommendations</h4>
+      <label><strong>Laboratory Procedure:</strong>
+        <input id="ovr-exam-lab" type="text" disabled />
+      </label>
+      <label><strong>Recommendations:</strong>
+        <textarea id="ovr-exam-recommendations" disabled></textarea>
+      </label>
+    </div>
+
+    <div class="modal-buttons">
+      <button id="editExamBtn">✏️ Edit</button>
+      <button onclick="closeButtonOverlay()">Close</button>
+    </div>
+  </div>
+</div>
+
           </div>
         </div>
       </div>

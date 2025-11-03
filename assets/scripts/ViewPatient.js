@@ -651,51 +651,153 @@ async function loadPhysicalExaminations() {
   `;
 
       // 👇 Add click event to show overview
-      tr.addEventListener("click", () => showExamOverview(data));
+     tr.addEventListener("click", () => showExamOverview(patientId, docSnap.id));
       tableBody.appendChild(tr);
     });
   } catch (err) {
     console.error("Error loading physical examinations:", err);
   }
 }
-// Overview Modal for Physical Exam
-window.showExamOverview = function (data) {
-  const overviewDiv = document.getElementById("overview-details");
+/* -----------------------------------------------
+   🔹 SHOW EXAM OVERVIEW (FIXED)
+------------------------------------------------ */
+let currentExamId = null;
+let currentPatientId = null;
 
-  overviewDiv.innerHTML = `
-    <p><strong>Date:</strong> ${data.date || "-"}</p>
-    <p><strong>BP:</strong> ${data.bp || "-"}</p>
-    <p><strong>PR:</strong> ${data.pr || "-"}</p>
-    <p><strong>Weight:</strong> ${data.weight || "-"} kg</p>
-    <p><strong>Height:</strong> ${data.height || "-"} cm</p>
-    <p><strong>BMI:</strong> ${data.bmi || "-"}</p>
-    
-    <h4>👁️ Visual Acuity</h4>
-    <p><strong>OS:</strong> ${data.visualAcuity?.os || "-"}</p>
-    <p><strong>OD:</strong> ${data.visualAcuity?.od || "-"}</p>
-    <p><strong>Glasses:</strong> ${
-      data.visualAcuity?.glasses ? "Yes" : "No"
-    }</p>
+window.showExamOverview = async function (patientId, examId) {
+  try {
+    currentExamId = examId;
+    currentPatientId = patientId;
 
-    <h4>🩺 Physical Findings</h4>
-    ${Object.entries(data.findings || {})
-      .map(
-        ([key, val]) =>
-          `<p><strong>${key.toUpperCase()}:</strong> ${val || "-"}</p>`
-      )
-      .join("")}
+    // ✅ Fetch latest data directly from Firestore
+    const examRef = doc(db, "patients", patientId, "physicalExaminations", examId);
+    const examSnap = await getDoc(examRef);
 
-    <h4>🧪 Laboratory & Recommendations</h4>
-    <p><strong>Laboratory Procedure:</strong> ${data.labPresent || "-"}</p>
-    <p><strong>Recommendations:</strong> ${data.recommendations || "-"}</p>
-  `;
+    if (!examSnap.exists()) {
+      alert("Exam record not found!");
+      return;
+    }
 
-  document.getElementById("exam-overview-modal").style.display = "flex";
+    const data = examSnap.data();
+    console.log("✅ Exam overview loaded:", data);
+
+    // ✅ Fill overview fields
+    document.getElementById("ovr-exam-date").value = data.date || "";
+document.getElementById("ovr-exam-bp").value = data.bp || "";
+document.getElementById("ovr-exam-pr").value = data.pr || "";
+document.getElementById("ovr-exam-weight").value = data.weight || "";
+document.getElementById("ovr-exam-height").value = data.height || "";
+document.getElementById("ovr-exam-bmi").value = data.bmi || "";
+
+document.getElementById("ovr-exam-os").value = data.visualAcuity?.os || "";
+document.getElementById("ovr-exam-od").value = data.visualAcuity?.od || "";
+document.getElementById("ovr-exam-glasses").value = String(data.visualAcuity?.glasses || false);
+
+document.getElementById("ovr-exam-findings").value = Object.entries(data.findings || {})
+  .map(([key, val]) => `${key.toUpperCase()}: ${val}`)
+  .join("\n");
+
+document.getElementById("ovr-exam-lab").value = data.labPresent || "";
+document.getElementById("ovr-exam-recommendations").value = data.recommendations || "";
+
+
+    // ✅ Show modal and overlay
+    document.getElementById("exam-overview-modal").classList.add("show");
+    document.getElementById("overlay").classList.add("show");
+  } catch (err) {
+    console.error("❌ Error showing exam overview:", err);
+    alert("Failed to load examination details.");
+  }
 };
 
+/* -----------------------------------------------
+   🔹 CLOSE MODAL (FIXED)
+------------------------------------------------ */
 window.closeExamOverview = function () {
-  document.getElementById("exam-overview-modal").style.display = "none";
+  document.getElementById("exam-overview-modal").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
 };
+
+
+/* -----------------------------------------------
+   🔹 EDIT & SAVE EXAM DETAILS (FIXED & UPDATED)
+------------------------------------------------ */
+const editExamBtn = document.getElementById("editExamBtn");
+
+editExamBtn.addEventListener("click", async () => {
+  const inputs = document.querySelectorAll(
+    "#exam-overview-modal input, #exam-overview-modal textarea, #exam-overview-modal select"
+  );
+
+  // ✏️ Enable edit mode
+  if (editExamBtn.textContent.includes("✏️")) {
+    inputs.forEach((input) => input.removeAttribute("disabled"));
+    editExamBtn.textContent = "💾 Save";
+    return;
+  }
+
+  // 💾 Save mode
+  if (!currentExamId || !currentPatientId) {
+    alert("No exam record selected!");
+    return;
+  }
+
+  // 🧠 Build updated data from modal fields
+  const updatedExam = {
+    date: document.getElementById("ovr-exam-date").value,
+    bp: document.getElementById("ovr-exam-bp").value,
+    pr: document.getElementById("ovr-exam-pr").value,
+    weight: Number(document.getElementById("ovr-exam-weight").value),
+    height: Number(document.getElementById("ovr-exam-height").value),
+    bmi: Number(document.getElementById("ovr-exam-bmi").value),
+    visualAcuity: {
+      os: document.getElementById("ovr-exam-os").value,
+      od: document.getElementById("ovr-exam-od").value,
+      glasses: document.getElementById("ovr-exam-glasses").value === "true", // dropdown fix
+    },
+    findings: Object.fromEntries(
+      document
+        .getElementById("ovr-exam-findings")
+        .value.split("\n")
+        .map((line) => {
+          const [key, ...rest] = line.split(":");
+          return [key.trim().toLowerCase(), rest.join(":").trim()];
+        })
+        .filter(([key, val]) => key && val)
+    ),
+    labPresent: document.getElementById("ovr-exam-lab").value,
+    recommendations: document.getElementById("ovr-exam-recommendations").value,
+    updatedAt: new Date(),
+  };
+
+  try {
+    const examRef = doc(
+      db,
+      "patients",
+      currentPatientId,
+      "physicalExaminations",
+      currentExamId
+    );
+
+    await updateDoc(examRef, updatedExam);
+
+    alert("✅ Physical examination updated successfully!");
+
+    // 🔒 Disable all fields again
+    inputs.forEach((input) => input.setAttribute("disabled", "true"));
+    editExamBtn.textContent = "✏️ Edit";
+
+    // 🔄 Reload updated table data if available
+    if (typeof loadPhysicalExaminations === "function") {
+      loadPhysicalExaminations();
+    }
+  } catch (err) {
+    console.error("❌ Error updating exam:", err);
+    alert("Failed to update physical examination record.");
+  }
+});
+
+
 
 // Schedule/Appointment
 const appointmentModal = document.getElementById("appointment-modal");

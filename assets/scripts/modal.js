@@ -36,11 +36,17 @@ function closeButtonOverlay() {
   const dispenseMedicine = document.getElementById("dispense-medicine");
   const addBorrower = document.getElementById("add-borrower");
   const addPatient = document.getElementById("add-new-patient");
-  const addConsultationRecord = document.getElementById("add-consultation-record");
+  const addConsultationRecord = document.getElementById(
+    "add-consultation-record"
+  );
   const overlay = document.getElementById("overlay");
   const addPhysicalExam = document.getElementById("add-physical-exam");
   const consultationOveriew = document.getElementById("consultation-overview");
- 
+  const examOverview = document.getElementById("exam-overview-modal");
+
+  if (examOverview && examOverview.classList.contains("show")) {
+    examOverview.classList.remove("show");
+  }
   if (addPhysicalExam && addPhysicalExam.classList.contains("show")) {
     addPhysicalExam.classList.remove("show");
   }
@@ -56,10 +62,13 @@ function closeButtonOverlay() {
   if (addPatient && addPatient.classList.contains("show")) {
     addPatient.classList.remove("show");
   }
-  if (addConsultationRecord && addConsultationRecord.classList.contains("show")) {
+  if (
+    addConsultationRecord &&
+    addConsultationRecord.classList.contains("show")
+  ) {
     addConsultationRecord.classList.remove("show");
   }
-   
+
   if (consultationOveriew && consultationOveriew.classList.contains("show")) {
     consultationOveriew.classList.remove("show");
   }
@@ -67,4 +76,3 @@ function closeButtonOverlay() {
     overlay.classList.remove("show");
   }
 }
-
