@@ -820,3 +820,10 @@
   background: transparent;
   color: #444;
 }
+
+.vital-entry {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 6px;
+  background: #f7f7f7;
+}

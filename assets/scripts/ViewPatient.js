@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   query,
   where,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -366,7 +367,23 @@ document
       })
       .filter((med) => med.name !== "");
 
-    // ✅ Gather consultation data
+    // ✅ Create vital record entry
+    const newVitalEntry = {
+      bp: document.getElementById("vital-bp").value,
+      temp: document.getElementById("vital-temp").value,
+      spo2: document.getElementById("vital-spo2").value,
+      pr: document.getElementById("vital-pr").value,
+      lmp: document.getElementById("vital-lmp").value,
+
+      takenBy: currentUserName,                                      // ✅ Nurse
+      recordedDate: new Date().toISOString().split("T")[0],         // ✅ YYYY-MM-DD
+      recordedTime: new Date().toLocaleTimeString([], {             // ✅ HH:MM AM/PM
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+
+    // ✅ Build consultation data
     const consultData = {
       consultingDoctor: document.getElementById("consult-doctor").value,
       date: document.getElementById("consult-date").value,
@@ -374,15 +391,9 @@ document
       complaint: document.getElementById("consult-complaint").value.trim(),
       diagnosis: document.getElementById("consult-diagnosis").value,
       meds: medsDispensed,
+      vitals: [newVitalEntry],   // ✅ <-- STORED AS ARRAY
       notes: document.getElementById("consult-notes").value,
-      vitals: {
-        bp: document.getElementById("vital-bp").value,
-        temp: document.getElementById("vital-temp").value,
-        spo2: document.getElementById("vital-spo2").value,
-        pr: document.getElementById("vital-pr").value,
-        lmp: document.getElementById("vital-lmp").value,
-      },
-      NurseOnDuty: currentUserName, // ✅ Logged-in user
+      NurseOnDuty: currentUserName,
       createdAt: new Date(),
     };
 
@@ -403,19 +414,20 @@ document
     }
 
     try {
-      // ✅ Save consultation record under patient
+      // ✅ Save to Firestore
       const consultRef = collection(db, "patients", patientId, "consultations");
       await addDoc(consultRef, consultData);
 
       alert("Consultation Record Saved!");
       closeButtonOverlay();
       loadConsultations();
-      loadComplaints(); // ✅ Refresh the dropdown with latest list
+      loadComplaints();
     } catch (err) {
       console.error("Error adding consultation:", err);
       alert("Failed to save consultation record.");
     }
   });
+
 
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
@@ -464,7 +476,7 @@ async function loadConsultations() {
    🔹 SHOW CONSULTATION DETAILS IN MODAL
 ------------------------------------------------ */
 window.showConsultationDetails = function (data, consultId) {
-  currentConsultationId = consultId; // ✅ save ID for editing later
+  currentConsultationId = consultId;
 
   document.getElementById("ovr-doctor").value = data.consultingDoctor || "";
   document.getElementById("ovr-date").value = data.date || "";
@@ -478,20 +490,58 @@ window.showConsultationDetails = function (data, consultId) {
       ? data.meds.map((m) => `${m.name} (${m.quantity})`).join(", ")
       : "-";
 
-  const vitals = data.vitals || {};
-  document.getElementById("ovr-bp").value = vitals.bp || "";
-  document.getElementById("ovr-temp").value = vitals.temp || "";
-  document.getElementById("ovr-spo2").value = vitals.spo2 || "";
-  document.getElementById("ovr-pr").value = vitals.pr || "";
-  document.getElementById("ovr-lmp").value = vitals.lmp || "";
+  // ✅ Ensure vitals is array
+  const vitals = Array.isArray(data.vitals) ? data.vitals : [];
 
+  // ✅ Show latest vitals
+  if (vitals.length > 0) {
+    const latest = vitals[vitals.length - 1];
+    document.getElementById("ovr-bp").value = latest.bp || "";
+    document.getElementById("ovr-temp").value = latest.temp || "";
+    document.getElementById("ovr-spo2").value = latest.spo2 || "";
+    document.getElementById("ovr-pr").value = latest.pr || "";
+    document.getElementById("ovr-lmp").value = latest.lmp || "";
+
+    document.getElementById("ovr-vitals-takenby").value = latest.takenBy || "";
+    document.getElementById("ovr-vitals-date").value = latest.recordedDate || "";
+    document.getElementById("ovr-vitals-time").value = latest.recordedTime || "";
+  }
+
+  // ✅ Load vitals history
+  const container = document.getElementById("cons-vitals-list");
+  container.innerHTML = ""; // clear
+
+  if (vitals.length === 0) {
+    container.innerHTML = "<p>No vitals recorded.</p>";
+  } else {
+    vitals.forEach((v, i) => {
+      const item = document.createElement("div");
+      item.classList.add("vital-entry");
+      item.style.marginBottom = "8px";
+
+      item.innerHTML = `
+        <strong>#${i + 1}</strong><br>
+        BP: ${v.bp || ""} |
+        Temp: ${v.temp || ""} |
+        SpO₂: ${v.spo2 || ""} |
+        PR: ${v.pr || ""} |
+        LMP: ${v.lmp || ""} <br>
+        Taken by: ${v.takenBy || "-"} |
+        Date: ${v.recordedDate || "-"} |
+        Time: ${v.recordedTime || "-"}
+      `;
+      container.appendChild(item);
+    });
+  }
+
+  // ✅ Show modal
   document.getElementById("consultation-overview").classList.add("show");
   document.getElementById("overlay").classList.add("show");
 };
 
 
 /* -----------------------------------------------
-   🔹 EDIT & SAVE CONSULTATION DETAILS
+   🔹 EDIT, ADD & SAVE CONSULTATION DETAILS
 ------------------------------------------------ */
 editOverviewBtn.addEventListener("click", async () => {
   const inputs = document.querySelectorAll(
@@ -501,6 +551,17 @@ editOverviewBtn.addEventListener("click", async () => {
   // --- Enable Edit Mode ---
   if (editOverviewBtn.textContent.includes("✏️")) {
     inputs.forEach((input) => input.removeAttribute("disabled"));
+
+    // ✅ Add Vitals Button (shows only in edit mode)
+    let addBtn = document.getElementById("addVitalsBtn");
+    if (!addBtn) {
+      addBtn = document.createElement("button");
+      addBtn.id = "addVitalsBtn";
+      addBtn.textContent = "➕ Add Vitals";
+      addBtn.style.marginTop = "10px";
+      editOverviewBtn.insertAdjacentElement("beforebegin", addBtn);
+    }
+
     editOverviewBtn.textContent = "💾 Save";
     return;
   }
@@ -511,7 +572,15 @@ editOverviewBtn.addEventListener("click", async () => {
     return;
   }
 
-  // --- Gather Updated Data ---
+  // --- Gather Updated Data (only latest vitals) ---
+  const latestVitals = {
+    bp: document.getElementById("ovr-bp").value,
+    temp: document.getElementById("ovr-temp").value,
+    spo2: document.getElementById("ovr-spo2").value,
+    pr: document.getElementById("ovr-pr").value,
+    lmp: document.getElementById("ovr-lmp").value,
+  };
+
   const updatedData = {
     consultingDoctor: document.getElementById("ovr-doctor").value,
     date: document.getElementById("ovr-date").value,
@@ -519,13 +588,6 @@ editOverviewBtn.addEventListener("click", async () => {
     complaint: document.getElementById("ovr-complaint").value.trim(),
     diagnosis: document.getElementById("ovr-diagnosis").value,
     notes: document.getElementById("ovr-notes").value,
-    vitals: {
-      bp: document.getElementById("ovr-bp").value,
-      temp: document.getElementById("ovr-temp").value,
-      spo2: document.getElementById("ovr-spo2").value,
-      pr: document.getElementById("ovr-pr").value,
-      lmp: document.getElementById("ovr-lmp").value,
-    },
     meds:
       document.getElementById("ovr-meds").value.trim() !== "-"
         ? document
@@ -542,8 +604,16 @@ editOverviewBtn.addEventListener("click", async () => {
   };
 
   try {
-    // ✅ Correct Firestore reference
-    const consultRef = doc(db, "patients", patientId, "consultations", currentConsultationId);
+    // ✅ Firestore reference
+    const consultRef = doc(
+      db,
+      "patients",
+      patientId,
+      "consultations",
+      currentConsultationId
+    );
+
+    // ✅ Save updates (doctor, notes, etc.)
     await updateDoc(consultRef, updatedData);
 
     alert("✅ Consultation record updated!");
@@ -555,6 +625,61 @@ editOverviewBtn.addEventListener("click", async () => {
     alert("Failed to update consultation record.");
   }
 });
+
+
+
+/* -----------------------------------------------
+   🔹 ADD VITALS (arrayUnion)
+------------------------------------------------ */
+document.addEventListener("click", async (e) => {
+  if (e.target && e.target.id === "addVitalsBtn") {
+    if (!currentConsultationId) return alert("No consultation selected!");
+
+    const bp = prompt("Enter BP (e.g. 120/80):");
+    const temp = prompt("Enter Temperature (°C):");
+    const spo2 = prompt("Enter SpO2:");
+    const pr = prompt("Enter Pulse Rate:");
+    const lmp = prompt("Enter LMP:");
+
+    const newVital = {
+      bp,
+      temp,
+      spo2,
+      pr,
+      lmp,
+      takenBy: currentUserName,
+      recordedDate: new Date().toISOString().split("T")[0],
+      recordedTime: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+
+    try {
+      const consultRef = doc(
+        db,
+        "patients",
+        patientId,
+        "consultations",
+        currentConsultationId
+      );
+
+      await updateDoc(consultRef, {
+        vitals: arrayUnion(newVital),
+      });
+
+      alert("✅ Vitals Added!");
+
+      // auto-refresh
+      const snap = await getDoc(consultRef);
+      showConsultationDetails(snap.data(), currentConsultationId);
+    } catch (err) {
+      console.error("❌ Failed to add vitals:", err);
+      alert("Failed to add vitals");
+    }
+  }
+});
+
 
 
 /* -----------------------------------------------

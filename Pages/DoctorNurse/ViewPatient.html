@@ -544,67 +544,88 @@
             </button>
           </div>
           <div id="consultation-overview" class="consultation-modal">
-            <div class="modal-content">
-              <h2>Consultation Overview</h2>
-              <div class="overview-details">
-                <label
-                  ><strong>Doctor:</strong>
-                  <input id="ovr-doctor" type="text" disabled />
-                </label>
-                <label
-                  ><strong>Date:</strong>
-                  <input id="ovr-date" type="date" disabled />
-                </label>
-                <label
-                  ><strong>Time:</strong>
-                  <input id="ovr-time" type="time" disabled />
-                </label>
-                <label
-                  ><strong>Chief Complaint:</strong>
-                  <input id="ovr-complaint" type="text" disabled />
-                </label>
-                <label
-                  ><strong>Diagnosis:</strong>
-                  <input id="ovr-diagnosis" type="text" disabled />
-                </label>
-                <label
-                  ><strong>Medications:</strong>
-                  <textarea id="ovr-meds" disabled></textarea>
-                </label>
+  <div class="modal-content">
+    <h2>Consultation Overview</h2>
 
-                <h4>Vital Signs</h4>
-                <label
-                  ><strong>BP:</strong>
-                  <input id="ovr-bp" type="text" disabled />
-                </label>
-                <label
-                  ><strong>T (°C):</strong>
-                  <input id="ovr-temp" type="text" disabled />
-                </label>
-                <label
-                  ><strong>SpO₂:</strong>
-                  <input id="ovr-spo2" type="text" disabled />
-                </label>
-                <label
-                  ><strong>PR (bpm):</strong>
-                  <input id="ovr-pr" type="text" disabled />
-                </label>
-                <label
-                  ><strong>LMP:</strong>
-                  <input id="ovr-lmp" type="text" disabled />
-                </label>
-                <label
-                  ><strong>Notes:</strong>
-                  <textarea id="ovr-notes" disabled></textarea>
-                </label>
-              </div>
+    <div class="overview-details">
+      <label><strong>Doctor:</strong>
+        <input id="ovr-doctor" type="text" disabled />
+      </label>
 
-              <div class="modal-buttons">
-                <button id="editOverviewBtn">✏️ Edit</button>
-                <button onclick="closeButtonOverlay()">Close</button>
-              </div>
-            </div>
-          </div>
+      <label><strong>Date:</strong>
+        <input id="ovr-date" type="date" disabled />
+      </label>
+
+      <label><strong>Time:</strong>
+        <input id="ovr-time" type="time" disabled />
+      </label>
+
+      <label><strong>Chief Complaint:</strong>
+        <input id="ovr-complaint" type="text" disabled />
+      </label>
+
+      <label><strong>Diagnosis:</strong>
+        <input id="ovr-diagnosis" type="text" disabled />
+      </label>
+
+      <label><strong>Medications:</strong>
+        <textarea id="ovr-meds" disabled></textarea>
+      </label>
+
+      <!-- ✅ Vital Signs -->
+      <h4>Vital Signs</h4>
+
+      <!-- BP / Temp / SPO2 / PR -->
+      <label><strong>BP:</strong>
+        <input id="ovr-bp" type="text" disabled />
+      </label>
+
+      <label><strong>T (°C):</strong>
+        <input id="ovr-temp" type="text" disabled />
+      </label>
+
+      <label><strong>SpO₂:</strong>
+        <input id="ovr-spo2" type="text" disabled />
+      </label>
+
+      <label><strong>PR (bpm):</strong>
+        <input id="ovr-pr" type="text" disabled />
+      </label>
+
+      <label><strong>LMP:</strong>
+        <input id="ovr-lmp" type="text" disabled />
+      </label>
+
+      <label><strong>Notes:</strong>
+        <textarea id="ovr-notes" disabled></textarea>
+      </label>
+
+      <!-- ✅ Taken by / Date / Time -->
+      <label><strong>Vitals Taken By:</strong>
+        <input id="ovr-vitals-takenby" type="text" disabled />
+      </label>
+
+      <label><strong>Vitals Date:</strong>
+        <input id="ovr-vitals-date" type="date" disabled />
+      </label>
+
+      <label><strong>Vitals Time:</strong>
+        <input id="ovr-vitals-time" type="time" disabled />
+      </label>
+
+      <!-- ✅ Vitals History List -->
+      <h4 class="mt-3 fw-bold">Vitals History</h4>
+      <div id="cons-vitals-list"></div>
+
+    </div>
+
+    <div class="modal-buttons">
+      <button id="editOverviewBtn">✏️ Edit</button>
+      <button onclick="closeButtonOverlay()">Close</button>
+    </div>
+  </div>
+</div>
+
 
           <div class="tab-content physical-examination-content">
             <h2>Physical Examination :</h2>
