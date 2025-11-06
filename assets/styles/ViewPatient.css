@@ -777,38 +777,62 @@
 /* ======================================================
    🔹 VITAL SIGNS - CONSISTENT DESIGN
 ====================================================== */
-.vitals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  margin-top: 15px;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.vitals-grid label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #2c3e50;
+#cons-vitals-list {
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
-.vitals-grid input {
-  width: 100%;
-  padding: 8px 10px;
+/* Row style (table-like) */
+.vital-row {
+  background: #fff;
   border: 1px solid #ddd;
   border-radius: 6px;
-  background: white;
-  transition: all 0.2s ease;
+  padding: 8px 10px;
+
+  display: grid;
+  grid-template-columns: 40px 120px repeat(5, 1fr) 120px;
+  gap: 10px;
+  font-size: 14px;
+  align-items: center;
 }
 
-.vitals-grid input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+.vital-header-row {
+  font-weight: bold;
+  background: #f1f1f1;
+  border: 1px solid #ccc;
 }
+
+.vital-col {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vital-index {
+  background: #007bff;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-align: center;
+}
+.vitals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+}
+
+#addVitalsBtn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
 
 /* ======================================================
    🔹 CONSULTATION FORM BUTTONS - CONSISTENT DESIGN
@@ -1202,20 +1226,7 @@
   border-radius: 6px;
 }
 
-/* 🔹 Vital Entry */
-.vital-entry {
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  padding: 10px;
-  background: #f8f9fa;
-  margin-bottom: 8px;
-  transition: all 0.2s ease;
-}
 
-.vital-entry:hover {
-  border-color: #3498db;
-  background: #f1f8ff;
-}
 
 /* ======================================================
    🔹 BUTTONS, ICONS, AND FONT SIZE - CONSISTENT DESIGN

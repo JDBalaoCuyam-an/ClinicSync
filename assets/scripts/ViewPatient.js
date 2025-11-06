@@ -12,7 +12,7 @@ import {
   serverTimestamp,
   query,
   where,
-  arrayUnion
+  arrayUnion,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -375,9 +375,10 @@ document
       pr: document.getElementById("vital-pr").value,
       lmp: document.getElementById("vital-lmp").value,
 
-      takenBy: currentUserName,                                      // ✅ Nurse
-      recordedDate: new Date().toISOString().split("T")[0],         // ✅ YYYY-MM-DD
-      recordedTime: new Date().toLocaleTimeString([], {             // ✅ HH:MM AM/PM
+      takenBy: currentUserName, // ✅ Nurse
+      recordedDate: new Date().toISOString().split("T")[0], // ✅ YYYY-MM-DD
+      recordedTime: new Date().toLocaleTimeString([], {
+        // ✅ HH:MM AM/PM
         hour: "2-digit",
         minute: "2-digit",
       }),
@@ -391,7 +392,7 @@ document
       complaint: document.getElementById("consult-complaint").value.trim(),
       diagnosis: document.getElementById("consult-diagnosis").value,
       meds: medsDispensed,
-      vitals: [newVitalEntry],   // ✅ <-- STORED AS ARRAY
+      vitals: [newVitalEntry], // ✅ <-- STORED AS ARRAY
       notes: document.getElementById("consult-notes").value,
       NurseOnDuty: currentUserName,
       createdAt: new Date(),
@@ -428,14 +429,15 @@ document
     }
   });
 
-
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
 ------------------------------------------------ */
 let currentConsultationId = null; // 🔹 Store current consultation ID globally
 
 async function loadConsultations() {
-  const tableBody = document.querySelector(".medical-consultation-content tbody");
+  const tableBody = document.querySelector(
+    ".medical-consultation-content tbody"
+  );
   tableBody.innerHTML = "";
 
   try {
@@ -448,7 +450,9 @@ async function loadConsultations() {
 
       let medsDisplay = "-";
       if (Array.isArray(data.meds) && data.meds.length > 0) {
-        medsDisplay = data.meds.map((m) => `${m.name} (${m.quantity})`).join(", ");
+        medsDisplay = data.meds
+          .map((m) => `${m.name} (${m.quantity})`)
+          .join(", ");
       }
 
       const tr = document.createElement("tr");
@@ -463,14 +467,15 @@ async function loadConsultations() {
       `;
 
       // ✅ Pass both data and ID
-      tr.addEventListener("click", () => showConsultationDetails(data, consultId));
+      tr.addEventListener("click", () =>
+        showConsultationDetails(data, consultId)
+      );
       tableBody.appendChild(tr);
     });
   } catch (err) {
     console.error("Error loading consultations:", err);
   }
 }
-
 
 /* -----------------------------------------------
    🔹 SHOW CONSULTATION DETAILS IN MODAL
@@ -493,52 +498,51 @@ window.showConsultationDetails = function (data, consultId) {
   // ✅ Ensure vitals is array
   const vitals = Array.isArray(data.vitals) ? data.vitals : [];
 
-  // ✅ Show latest vitals
-  if (vitals.length > 0) {
-    const latest = vitals[vitals.length - 1];
-    document.getElementById("ovr-bp").value = latest.bp || "";
-    document.getElementById("ovr-temp").value = latest.temp || "";
-    document.getElementById("ovr-spo2").value = latest.spo2 || "";
-    document.getElementById("ovr-pr").value = latest.pr || "";
-    document.getElementById("ovr-lmp").value = latest.lmp || "";
-
-    document.getElementById("ovr-vitals-takenby").value = latest.takenBy || "";
-    document.getElementById("ovr-vitals-date").value = latest.recordedDate || "";
-    document.getElementById("ovr-vitals-time").value = latest.recordedTime || "";
-  }
-
-  // ✅ Load vitals history
+  // ✅ Vitals HISTORY LIST ONLY
   const container = document.getElementById("cons-vitals-list");
-  container.innerHTML = ""; // clear
+container.innerHTML = "";
 
-  if (vitals.length === 0) {
-    container.innerHTML = "<p>No vitals recorded.</p>";
-  } else {
-    vitals.forEach((v, i) => {
-      const item = document.createElement("div");
-      item.classList.add("vital-entry");
-      item.style.marginBottom = "8px";
+if (vitals.length === 0) {
+  container.innerHTML = "<p>No vitals recorded.</p>";
+} else {
+  // ✅ Add heading row
+  const header = document.createElement("div");
+  header.classList.add("vital-row", "vital-header-row");
+  header.innerHTML = `
+    <div class="vital-col">#</div>
+    <div class="vital-col">Date / Time</div>
+    <div class="vital-col">BP</div>
+    <div class="vital-col">Temp</div>
+    <div class="vital-col">SpO₂</div>
+    <div class="vital-col">PR</div>
+    <div class="vital-col">LMP</div>
+    <div class="vital-col">Taken By</div>
+  `;
+  container.appendChild(header);
 
-      item.innerHTML = `
-        <strong>#${i + 1}</strong><br>
-        BP: ${v.bp || ""} |
-        Temp: ${v.temp || ""} |
-        SpO₂: ${v.spo2 || ""} |
-        PR: ${v.pr || ""} |
-        LMP: ${v.lmp || ""} <br>
-        Taken by: ${v.takenBy || "-"} |
-        Date: ${v.recordedDate || "-"} |
-        Time: ${v.recordedTime || "-"}
-      `;
-      container.appendChild(item);
-    });
-  }
+  // ✅ List body
+  vitals.forEach((v, i) => {
+    const item = document.createElement("div");
+    item.classList.add("vital-row");
 
-  // ✅ Show modal
+    item.innerHTML = `
+      <div class="vital-col vital-index">${i + 1}</div>
+      <div class="vital-col">${v.recordedDate || "-"} ${v.recordedTime || "-"}</div>
+      <div class="vital-col">${v.bp || "-"}</div>
+      <div class="vital-col">${v.temp || "-"}</div>
+      <div class="vital-col">${v.spo2 || "-"}</div>
+      <div class="vital-col">${v.pr || "-"}</div>
+      <div class="vital-col">${v.lmp || "-"}</div>
+      <div class="vital-col">${v.takenBy || "-"}</div>
+    `;
+
+    container.appendChild(item);
+  });
+}
+
   document.getElementById("consultation-overview").classList.add("show");
   document.getElementById("overlay").classList.add("show");
 };
-
 
 /* -----------------------------------------------
    🔹 EDIT, ADD & SAVE CONSULTATION DETAILS
@@ -553,14 +557,9 @@ editOverviewBtn.addEventListener("click", async () => {
     inputs.forEach((input) => input.removeAttribute("disabled"));
 
     // ✅ Add Vitals Button (shows only in edit mode)
-    let addBtn = document.getElementById("addVitalsBtn");
-    if (!addBtn) {
-      addBtn = document.createElement("button");
-      addBtn.id = "addVitalsBtn";
-      addBtn.textContent = "➕ Add Vitals";
-      addBtn.style.marginTop = "10px";
-      editOverviewBtn.insertAdjacentElement("beforebegin", addBtn);
-    }
+    const addBtn = document.getElementById("addVitalsBtn");
+addBtn.style.display = "inline-block";
+
 
     editOverviewBtn.textContent = "💾 Save";
     return;
@@ -572,14 +571,7 @@ editOverviewBtn.addEventListener("click", async () => {
     return;
   }
 
-  // --- Gather Updated Data (only latest vitals) ---
-  const latestVitals = {
-    bp: document.getElementById("ovr-bp").value,
-    temp: document.getElementById("ovr-temp").value,
-    spo2: document.getElementById("ovr-spo2").value,
-    pr: document.getElementById("ovr-pr").value,
-    lmp: document.getElementById("ovr-lmp").value,
-  };
+  // ✅ No more latestVitals since individual fields removed
 
   const updatedData = {
     consultingDoctor: document.getElementById("ovr-doctor").value,
@@ -604,7 +596,6 @@ editOverviewBtn.addEventListener("click", async () => {
   };
 
   try {
-    // ✅ Firestore reference
     const consultRef = doc(
       db,
       "patients",
@@ -613,20 +604,19 @@ editOverviewBtn.addEventListener("click", async () => {
       currentConsultationId
     );
 
-    // ✅ Save updates (doctor, notes, etc.)
     await updateDoc(consultRef, updatedData);
 
     alert("✅ Consultation record updated!");
     inputs.forEach((input) => input.setAttribute("disabled", "true"));
+
     editOverviewBtn.textContent = "✏️ Edit";
+    document.getElementById("addVitalsBtn").style.display = "none";
     loadConsultations();
   } catch (err) {
     console.error("❌ Error updating consultation:", err);
     alert("Failed to update consultation record.");
   }
 });
-
-
 
 /* -----------------------------------------------
    🔹 ADD VITALS (arrayUnion)
@@ -636,10 +626,19 @@ document.addEventListener("click", async (e) => {
     if (!currentConsultationId) return alert("No consultation selected!");
 
     const bp = prompt("Enter BP (e.g. 120/80):");
+    if (bp === null) return;   // ✅ Cancel stops everything
+
     const temp = prompt("Enter Temperature (°C):");
+    if (temp === null) return; // ✅ Stops
+
     const spo2 = prompt("Enter SpO2:");
+    if (spo2 === null) return; // ✅ Stops
+
     const pr = prompt("Enter Pulse Rate:");
+    if (pr === null) return; // ✅ Stops
+
     const lmp = prompt("Enter LMP:");
+    if (lmp === null) return; // ✅ Stops
 
     const newVital = {
       bp,
@@ -679,7 +678,6 @@ document.addEventListener("click", async (e) => {
     }
   }
 });
-
 
 
 /* -----------------------------------------------
@@ -776,7 +774,9 @@ async function loadPhysicalExaminations() {
   `;
 
       // 👇 Add click event to show overview
-     tr.addEventListener("click", () => showExamOverview(patientId, docSnap.id));
+      tr.addEventListener("click", () =>
+        showExamOverview(patientId, docSnap.id)
+      );
       tableBody.appendChild(tr);
     });
   } catch (err) {
@@ -795,7 +795,13 @@ window.showExamOverview = async function (patientId, examId) {
     currentPatientId = patientId;
 
     // ✅ Fetch latest data directly from Firestore
-    const examRef = doc(db, "patients", patientId, "physicalExaminations", examId);
+    const examRef = doc(
+      db,
+      "patients",
+      patientId,
+      "physicalExaminations",
+      examId
+    );
     const examSnap = await getDoc(examRef);
 
     if (!examSnap.exists()) {
@@ -808,23 +814,27 @@ window.showExamOverview = async function (patientId, examId) {
 
     // ✅ Fill overview fields
     document.getElementById("ovr-exam-date").value = data.date || "";
-document.getElementById("ovr-exam-bp").value = data.bp || "";
-document.getElementById("ovr-exam-pr").value = data.pr || "";
-document.getElementById("ovr-exam-weight").value = data.weight || "";
-document.getElementById("ovr-exam-height").value = data.height || "";
-document.getElementById("ovr-exam-bmi").value = data.bmi || "";
+    document.getElementById("ovr-exam-bp").value = data.bp || "";
+    document.getElementById("ovr-exam-pr").value = data.pr || "";
+    document.getElementById("ovr-exam-weight").value = data.weight || "";
+    document.getElementById("ovr-exam-height").value = data.height || "";
+    document.getElementById("ovr-exam-bmi").value = data.bmi || "";
 
-document.getElementById("ovr-exam-os").value = data.visualAcuity?.os || "";
-document.getElementById("ovr-exam-od").value = data.visualAcuity?.od || "";
-document.getElementById("ovr-exam-glasses").value = String(data.visualAcuity?.glasses || false);
+    document.getElementById("ovr-exam-os").value = data.visualAcuity?.os || "";
+    document.getElementById("ovr-exam-od").value = data.visualAcuity?.od || "";
+    document.getElementById("ovr-exam-glasses").value = String(
+      data.visualAcuity?.glasses || false
+    );
 
-document.getElementById("ovr-exam-findings").value = Object.entries(data.findings || {})
-  .map(([key, val]) => `${key.toUpperCase()}: ${val}`)
-  .join("\n");
+    document.getElementById("ovr-exam-findings").value = Object.entries(
+      data.findings || {}
+    )
+      .map(([key, val]) => `${key.toUpperCase()}: ${val}`)
+      .join("\n");
 
-document.getElementById("ovr-exam-lab").value = data.labPresent || "";
-document.getElementById("ovr-exam-recommendations").value = data.recommendations || "";
-
+    document.getElementById("ovr-exam-lab").value = data.labPresent || "";
+    document.getElementById("ovr-exam-recommendations").value =
+      data.recommendations || "";
 
     // ✅ Show modal and overlay
     document.getElementById("exam-overview-modal").classList.add("show");
@@ -842,7 +852,6 @@ window.closeExamOverview = function () {
   document.getElementById("exam-overview-modal").classList.remove("show");
   document.getElementById("overlay").classList.remove("show");
 };
-
 
 /* -----------------------------------------------
    🔹 EDIT & SAVE EXAM DETAILS (FIXED & UPDATED)
@@ -921,8 +930,6 @@ editExamBtn.addEventListener("click", async () => {
     alert("Failed to update physical examination record.");
   }
 });
-
-
 
 // Schedule/Appointment
 const appointmentModal = document.getElementById("appointment-modal");

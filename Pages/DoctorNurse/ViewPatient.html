@@ -620,60 +620,17 @@
                   <textarea id="ovr-meds" disabled></textarea>
                 </label>
 
-                <!-- ✅ Vital Signs -->
-                <h4>Vital Signs</h4>
-
-                <!-- BP / Temp / SPO2 / PR -->
-                <label
-                  ><strong>BP:</strong>
-                  <input id="ovr-bp" type="text" disabled />
-                </label>
-
-                <label
-                  ><strong>T (°C):</strong>
-                  <input id="ovr-temp" type="text" disabled />
-                </label>
-
-                <label
-                  ><strong>SpO₂:</strong>
-                  <input id="ovr-spo2" type="text" disabled />
-                </label>
-
-                <label
-                  ><strong>PR (bpm):</strong>
-                  <input id="ovr-pr" type="text" disabled />
-                </label>
-
-                <label
-                  ><strong>LMP:</strong>
-                  <input id="ovr-lmp" type="text" disabled />
-                </label>
-
                 <label
                   ><strong>Notes:</strong>
                   <textarea id="ovr-notes" disabled></textarea>
                 </label>
-
-                <!-- ✅ Taken by / Date / Time -->
-                <label
-                  ><strong>Vitals Taken By:</strong>
-                  <input id="ovr-vitals-takenby" type="text" disabled />
-                </label>
-
-                <label
-                  ><strong>Vitals Date:</strong>
-                  <input id="ovr-vitals-date" type="date" disabled />
-                </label>
-
-                <label
-                  ><strong>Vitals Time:</strong>
-                  <input id="ovr-vitals-time" type="time" disabled />
-                </label>
-
-                <!-- ✅ Vitals History List -->
-                <h4 class="mt-3 fw-bold">Vitals History</h4>
-                <div id="cons-vitals-list"></div>
               </div>
+              <div class="vitals-header">
+  <h4 class="mt-3 fw-bold">Vitals History</h4>
+  <button id="addVitalsBtn" style="display:none;">➕ Add Vitals</button>
+</div>
+
+<div id="cons-vitals-list"></div>
 
               <div class="modal-buttons">
                 <button id="editOverviewBtn">✏️ Edit</button>
