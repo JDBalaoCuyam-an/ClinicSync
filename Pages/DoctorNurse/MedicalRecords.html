@@ -7,6 +7,8 @@
     <script type="module" src="../../firebaseconfig.js"></script>
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
     <link rel="stylesheet" href="../../assets/styles/MedicalRecords.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   </head>
   <body>
    <!-- NavBar -->
@@ -17,27 +19,55 @@
 
     <!-- SideBar -->
     <div id="sidebar" class="sidebar">
-      <div class="current-user">
-        <div class="user-info">
-          <!-- <div class="user-icon">
-            <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
-          </div> -->
-          <div class="user-name" id="displayName">Loading...</div>
-        </div>
-        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    <div class="current-user">
+      <div class="user-info">
+        <!-- <div class="user-icon">
+      <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
+    </div> -->
+        <div class="user-name" id="displayName">Loading...</div>
       </div>
-      <ul>
-        <li><a href="DoctorNurseDashboard.html">Home</a></li>
-        <li class="active"><a href="MedicalRecords.html">Medical Records</a></li>
-        <li><a href="Schedules.html">Schedules</a></li>
-        <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
-        <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
-        <li><a href="ActivityLogs.html">Activity Logs</a></li>
-      </ul>
+      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    </div>
+    <ul>
+      <li>
+        <a href="DoctorNurseDashboard.html">
+          <i class="fas fa-home sidebar-icon"></i> Home
+        </a>
+      </li>
+      <li class="active">
+        <a href="MedicalRecords.html">
+          <i class="fas fa-file-medical sidebar-icon"></i> Medical Records
+        </a>
+      </li>
+      <li>
+        <a href="Schedules.html">
+          <i class="fas fa-calendar-alt sidebar-icon"></i> Schedules
+        </a>
+      </li>
+      <li>
+        <a href="MedicineInventory.html">
+          <i class="fas fa-pills sidebar-icon"></i> Medicine Inventory
+        </a>
+      </li>
+      <li>
+        <a href="ClinicInventory.html">
+          <i class="fas fa-clipboard-list sidebar-icon"></i> Clinic Inventory
+        </a>
+      </li>
+      <li>
+        <a href="ActivityLogs.html">
+          <i class="fas fa-history sidebar-icon"></i> Activity Logs
+        </a>
+      </li>
+    </ul>
+    <div class="logout-container">
       <form>
-        <button type="submit" id="logout-button">Log Out</button>
+        <button type="submit" id="logout-button">
+          <i class="fa-solid fa-right-from-bracket"></i> Log Out
+        </button>
       </form>
     </div>
+  </div>
     <div id="overlay" class="overlay"></div>
 
     <div class="add-new-patient" id="add-new-patient">
@@ -77,7 +107,7 @@
             >Role :
             <select name="role" required>
               <option value="Student">Student</option>
-              <option value="Faculty">Faculty</option>
+              <option value="Employee">Employee</option>
               <option value="Visitor">Visitor</option>
             </select>
           </label>
@@ -179,7 +209,7 @@
         <select id="filterRole">
           <option value="all">All Roles</option>
           <option value="student">Student</option>
-          <option value="faculty">Faculty</option>
+          <option value="employee">Employee</option>
           <option value="visitor">Visitor</option>
         </select>
 

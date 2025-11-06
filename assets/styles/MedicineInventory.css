@@ -1,140 +1,474 @@
+/* Medicine Inventory Container */
 .inventory-container {
   padding: 20px;
-  text-align: center;
+  background-color: #f5f7fa;
+  min-height: 100vh;
 }
 
-.inventory-container h2 {
-  margin-bottom: 15px;
+.inventory-header h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 /* Inventory Controls */
 .inventory-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
+
 .inventory-controls select,
 .inventory-controls input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   width: 200px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+.inventory-controls select:focus,
+.inventory-controls input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .add-btn {
-  background: #28a745;
+  background: #3498db;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-btn:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.add-btn i {
+  font-size: 1rem;
+}
+
+/* Table Styling */
+.inventory-container table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 20px;
+}
+
+.inventory-container th {
+  background: #4a86c5;
+  color: white;
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.inventory-container td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ecf0f1;
+  font-size: 14px;
+}
+
+.inventory-container tbody tr {
+  transition: all 0.2s ease;
+}
+
+.inventory-container tbody tr:hover {
+  background-color: #E0EFFF;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.dispense-btn {
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.dispense-btn:hover {
+  background: #219a52;
+  transform: scale(1.05);
 }
 
 .delete-btn {
-  background: red;
+  background: #e74c3c;
   color: white;
   border: none;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+  transform: scale(1.05);
+}
+
+/* Modal Overlay */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.overlay.show {
+  display: block;
 }
 
 /* Add Medicine Form */
 .add-medicine {
   display: none;
-  width: 50%;
-  height: auto;
-  border: #4a86c5 solid 2px;
-  border-radius: 5px;
-  padding: 10px;
-  background-color: white;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: none;
+  border-radius: 12px;
+  padding: 30px;
+  background-color: #fff;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1001;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
+
 .add-medicine.show {
   display: block;
 }
+
+.add-medicine h2 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.add-medicine h2 i {
+  color: #3498db;
+}
+
+/* Close Button */
+.close-button {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  cursor: pointer;
+  color: #7f8c8d;
+  transition: all 0.2s ease;
+  background: none;
+  border: none;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.close-button:hover {
+  color: #e74c3c;
+  background-color: #f8f9fa;
+}
+
+/* Form Styling */
 #add-medicine-form {
   display: flex;
   flex-direction: column;
-}
-#add-medicine-form input {
-  text-align: left;
-  margin-bottom: 10px;
-  height: 35px;
-  border: #4a86c5 solid 1px;
-  padding: 5px;
-}
-#add-medicine-form button {
-  height: 35px;
-  margin-top: 10px;
+  gap: 20px;
 }
 
+#add-medicine-form label {
+  font-weight: 500;
+  color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+  border: 1px solid;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+#add-medicine-form input,
+#add-medicine-form select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+#add-medicine-form input:focus,
+#add-medicine-form select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Category Options */
 #category-options {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .category-option {
-  background: #f9f9f9;
-  border: 1px solid #4a86c5;
-  padding: 0 12px;
-  border-radius: 6px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  padding: 10px 15px;
+  border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.category-option input {
-  accent-color: #4a86c5; /* makes checkboxes match theme */
+  gap: 8px;
 }
 
 .category-option:hover {
-  background: #e6f0fa;
-  border-color: #357edd;
+  background: #e9ecef;
+  border-color: #3498db;
 }
 
-/* dispense Medicine Form */
+.category-option input {
+  accent-color: #3498db;
+}
+
+/* Form Buttons */
+.form-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.save-btn {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.save-btn:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.cancel-btn {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.cancel-btn:hover {
+  background: #e74c3c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
+}
+
+/* Dispense Medicine Form */
 .dispense-medicine {
   display: none;
-  width: 50%;
-  height: auto;
-  border: #4a86c5 solid 2px;
-  border-radius: 5px;
-  padding: 10px;
-  background-color: white;
+  width: 90%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: none;
+  border-radius: 12px;
+  padding: 30px;
+  background-color: #fff;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1001;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
+
 .dispense-medicine.show {
   display: block;
 }
+
+.dispense-medicine h2 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+#dispense-medicine-name {
+  color: #3498db;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+  font-style: italic;
+}
+
 #dispense-medicine-form {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
+
+#dispense-medicine-form label {
+  font-weight: 500;
+  color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+}
+
 #dispense-medicine-form input {
-  text-align: left;
-  margin-bottom: 10px;
-  height: 35px;
-  width: 100%;
-  border: #4a86c5 solid 1px;
-  padding: 5px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background-color: white;
 }
-#dispense-medicine-form button {
-  height: 35px;
+
+#dispense-medicine-form input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.dispense-btn-modal {
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
   margin-top: 10px;
+}
+
+.dispense-btn-modal:hover {
+  background: #219a52;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .inventory-container {
+    padding: 15px;
+  }
+
+  .inventory-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inventory-controls select,
+  .inventory-controls input {
+    width: 100%;
+  }
+
+  .add-btn {
+    justify-content: center;
+  }
+
+  .add-medicine,
+  .dispense-medicine {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inventory-container {
+    padding: 10px;
+  }
+
+  .add-medicine,
+  .dispense-medicine {
+    padding: 15px;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+  }
+
+  .inventory-container table {
+    font-size: 12px;
+  }
+
+  .inventory-container th,
+  .inventory-container td {
+    padding: 8px 6px;
+  }
 }

@@ -7,6 +7,10 @@
     <script type="module" src="../../firebaseconfig.js"></script>
     <link rel="stylesheet" href="../../assets/styles/ViewPatient.css" />
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
   </head>
   <body>
     <!-- NavBar -->
@@ -20,30 +24,68 @@
       <div class="current-user">
         <div class="user-info">
           <!-- <div class="user-icon">
-            <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
-          </div> -->
+      <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
+    </div> -->
           <div class="user-name" id="displayName">Loading...</div>
         </div>
         <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       </div>
       <ul>
-        <li><a href="DoctorNurseDashboard.html">Home</a></li>
-        <li class="active">
-          <a href="MedicalRecords.html">Medical Records</a>
+        <li>
+          <a href="DoctorNurseDashboard.html">
+            <i class="fas fa-home sidebar-icon"></i> Home
+          </a>
         </li>
-        <li><a href="Schedules.html">Schedules</a></li>
-        <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
-        <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
-        <li><a href="ActivityLogs.html">Activity Logs</a></li>
+        <li>
+          <a href="MedicalRecords.html">
+            <i class="fas fa-file-medical sidebar-icon"></i> Medical Records
+          </a>
+        </li>
+        <li>
+          <a href="Schedules.html">
+            <i class="fas fa-calendar-alt sidebar-icon"></i> Schedules
+          </a>
+        </li>
+        <li>
+          <a href="MedicineInventory.html">
+            <i class="fas fa-pills sidebar-icon"></i> Medicine Inventory
+          </a>
+        </li>
+        <li>
+          <a href="ClinicInventory.html">
+            <i class="fas fa-clipboard-list sidebar-icon"></i> Clinic Inventory
+          </a>
+        </li>
+        <li>
+          <a href="ActivityLogs.html">
+            <i class="fas fa-history sidebar-icon"></i> Activity Logs
+          </a>
+        </li>
       </ul>
-      <form>
-        <button type="submit" id="logout-button">Log Out</button>
-      </form>
+      <div class="logout-container">
+        <form>
+          <button type="submit" id="logout-button">
+            <i class="fa-solid fa-right-from-bracket"></i> Log Out
+          </button>
+        </form>
+      </div>
     </div>
     <div id="overlay" class="overlay"></div>
 
     <!-- Appointment Modal -->
-    <div id="appointment-modal" class="modal" style="display: none">
+    <div
+      id="appointment-modal"
+      class="modal"
+      style="
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1001;
+        width: 70%;
+      "
+    >
       <div class="appointment-modal-content">
         <h2>New Appointment</h2>
         <form id="appointment-form">
@@ -544,88 +586,101 @@
             </button>
           </div>
           <div id="consultation-overview" class="consultation-modal">
-  <div class="modal-content">
-    <h2>Consultation Overview</h2>
+            <div class="modal-content">
+              <h2>Consultation Overview</h2>
 
-    <div class="overview-details">
-      <label><strong>Doctor:</strong>
-        <input id="ovr-doctor" type="text" disabled />
-      </label>
+              <div class="overview-details">
+                <label
+                  ><strong>Doctor:</strong>
+                  <input id="ovr-doctor" type="text" disabled />
+                </label>
 
-      <label><strong>Date:</strong>
-        <input id="ovr-date" type="date" disabled />
-      </label>
+                <label
+                  ><strong>Date:</strong>
+                  <input id="ovr-date" type="date" disabled />
+                </label>
 
-      <label><strong>Time:</strong>
-        <input id="ovr-time" type="time" disabled />
-      </label>
+                <label
+                  ><strong>Time:</strong>
+                  <input id="ovr-time" type="time" disabled />
+                </label>
 
-      <label><strong>Chief Complaint:</strong>
-        <input id="ovr-complaint" type="text" disabled />
-      </label>
+                <label
+                  ><strong>Chief Complaint:</strong>
+                  <input id="ovr-complaint" type="text" disabled />
+                </label>
 
-      <label><strong>Diagnosis:</strong>
-        <input id="ovr-diagnosis" type="text" disabled />
-      </label>
+                <label
+                  ><strong>Diagnosis:</strong>
+                  <input id="ovr-diagnosis" type="text" disabled />
+                </label>
 
-      <label><strong>Medications:</strong>
-        <textarea id="ovr-meds" disabled></textarea>
-      </label>
+                <label
+                  ><strong>Medications:</strong>
+                  <textarea id="ovr-meds" disabled></textarea>
+                </label>
 
-      <!-- ✅ Vital Signs -->
-      <h4>Vital Signs</h4>
+                <!-- ✅ Vital Signs -->
+                <h4>Vital Signs</h4>
 
-      <!-- BP / Temp / SPO2 / PR -->
-      <label><strong>BP:</strong>
-        <input id="ovr-bp" type="text" disabled />
-      </label>
+                <!-- BP / Temp / SPO2 / PR -->
+                <label
+                  ><strong>BP:</strong>
+                  <input id="ovr-bp" type="text" disabled />
+                </label>
 
-      <label><strong>T (°C):</strong>
-        <input id="ovr-temp" type="text" disabled />
-      </label>
+                <label
+                  ><strong>T (°C):</strong>
+                  <input id="ovr-temp" type="text" disabled />
+                </label>
 
-      <label><strong>SpO₂:</strong>
-        <input id="ovr-spo2" type="text" disabled />
-      </label>
+                <label
+                  ><strong>SpO₂:</strong>
+                  <input id="ovr-spo2" type="text" disabled />
+                </label>
 
-      <label><strong>PR (bpm):</strong>
-        <input id="ovr-pr" type="text" disabled />
-      </label>
+                <label
+                  ><strong>PR (bpm):</strong>
+                  <input id="ovr-pr" type="text" disabled />
+                </label>
 
-      <label><strong>LMP:</strong>
-        <input id="ovr-lmp" type="text" disabled />
-      </label>
+                <label
+                  ><strong>LMP:</strong>
+                  <input id="ovr-lmp" type="text" disabled />
+                </label>
 
-      <label><strong>Notes:</strong>
-        <textarea id="ovr-notes" disabled></textarea>
-      </label>
+                <label
+                  ><strong>Notes:</strong>
+                  <textarea id="ovr-notes" disabled></textarea>
+                </label>
 
-      <!-- ✅ Taken by / Date / Time -->
-      <label><strong>Vitals Taken By:</strong>
-        <input id="ovr-vitals-takenby" type="text" disabled />
-      </label>
+                <!-- ✅ Taken by / Date / Time -->
+                <label
+                  ><strong>Vitals Taken By:</strong>
+                  <input id="ovr-vitals-takenby" type="text" disabled />
+                </label>
 
-      <label><strong>Vitals Date:</strong>
-        <input id="ovr-vitals-date" type="date" disabled />
-      </label>
+                <label
+                  ><strong>Vitals Date:</strong>
+                  <input id="ovr-vitals-date" type="date" disabled />
+                </label>
 
-      <label><strong>Vitals Time:</strong>
-        <input id="ovr-vitals-time" type="time" disabled />
-      </label>
+                <label
+                  ><strong>Vitals Time:</strong>
+                  <input id="ovr-vitals-time" type="time" disabled />
+                </label>
 
-      <!-- ✅ Vitals History List -->
-      <h4 class="mt-3 fw-bold">Vitals History</h4>
-      <div id="cons-vitals-list"></div>
+                <!-- ✅ Vitals History List -->
+                <h4 class="mt-3 fw-bold">Vitals History</h4>
+                <div id="cons-vitals-list"></div>
+              </div>
 
-    </div>
-
-    <div class="modal-buttons">
-      <button id="editOverviewBtn">✏️ Edit</button>
-      <button onclick="closeButtonOverlay()">Close</button>
-    </div>
-  </div>
-</div>
-
+              <div class="modal-buttons">
+                <button id="editOverviewBtn">✏️ Edit</button>
+                <button onclick="closeButtonOverlay()">Close</button>
+              </div>
+            </div>
+          </div>
 
           <div class="tab-content physical-examination-content">
             <h2>Physical Examination :</h2>
@@ -754,64 +809,93 @@
             </div>
             <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
             <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
-<div id="exam-overview-modal" class="exam-overview-modal">
-  <div class="modal-content">
-    <h2>Physical Examination Overview</h2>
-    <div class="overview-details">
-      <label><strong>Date:</strong>
-        <input id="ovr-exam-date" type="date" disabled />
-      </label>
-      <label><strong>BP:</strong>
-        <input id="ovr-exam-bp" type="text" disabled />
-      </label>
-      <label><strong>PR:</strong>
-        <input id="ovr-exam-pr" type="text" disabled />
-      </label>
-      <label><strong>Weight (kg):</strong>
-        <input id="ovr-exam-weight" type="number" step="0.1" disabled />
-      </label>
-      <label><strong>Height (cm):</strong>
-        <input id="ovr-exam-height" type="number" step="0.1" disabled />
-      </label>
-      <label><strong>BMI:</strong>
-        <input id="ovr-exam-bmi" type="number" step="0.1" disabled />
-      </label>
+            <div id="exam-overview-modal" class="exam-overview-modal">
+              <div class="modal-content">
+                <h2>Physical Examination Overview</h2>
+                <div class="overview-details">
+                  <label
+                    ><strong>Date:</strong>
+                    <input id="ovr-exam-date" type="date" disabled />
+                  </label>
+                  <label
+                    ><strong>BP:</strong>
+                    <input id="ovr-exam-bp" type="text" disabled />
+                  </label>
+                  <label
+                    ><strong>PR:</strong>
+                    <input id="ovr-exam-pr" type="text" disabled />
+                  </label>
+                  <label
+                    ><strong>Weight (kg):</strong>
+                    <input
+                      id="ovr-exam-weight"
+                      type="number"
+                      step="0.1"
+                      disabled
+                    />
+                  </label>
+                  <label
+                    ><strong>Height (cm):</strong>
+                    <input
+                      id="ovr-exam-height"
+                      type="number"
+                      step="0.1"
+                      disabled
+                    />
+                  </label>
+                  <label
+                    ><strong>BMI:</strong>
+                    <input
+                      id="ovr-exam-bmi"
+                      type="number"
+                      step="0.1"
+                      disabled
+                    />
+                  </label>
 
-      <h4>👁️ Visual Acuity</h4>
-      <label><strong>OS:</strong>
-        <input id="ovr-exam-os" type="text" disabled />
-      </label>
-      <label><strong>OD:</strong>
-        <input id="ovr-exam-od" type="text" disabled />
-      </label>
-      <label><strong>Glasses:</strong>
-        <select id="ovr-exam-glasses" disabled>
-          <option value="true">Yes</option>
-          <option value="false">No</option>
-        </select>
-      </label>
+                  <h4>👁️ Visual Acuity</h4>
+                  <label
+                    ><strong>OS:</strong>
+                    <input id="ovr-exam-os" type="text" disabled />
+                  </label>
+                  <label
+                    ><strong>OD:</strong>
+                    <input id="ovr-exam-od" type="text" disabled />
+                  </label>
+                  <label
+                    ><strong>Glasses:</strong>
+                    <select id="ovr-exam-glasses" disabled>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  </label>
 
-      <h4>🩺 Physical Findings</h4>
-      <div class="findings-box">
-        <textarea id="ovr-exam-findings" placeholder="Enter findings..." disabled></textarea>
-      </div>
+                  <h4>🩺 Physical Findings</h4>
+                  <div class="findings-box">
+                    <textarea
+                      id="ovr-exam-findings"
+                      placeholder="Enter findings..."
+                      disabled
+                    ></textarea>
+                  </div>
 
-      <h4>🧪 Laboratory & Recommendations</h4>
-      <label><strong>Laboratory Procedure:</strong>
-        <input id="ovr-exam-lab" type="text" disabled />
-      </label>
-      <label><strong>Recommendations:</strong>
-        <textarea id="ovr-exam-recommendations" disabled></textarea>
-      </label>
-    </div>
+                  <h4>🧪 Laboratory & Recommendations</h4>
+                  <label
+                    ><strong>Laboratory Procedure:</strong>
+                    <input id="ovr-exam-lab" type="text" disabled />
+                  </label>
+                  <label
+                    ><strong>Recommendations:</strong>
+                    <textarea id="ovr-exam-recommendations" disabled></textarea>
+                  </label>
+                </div>
 
-    <div class="modal-buttons">
-      <button id="editExamBtn">✏️ Edit</button>
-      <button onclick="closeButtonOverlay()">Close</button>
-    </div>
-  </div>
-</div>
-
+                <div class="modal-buttons">
+                  <button id="editExamBtn">✏️ Edit</button>
+                  <button onclick="closeButtonOverlay()">Close</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -179,6 +179,7 @@ async function loadAppointments() {
       missedList.appendChild(li);
       missedCount++;
     } else {
+      li.classList.add("upcoming-highlight");
       const doneBtn = document.createElement("button");
       doneBtn.textContent = "✅ Done";
       doneBtn.addEventListener("click", () => markFinished(docSnap.id));

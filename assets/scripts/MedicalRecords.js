@@ -63,7 +63,7 @@ function filterPatients() {
   const nameQuery = searchName.value.toLowerCase();
   const idQuery = searchId.value.toLowerCase();
   const genderFilter = filterGender.value;
-  const roleFilter = filterRole.value;
+  const roleFilter = filterRole.value.toLowerCase();
   const deptFilter = filterDept.value;
 
   const filtered = allPatients.filter((p) => {

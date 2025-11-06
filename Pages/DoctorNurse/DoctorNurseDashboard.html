@@ -1,55 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <script type="module" src="../../firebaseconfig.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
-    <link
-      rel="stylesheet"
-      href="../../assets/styles/DoctorNurseDashboard.css"
-    />
-  </head>
-  
 
-  <body>
-    <!-- NavBar -->
-    <header class="navbar">
-      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-      <h1>ClinicSync</h1>
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClinicSync - Dashboard</title>
+  <script type="module" src="../../firebaseconfig.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+  <link rel="stylesheet" href="../../assets/styles/DoctorNurseDashboard.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
 
-    <!-- SideBar -->
-    <div id="sidebar" class="sidebar">
-      <div class="current-user">
-        <div class="user-info">
-          <!-- <div class="user-icon">
-            <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
-          </div> -->
-          <div class="user-name" id="displayName">Loading...</div>
-        </div>
-        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+<body>
+  <!-- NavBar -->
+  <header class="navbar">
+    <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    <h1>ClinicSync</h1>
+  </header>
+
+  <!-- SideBar -->
+  <div id="sidebar" class="sidebar">
+    <div class="current-user">
+      <div class="user-info">
+        <!-- <div class="user-icon">
+      <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
+    </div> -->
+        <div class="user-name" id="displayName">Loading...</div>
       </div>
-      <ul>
-        <li class="active"><a href="DoctorNurseDashboard.html">Home</a></li>
-        <li><a href="MedicalRecords.html">Medical Records</a></li>
-        <li><a href="Schedules.html">Schedules</a></li>
-        <li><a href="MedicineInventory.html">Medicine Inventory</a></li>
-        <li><a href="ClinicInventory.html">Clinic Inventory</a></li>
-        <li><a href="ActivityLogs.html">Activity Logs</a></li>
-      </ul>
+      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+    </div>
+    <ul>
+      <li class="active">
+        <a href="DoctorNurseDashboard.html">
+          <i class="fas fa-home sidebar-icon"></i> Home
+        </a>
+      </li>
+      <li>
+        <a href="MedicalRecords.html">
+          <i class="fas fa-file-medical sidebar-icon"></i> Medical Records
+        </a>
+      </li>
+      <li>
+        <a href="Schedules.html">
+          <i class="fas fa-calendar-alt sidebar-icon"></i> Schedules
+        </a>
+      </li>
+      <li>
+        <a href="MedicineInventory.html">
+          <i class="fas fa-pills sidebar-icon"></i> Medicine Inventory
+        </a>
+      </li>
+      <li>
+        <a href="ClinicInventory.html">
+          <i class="fas fa-clipboard-list sidebar-icon"></i> Clinic Inventory
+        </a>
+      </li>
+      <li>
+        <a href="ActivityLogs.html">
+          <i class="fas fa-history sidebar-icon"></i> Activity Logs
+        </a>
+      </li>
+    </ul>
+    <div class="logout-container">
       <form>
-        <button type="submit" id="logout-button">Log Out</button>
+        <button type="submit" id="logout-button">
+          <i class="fa-solid fa-right-from-bracket"></i> Log Out
+        </button>
       </form>
     </div>
+  </div>
+  <div id="overlay" class="overlay"></div>
 
-    
-  </body>
+  <!-- Dashboard Content -->
+  <div class="dashboard-container">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <!-- Today's Patients -->
+      <div class="summary-card">
+        <div class="card-icon"><i class="fas fa-user-friends"></i></div>
+        <div class="card-content">
+          <div class="card-value" id="todayVisits">24</div>
+          <div class="card-label">Today's Patients</div>
+        </div>
+      </div>
+
+      <!-- Unreturned Items -->
+      <div class="summary-card">
+        <div class="card-icon"><i class="fas fa-box-open"></i></div>
+        <div class="card-content">
+          <div class="card-value" id="unreturnedItems">12</div>
+          <div class="card-label">Unreturned Items</div>
+        </div>
+      </div>
+
+      <!-- Low Stock Items -->
+      <div class="summary-card">
+        <div class="card-icon"><i class="fas fa-prescription-bottle-alt"></i></div>
+        <div class="card-content">
+          <div class="card-value" id="lowStockItems">5</div>
+          <div class="card-label">Low Stock Items</div>
+        </div>
+      </div>
+
+      <!-- Avg. Rating -->
+      <div class="summary-card">
+        <div class="card-icon"><i class="fas fa-star"></i></div>
+        <div class="card-content">
+          <div class="card-value" id="avgRating">4.7</div>
+          <div class="card-label">Avg. Rating</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+      <div class="chart-card full-width combined-visits-card">
+        <div class="combined-grid">
+          <div class="visits-section">
+            <div class="chart-header">
+              <div class="chart-title"><i class="fas fa-chart-line"></i> Patient Visits Trend</div>
+              <div class="chart-controls">
+                <button class="filter-btn" data-chart="visits" data-filter="day">Daily</button>
+                <button class="filter-btn" data-chart="visits" data-filter="week">Week</button>
+                <button class="filter-btn" data-chart="visits" data-filter="month">Month</button>
+                <button class="filter-btn" data-chart="visits" data-filter="year">Year</button>
+              </div>
+            </div>
+            <canvas id="visitsChart">
+              
+            </canvas>
+          </div>
+          <div class="appointments-section">
+            <div class="chart-header">
+              <div class="chart-title"><i class="fas fa-calendar-check"></i> Today</div>
+              <div class="chart-controls">
+                <button class="filter-btn active" data-chart="appointments" data-filter="upcoming">Upcoming</button>
+                <button class="filter-btn" data-chart="appointments" data-filter="completed">Completed</button>
+              </div>
+            </div>
+            <div class="appointments-list" id="appointmentsList">
+              <div class="appointment-item">
+                <div class="patient-info">
+                  <div class="patient-name">John Smith</div>
+                  <div class="appointment-time">09:30 AM</div>
+                </div>
+                <div class="appointment-status scheduled">Scheduled</div>
+              </div>
+              <div class="appointment-item">
+                <div class="patient-info">
+                  <div class="patient-name">Sarah Johnson</div>
+                  <div class="appointment-time">10:15 AM</div>
+                </div>
+                <div class="appointment-status waiting">Waiting</div>
+              </div>
+              <div class="appointment-item">
+                <div class="patient-info">
+                  <div class="patient-name">Michael Brown</div>
+                  <div class="appointment-time">11:00 AM</div>
+                </div>
+                <div class="appointment-status in-progress">In Progress</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medicine Stock Levels -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fas fa-prescription-bottle"></i> Medicine Stock</div>
+          <div class="chart-controls">
+            <button class="filter-btn active" data-chart="stock" data-filter="all">All</button>
+            <button class="filter-btn" data-chart="stock" data-filter="low">Low</button>
+            <button class="filter-btn" data-chart="stock" data-filter="critical">Critical</button>
+          </div>
+        </div>
+        <canvas id="stockChart"></canvas>
+        <div class="low-stock" id="lowStockAlert"></div>
+      </div>
+
+      <!-- Chief Complaints -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fas fa-head-side-cough"></i> Chief Complaints</div>
+          <div class="chart-controls">
+            <button class="filter-btn" data-chart="complaints" data-filter="day">Day</button>
+            <button class="filter-btn active" data-chart="complaints" data-filter="week">Week</button>
+            <button class="filter-btn" data-chart="complaints" data-filter="month">Month</button>
+            <button class="filter-btn" data-chart="complaints" data-filter="year">Year</button>
+          </div>
+        </div>
+        <canvas id="complaintsChart"></canvas>
+      </div>
+
+      <!-- Patient Ratings -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fas fa-star"></i> Patient Ratings</div>
+          <div class="chart-controls">
+            <button class="filter-btn active" data-chart="ratings" data-filter="week">Week</button>
+            <button class="filter-btn" data-chart="ratings" data-filter="month">Month</button>
+            <button class="filter-btn" data-chart="ratings" data-filter="year">Year</button>
+          </div>
+        </div>
+        <canvas id="ratingsChart"></canvas>
+      </div>
+    </div>
+  </div>
+  </div>
+
   <script src="../../assets/scripts/modal.js"></script>
-  <script
-    src="../../assets/scripts/DoctorNurseDashboard.js"
-    type="module"
-  ></script>
+  <script src="../../assets/scripts/DoctorNurseDashboard.js" type="module"></script>
+</body>
+
 </html>
