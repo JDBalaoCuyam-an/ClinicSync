@@ -233,11 +233,16 @@
   flex-direction: column;
   gap: 5px;
   font-size: 14px;
-  border: 1px solid;
+  
   padding: 5px;
   border-radius: 5px;
 }
 
+.category-box{
+  padding: 5px;
+  border-radius: 5px;
+  border: black solid 1px;
+}
 #add-medicine-form input,
 #add-medicine-form select {
   padding: 12px;

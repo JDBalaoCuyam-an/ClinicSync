@@ -7,11 +7,13 @@
     <script type="module" src="../../firebaseconfig.js"></script>
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
     <link rel="stylesheet" href="../../assets/styles/MedicineInventory.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
   </head>
   <body>
-   <!-- NavBar -->
+    <!-- NavBar -->
     <header class="navbar">
       <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       <h1>ClinicSync</h1>
@@ -19,55 +21,55 @@
 
     <!-- SideBar -->
     <div id="sidebar" class="sidebar">
-    <div class="current-user">
-      <div class="user-info">
-        <!-- <div class="user-icon">
+      <div class="current-user">
+        <div class="user-info">
+          <!-- <div class="user-icon">
       <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
     </div> -->
-        <div class="user-name" id="displayName">Loading...</div>
+          <div class="user-name" id="displayName">Loading...</div>
+        </div>
+        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       </div>
-      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+      <ul>
+        <li>
+          <a href="DoctorNurseDashboard.html">
+            <i class="fas fa-home sidebar-icon"></i> Home
+          </a>
+        </li>
+        <li>
+          <a href="MedicalRecords.html">
+            <i class="fas fa-file-medical sidebar-icon"></i> Medical Records
+          </a>
+        </li>
+        <li>
+          <a href="Schedules.html">
+            <i class="fas fa-calendar-alt sidebar-icon"></i> Schedules
+          </a>
+        </li>
+        <li class="active">
+          <a href="MedicineInventory.html">
+            <i class="fas fa-pills sidebar-icon"></i> Medicine Inventory
+          </a>
+        </li>
+        <li>
+          <a href="ClinicInventory.html">
+            <i class="fas fa-clipboard-list sidebar-icon"></i> Clinic Inventory
+          </a>
+        </li>
+        <li>
+          <a href="ActivityLogs.html">
+            <i class="fas fa-history sidebar-icon"></i> Activity Logs
+          </a>
+        </li>
+      </ul>
+      <div class="logout-container">
+        <form>
+          <button type="submit" id="logout-button">
+            <i class="fa-solid fa-right-from-bracket"></i> Log Out
+          </button>
+        </form>
+      </div>
     </div>
-    <ul>
-      <li>
-        <a href="DoctorNurseDashboard.html">
-          <i class="fas fa-home sidebar-icon"></i> Home
-        </a>
-      </li>
-      <li>
-        <a href="MedicalRecords.html">
-          <i class="fas fa-file-medical sidebar-icon"></i> Medical Records
-        </a>
-      </li>
-      <li>
-        <a href="Schedules.html">
-          <i class="fas fa-calendar-alt sidebar-icon"></i> Schedules
-        </a>
-      </li>
-      <li class="active">
-        <a href="MedicineInventory.html">
-          <i class="fas fa-pills sidebar-icon"></i> Medicine Inventory
-        </a>
-      </li>
-      <li>
-        <a href="ClinicInventory.html">
-          <i class="fas fa-clipboard-list sidebar-icon"></i> Clinic Inventory
-        </a>
-      </li>
-      <li>
-        <a href="ActivityLogs.html">
-          <i class="fas fa-history sidebar-icon"></i> Activity Logs
-        </a>
-      </li>
-    </ul>
-    <div class="logout-container">
-      <form>
-        <button type="submit" id="logout-button">
-          <i class="fa-solid fa-right-from-bracket"></i> Log Out
-        </button>
-      </form>
-    </div>
-  </div>
     <div id="overlay" class="overlay"></div>
 
     <!-- Medicine Inventory Section -->
@@ -88,28 +90,17 @@
             id="search-bar"
           />
         </form>
-        <form id="category-filter">
-          <select>
-            <option value="All">All</option>
-            <option value="Analgesic">Analgesics</option>
-            <option value="Antibiotic">Antibiotics</option>
-            <option value="Expectorant">Expectorants</option>
-            <option value="Antacid">Antacids</option>
-            <option value="First Aid">First Aid</option>
-            <option value="Vitamins and Supplements">
-              Vitamins & Supplements
-            </option>
-          </select>
-        </form>
       </div>
 
       <table>
         <thead>
           <tr>
             <th>Name of Medicine</th>
-            <th>Category</th>
-            <th>Stocks Remaining</th>
+            <th>No. Stocks per box/pack</th>
+            <th>Date of Purchased</th>
             <th>Expiry Date</th>
+            <th>Remaining Stocks</th>
+            <th>Total Dispensed</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -133,38 +124,6 @@
           required
         />
 
-        <label for="category">Category:</label>
-        <div id="category-options">
-          <label
-            ><input type="checkbox" name="category" value="Analgesic" />
-            Analgesic</label
-          >
-          <label
-            ><input type="checkbox" name="category" value="Antibiotic" />
-            Antibiotic</label
-          >
-          <label
-            ><input type="checkbox" name="category" value="Expectorant" />
-            Expectorant</label
-          >
-          <label
-            ><input type="checkbox" name="category" value="Antacids" />
-            Antacid</label
-          >
-          <label
-            ><input type="checkbox" name="category" value="First Aid" /> First
-            Aid</label
-          >
-          <label
-            ><input
-              type="checkbox"
-              name="category"
-              value="Vitamins and Supplements"
-            />
-            Vitamins and Supplements</label
-          >
-        </div>
-
         <label for="stock-quantity">Stock Quantity:</label>
         <input
           type="number"
@@ -174,12 +133,19 @@
           placeholder="Stock Quantity"
           required
         />
+        <label>No. Stocks per box/pack:</label>
+<input type="number" id="per-pack" min="0" />
+
+<label>Date Purchased:</label>
+<input type="date" id="date-purchased" />
 
         <label for="expiry-date">Expiry Date:</label>
         <input type="date" id="expiry-date" name="expiry-date" required />
 
         <button type="submit" class="save-btn" id="save-btn">Save</button>
-        <button onclick="closeButtonOverlay()" type="button" class="cancel-btn">Cancel</button>
+        <button onclick="closeButtonOverlay()" type="button" class="cancel-btn">
+          Cancel
+        </button>
       </form>
     </div>
 
