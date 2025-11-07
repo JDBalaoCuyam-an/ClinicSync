@@ -774,65 +774,6 @@
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-/* ======================================================
-   🔹 VITAL SIGNS - CONSISTENT DESIGN
-====================================================== */
-#cons-vitals-list {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-/* Row style (table-like) */
-.vital-row {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 8px 10px;
-
-  display: grid;
-  grid-template-columns: 40px 120px repeat(5, 1fr) 120px;
-  gap: 10px;
-  font-size: 14px;
-  align-items: center;
-}
-
-.vital-header-row {
-  font-weight: bold;
-  background: #f1f1f1;
-  border: 1px solid #ccc;
-}
-
-.vital-col {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.vital-index {
-  background: #007bff;
-  color: #fff;
-  padding: 2px 6px;
-  border-radius: 6px;
-  text-align: center;
-}
-.vitals-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 15px;
-}
-
-#addVitalsBtn {
-  padding: 5px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
 
 /* ======================================================
    🔹 CONSULTATION FORM BUTTONS - CONSISTENT DESIGN
@@ -1653,4 +1594,137 @@
     align-items: flex-start;
     gap: 8px;
   }
+}
+
+.med-modal-content {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 25px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+/* Overview Edit Meds */
+/* ============================================================
+   🔹 Text and Layout
+============================================================ */
+.med-modal-content h3 {
+  margin-top: 0;
+  color: #222;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.modal label strong {
+  font-weight: 600;
+  color: #444;
+}
+
+/* ============================================================
+   🔹 Select Box
+============================================================ */
+#medSelect {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fafafa;
+  font-size: 15px;
+  margin-top: 5px;
+}
+
+#medSelect option {
+  padding: 4px;
+}
+
+/* ============================================================
+   🔹 Buttons
+============================================================ */
+.modal button {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.modal button:hover {
+  opacity: 0.9;
+}
+
+#selectMedNextBtn,
+#saveMedDetailsBtn {
+  background-color: #2b8a3e;
+  color: white;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+button[onclick*="closeSelectMedModal"],
+button[onclick*="closeMedDetailsModal"] {
+  background-color: #d9534f;
+  color: white;
+}
+
+/* ============================================================
+   🔹 Medicine Detail Inputs
+============================================================ */
+#medDetailsContainer {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.med-entry {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+.med-entry strong {
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.qty-input {
+  margin-top: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100px;
+}
+
+.remarks-input {
+  margin-top: 6px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  resize: vertical;
+  width: 100%;
+  min-height: 45px;
+}
+
+/* Scrollbar for long lists */
+#medDetailsContainer::-webkit-scrollbar {
+  width: 6px;
+}
+#medDetailsContainer::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
 }
