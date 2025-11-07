@@ -15,8 +15,20 @@
   <body>
     <!-- NavBar -->
     <header class="navbar">
-      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-      <h1>ClinicSync</h1>
+      <div class="left-header">
+        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+        <h1>ClinicSync</h1>
+      </div>
+      <div class="right-header">
+        <div class="user-name" id="displayName"></div>
+        <div class="logout-container">
+          <form>
+            <button type="submit" id="logout-button">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </form>
+        </div>
+      </div>
     </header>
 
     <!-- SideBar -->
@@ -26,7 +38,6 @@
           <!-- <div class="user-icon">
       <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
     </div> -->
-          <div class="user-name" id="displayName">Loading...</div>
         </div>
         <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
       </div>
@@ -62,13 +73,7 @@
           </a>
         </li>
       </ul>
-      <div class="logout-container">
-        <form>
-          <button type="submit" id="logout-button">
-            <i class="fa-solid fa-right-from-bracket"></i> Log Out
-          </button>
-        </form>
-      </div>
+      
     </div>
     <div id="overlay" class="overlay"></div>
 

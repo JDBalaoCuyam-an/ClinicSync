@@ -109,7 +109,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 20%;
+  height: 15%;
   box-shadow: var(--shadow-light);
 }
 
@@ -169,11 +169,18 @@
   padding: 15px 20px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   height: 10%;
   box-shadow: var(--shadow-light);
 }
-
+.left-header, .right-header{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 10px;
+  
+}
 .menu-icon {
   font-size: 24px;
   cursor: pointer;
@@ -258,17 +265,12 @@ tr:hover {
 
 /* LOGOUT BUTTON - Consistent with sidebar */
 .logout-container {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  padding: 15px;
-  border-top: 1px solid var(--text-medium);
-  background-color: var(--primary-light);
+  width: 15px;
 }
 
 #logout-button {
   width: 100%;
-  padding: 15px 0;
+  padding: 15px;
   background-color: transparent;
   color: var(--text-dark);
   border: none;
@@ -282,13 +284,12 @@ tr:hover {
 }
 
 #logout-button:hover {
-  color: var(--primary-color);
+  color:  var(--primary-light);
 }
 
 #logout-button:hover i {
-  color: var(--primary-color) !important;
+  color:  var(--primary-light);
 }
-
 /* OVERLAY */
 .overlay {
   position: fixed;

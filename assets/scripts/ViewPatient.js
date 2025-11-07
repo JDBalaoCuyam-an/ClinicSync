@@ -304,39 +304,67 @@ editPatientInfoBtn.addEventListener("click", async () => {
 // Load medicine options into the dropdown
 const medsListDiv = document.getElementById("meds-list");
 const addMedBtn = document.getElementById("add-med-btn");
-let medicinesData = []; // stores all medicine names from inventory
+let medicinesData = []; // stores all medicine objects from inventory
 
-// Load meds into array
+/* ============================================================
+   FETCH MEDICINES (with stock)
+============================================================ */
 async function loadMedicineOptions() {
   const querySnapshot = await getDocs(collection(db, "MedicineInventory"));
-  medicinesData = querySnapshot.docs.map((doc) => doc.data().name);
+  medicinesData = querySnapshot.docs.map((doc) => ({
+    name: doc.data().name,
+    availableQty: doc.data().stock || 0, // ✅ Use 'stock' instead of 'quantity'
+  }));
 }
 
+/* ✅ Load medicines on page load */
 loadMedicineOptions();
 
-// Add a new medicine row (name + quantity)
+/* ============================================================
+   ADD NEW MEDICINE ROW
+============================================================ */
 addMedBtn.addEventListener("click", () => {
   const container = document.createElement("div");
   container.classList.add("med-row");
 
+  // Build dropdown options with available stock
+  const optionsHTML = medicinesData
+    .map(
+      (m) =>
+        `<option value="${m.name}" data-qty="${m.availableQty}">
+          ${m.name} (Available: ${m.availableQty})
+        </option>`
+    )
+    .join("");
+
   container.innerHTML = `
-    <select class="med-name">
+    <select class="med-name" required>
       <option value="" disabled selected>Select Medicine</option>
-      ${medicinesData
-      .map((name) => `<option value="${name}">${name}</option>`)
-      .join("")}
+      ${optionsHTML}
     </select>
+
     <input type="number" class="med-qty" min="1" placeholder="Qty" />
+
+    <select class="med-type" required>
+      <option value="" disabled selected>Type</option>
+      <option value="Administered">Administered</option>
+      <option value="Dispensed">Dispensed</option>
+    </select>
+
+    <input type="text" class="med-remarks" placeholder="Remarks" />
+
     <button type="button" class="remove-med">X</button>
   `;
 
-  // Remove row
+  // 🧹 Remove row handler
   container.querySelector(".remove-med").addEventListener("click", () => {
     container.remove();
   });
 
   medsListDiv.appendChild(container);
 });
+
+// ✅ Load complaints into datalist
 async function loadComplaints() {
   const complaintList = document.getElementById("complaint-list");
   complaintList.innerHTML = ""; // Clear old options
@@ -357,7 +385,6 @@ document
   .addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // ✅ Auto date + time for medicines
     const now = new Date();
     const medDate = now.toISOString().split("T")[0];
     const medTime = now.toLocaleTimeString([], {
@@ -365,29 +392,26 @@ document
       minute: "2-digit",
     });
 
-    // ✅ Get all meds from table
+    // ✅ Collect medicines
     const medsDispensed = Array.from(document.querySelectorAll(".med-row"))
-      .map((row) => {
-        return {
-          name: row.querySelector(".med-name").value,
-          quantity: parseInt(row.querySelector(".med-qty").value) || 0,
-          NoD: parseInt(row.querySelector(".med-nod")?.value) || null,
-          remarks: row.querySelector(".med-remarks")?.value || "",
-          NurseOnDuty: currentUserName, // ✅ Person who dispensed
-          date: medDate,
-          time: medTime,
-        };
-      })
+      .map((row) => ({
+        name: row.querySelector(".med-name").value,
+        quantity: parseInt(row.querySelector(".med-qty").value) || 0,
+        type: row.querySelector(".med-type")?.value || "",
+        remarks: row.querySelector(".med-remarks")?.value || "",
+        NurseOnDuty: currentUserName,
+        date: medDate,
+        time: medTime,
+      }))
       .filter((med) => med.name !== "");
 
-    // ✅ Create vital record
+    // ✅ Create vitals record
     const newVitalEntry = {
       bp: document.getElementById("vital-bp").value,
       temp: document.getElementById("vital-temp").value,
       spo2: document.getElementById("vital-spo2").value,
       pr: document.getElementById("vital-pr").value,
       lmp: document.getElementById("vital-lmp").value,
-
       takenBy: currentUserName,
       recordedDate: new Date().toISOString().split("T")[0],
       recordedTime: new Date().toLocaleTimeString([], {
@@ -396,27 +420,25 @@ document
       }),
     };
 
-    // ✅ Build consultation record
     const consultData = {
       consultingDoctor: document.getElementById("consult-doctor").value,
       date: document.getElementById("consult-date").value,
       time: document.getElementById("consult-time").value,
       complaint: document.getElementById("consult-complaint").value.trim(),
       diagnosis: document.getElementById("consult-diagnosis").value,
-      meds: medsDispensed, // ✅ Array of meds
-      vitals: [newVitalEntry], // ✅ Array of vitals
+      meds: medsDispensed,
+      vitals: [newVitalEntry],
       notes: document.getElementById("consult-notes").value,
       NurseOnDuty: currentUserName,
       createdAt: new Date(),
     };
 
-    // ✅ Save complaint if new
+    // ✅ Save new complaint if not existing
     const complaintValue = consultData.complaint;
     if (complaintValue !== "") {
       const complaintsRef = collection(db, "complaints");
       const q = query(complaintsRef, where("name", "==", complaintValue));
       const snapshot = await getDocs(q);
-
       if (snapshot.empty) {
         await addDoc(complaintsRef, {
           name: complaintValue,
@@ -427,20 +449,51 @@ document
     }
 
     try {
-      // ✅ Save to Firestore
+      // ✅ Save Consultation Record
       const consultRef = collection(db, "patients", patientId, "consultations");
       await addDoc(consultRef, consultData);
 
-      alert("Consultation Record Saved!");
+      // ✅ Deduct Medicine Stock
+      for (const med of medsDispensed) {
+        if (med.name && med.quantity > 0) {
+          const invRef = collection(db, "MedicineInventory");
+          const q = query(invRef, where("name", "==", med.name));
+          const snapshot = await getDocs(q);
+
+          if (!snapshot.empty) {
+            const medDoc = snapshot.docs[0];
+            const data = medDoc.data();
+
+            const currentStock = data.stock || 0;
+            const currentDispensed = data.dispensed || 0;
+
+            const newStock = Math.max(currentStock - med.quantity, 0);
+            const newDispensed = currentDispensed + med.quantity;
+
+            await updateDoc(medDoc.ref, {
+              stock: newStock,
+              dispensed: newDispensed,
+            });
+
+            console.log(
+              `✅ ${med.name} stock updated: ${currentStock} → ${newStock}, dispensed: ${currentDispensed} → ${newDispensed}`
+            );
+          } else {
+            console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
+          }
+        }
+      }
+
+      alert("✅ Consultation Record Saved & Medicine Deducted!");
       closeButtonOverlay();
       loadConsultations();
       loadComplaints();
+      loadMedicineOptions(); // 🔁 Refresh available stocks in dropdown
     } catch (err) {
-      console.error("Error adding consultation:", err);
+      console.error("❌ Error adding consultation:", err);
       alert("Failed to save consultation record.");
     }
   });
-
 
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
@@ -503,81 +556,67 @@ window.showConsultationDetails = function (data, consultId) {
   document.getElementById("ovr-diagnosis").value = data.diagnosis || "";
   document.getElementById("ovr-notes").value = data.notes || "";
 
-  // ✅ Ensure meds is array
-const meds = Array.isArray(data.meds) ? data.meds : [];
+  /* ============================================================
+     🧾 MEDICATIONS (READ-ONLY)
+  ============================================================ */
+  const meds = Array.isArray(data.meds) ? data.meds : [];
+  const medsContainer = document.getElementById("cons-meds-list");
+  medsContainer.innerHTML = "";
 
-const medsContainer = document.getElementById("cons-meds-list");
-medsContainer.innerHTML = "";
-
-if (meds.length === 0) {
-  medsContainer.innerHTML = "<p>No medications dispensed.</p>";
-} else {
-// ✅ Show Medications (READ-ONLY)
-const meds = Array.isArray(data.meds) ? data.meds : [];
-const medsContainer = document.getElementById("cons-meds-list");
-medsContainer.innerHTML = "";
-
-if (!meds.length) {
-  medsContainer.innerHTML = `
-    <tr><td colspan="6">No medications dispensed.</td></tr>
-  `;
-} else {
-  meds.forEach((m, i) => {
-    medsContainer.innerHTML += `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${m.name || "-"}</td>
-        <td>${m.quantity || "-"}</td>
-        <td>${m.date || "-"} ${m.time || "-"}</td>
-        <td>${m.NurseOnDuty || "-"}</td>
-        <td>${m.remarks || "-"}</td>
-      </tr>
+  if (meds.length === 0) {
+    medsContainer.innerHTML = `
+      <tr><td colspan="7">No medications dispensed.</td></tr>
     `;
-  });
-}
+  } else {
+    meds.forEach((m, i) => {
+      medsContainer.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${m.name || "-"}</td>
+          <td>${m.quantity || "-"}</td>
+          <td>${m.date || "-"} ${m.time || "-"}</td>
+          <td>${m.NurseOnDuty || "-"}</td>
+          <td>${m.type || "-"}</td>
+          <td>${m.remarks || "-"}</td>
+        </tr>
+      `;
+    });
+  }
 
-
-}
-
-
-  // ✅ Ensure vitals is array
+  /* ============================================================
+     🩺 VITALS HISTORY
+  ============================================================ */
   const vitals = Array.isArray(data.vitals) ? data.vitals : [];
+  const vitalsContainer = document.getElementById("cons-vitals-list");
+  vitalsContainer.innerHTML = "";
 
-  // ✅ Vitals HISTORY LIST ONLY
-  const container = document.getElementById("cons-vitals-list");
-container.innerHTML = "";
-
-if (vitals.length === 0) {
-  container.innerHTML = "<p>No vitals recorded.</p>";
-} else {
- const vitalsContainer = document.getElementById("cons-vitals-list");
-vitalsContainer.innerHTML = "";
-
-if (vitals.length === 0) {
-  vitalsContainer.innerHTML = `<tr><td colspan="8">No vitals recorded.</td></tr>`;
-} else {
-  vitals.forEach((v, i) => {
-    vitalsContainer.innerHTML += `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${v.recordedDate || "-"} ${v.recordedTime || "-"}</td>
-        <td>${v.bp || "-"}</td>
-        <td>${v.temp || "-"}</td>
-        <td>${v.spo2 || "-"}</td>
-        <td>${v.pr || "-"}</td>
-        <td>${v.lmp || "-"}</td>
-        <td>${v.takenBy || "-"}</td>
-      </tr>
+  if (vitals.length === 0) {
+    vitalsContainer.innerHTML = `
+      <tr><td colspan="8">No vitals recorded.</td></tr>
     `;
-  });
-}
+  } else {
+    vitals.forEach((v, i) => {
+      vitalsContainer.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${v.recordedDate || "-"} ${v.recordedTime || "-"}</td>
+          <td>${v.bp || "-"}</td>
+          <td>${v.temp || "-"}</td>
+          <td>${v.spo2 || "-"}</td>
+          <td>${v.pr || "-"}</td>
+          <td>${v.lmp || "-"}</td>
+          <td>${v.takenBy || "-"}</td>
+        </tr>
+      `;
+    });
+  }
 
-}
-
+  /* ============================================================
+     ✅ SHOW MODAL
+  ============================================================ */
   document.getElementById("consultation-overview").classList.add("show");
   document.getElementById("overlay").classList.add("show");
 };
-
 
 /* -----------------------------------------------
    🔹 EDIT, SAVE CONSULTATION DETAILS
@@ -644,6 +683,7 @@ editOverviewBtn.addEventListener("click", async () => {
 /* -----------------------------------------------
    🔹 ADD Meds (arrayUnion)
 ------------------------------------------------ */
+
 /* ============================================================
    SHOW MULTI SELECT MED MODAL
 ============================================================ */
@@ -663,7 +703,7 @@ window.openSelectMedModal = openSelectMedModal;
 window.closeSelectMedModal = closeSelectMedModal;
 
 /* ============================================================
-   FETCH & DISPLAY MED INVENTORY
+   FETCH & DISPLAY MED INVENTORY (with Available Stock)
 ============================================================ */
 async function loadMedInventoryList() {
   medSelect.innerHTML = "";
@@ -671,29 +711,30 @@ async function loadMedInventoryList() {
   const medSnap = await getDocs(collection(db, "MedicineInventory"));
   let meds = [];
 
-  medSnap.forEach(doc => {
-    meds.push({ id: doc.id, ...doc.data() });
+  medSnap.forEach((doc) => {
+    const data = doc.data();
+    const stock = data.stock ?? 0; // ✅ stock from DB
+    meds.push({ id: doc.id, ...data, stock });
   });
 
-  meds.forEach(m => {
+  // ✅ Show "Available: X" beside each medicine name
+  meds.forEach((m) => {
     const opt = document.createElement("option");
     opt.value = m.id;
-    opt.textContent = m.name;
+    opt.textContent = `${m.name} (Available: ${m.stock})`;
     medSelect.appendChild(opt);
   });
 
   return meds;
 }
 
-let global_medsInventory = [];   // stored list for lookup
-
+let global_medsInventory = []; // stored list for lookup
 
 /* ============================================================
    WHEN ➕ ADD MED IS CLICKED
 ============================================================ */
 document.addEventListener("click", async (e) => {
   if (e.target && e.target.id === "addMedBtn") {
-
     if (!currentConsultationId) return alert("No consultation selected!");
 
     global_medsInventory = await loadMedInventoryList();
@@ -701,9 +742,8 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-
 /* ============================================================
-   NEXT STEP → ASK QTY + REMARKS THEN SAVE
+   NEXT STEP → ASK QTY + TYPE + REMARKS THEN SAVE
 ============================================================ */
 const medDetailsModal = document.getElementById("medDetailsModal");
 const medDetailsContainer = document.getElementById("medDetailsContainer");
@@ -718,26 +758,37 @@ function closeMedDetailsModal() {
 
 // ✅ NEXT STEP → show details modal instead of prompt
 nextBtn.addEventListener("click", async () => {
-  const selectedIds = Array.from(medSelect.selectedOptions).map(o => o.value);
+  const selectedIds = Array.from(medSelect.selectedOptions).map((o) => o.value);
   if (selectedIds.length === 0) return alert("Select at least 1 item");
 
   closeSelectMedModal();
-
   medDetailsContainer.innerHTML = "";
 
-  selectedIds.forEach(id => {
-    const med = global_medsInventory.find(m => m.id === id);
+  selectedIds.forEach((id) => {
+    const med = global_medsInventory.find((m) => m.id === id);
     if (!med) return;
+
+    const available = med.stock ?? 0;
 
     const div = document.createElement("div");
     div.className = "med-entry";
     div.style.marginBottom = "10px";
 
     div.innerHTML = `
-      <div><strong>${med.name}</strong></div>
-      <label>Quantity: 
-        <input type="number" min="1" class="qty-input" data-id="${id}" style="width: 80px" required>
+      <div><strong>${med.name}</strong> <small style="color:gray;">(Available: ${available})</small></div>
+
+      <label>Quantity:
+        <input type="number" min="1" class="qty-input" data-id="${id}" style="width: 80px" required placeholder="Max: ${available}">
       </label>
+
+      <label style="margin-left:10px;">Type:
+        <select class="type-input" data-id="${id}" required>
+          <option value="" disabled selected>Select</option>
+          <option value="Administered">Administered</option>
+          <option value="Dispensed">Dispensed</option>
+        </select>
+      </label>
+
       <br>
       <label>Remarks:</label><br>
       <textarea class="remarks-input" data-id="${id}" rows="2" style="width:100%"></textarea>
@@ -749,36 +800,46 @@ nextBtn.addEventListener("click", async () => {
 
   openMedDetailsModal();
 });
+
 saveMedDetailsBtn.addEventListener("click", async () => {
   const qtyInputs = medDetailsContainer.querySelectorAll(".qty-input");
+  const typeInputs = medDetailsContainer.querySelectorAll(".type-input");
   const remarksInputs = medDetailsContainer.querySelectorAll(".remarks-input");
 
   let medsToAdd = [];
   const now = new Date();
 
-  qtyInputs.forEach(input => {
+  qtyInputs.forEach((input) => {
     const id = input.dataset.id;
-    const med = global_medsInventory.find(m => m.id === id);
+    const med = global_medsInventory.find((m) => m.id === id);
     if (!med) return;
 
     const qty = Number(input.value);
     if (isNaN(qty) || qty <= 0) return;
 
-    const remarksEl = Array.from(remarksInputs).find(r => r.dataset.id === id);
+    const typeEl = Array.from(typeInputs).find((t) => t.dataset.id === id);
+    const type = typeEl ? typeEl.value : "";
+    if (type === "") return;
+
+    const remarksEl = Array.from(remarksInputs).find(
+      (r) => r.dataset.id === id
+    );
     const remarks = remarksEl ? remarksEl.value : "";
 
     medsToAdd.push({
+      id, // ✅ include id for lookup later
       name: med.name,
       quantity: qty,
+      type,
+      remarks,
+      NurseOnDuty: currentUserName,
       date: now.toISOString().split("T")[0],
       time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      NurseOnDuty: currentUserName,
-      remarks
     });
   });
 
   if (medsToAdd.length === 0) {
-    alert("Please enter at least one valid quantity");
+    alert("Please enter at least one valid medicine with type and quantity");
     return;
   }
 
@@ -791,15 +852,45 @@ saveMedDetailsBtn.addEventListener("click", async () => {
       currentConsultationId
     );
 
+    // ✅ Update consultation (arrayUnion) and inventory at the same time
     for (let m of medsToAdd) {
+      // 🔹 Add to consultation meds array
       await updateDoc(consultRef, { meds: arrayUnion(m) });
+
+      // 🔹 Deduct from inventory + increment dispensed
+      const medRef = doc(db, "MedicineInventory", m.id);
+      const medSnap = await getDoc(medRef);
+
+      if (medSnap.exists()) {
+        const data = medSnap.data();
+        const currentStock = data.stock || 0;
+        const currentDispensed = data.dispensed || 0;
+
+        const newStock = Math.max(currentStock - m.quantity, 0);
+        const newDispensed = currentDispensed + m.quantity;
+
+        await updateDoc(medRef, {
+          stock: newStock,
+          dispensed: newDispensed,
+        });
+
+        console.log(
+          `✅ ${m.name} stock updated: ${currentStock} → ${newStock}, dispensed: ${currentDispensed} → ${newDispensed}`
+        );
+      } else {
+        console.warn(`⚠️ Medicine not found in inventory: ${m.name}`);
+      }
     }
 
-    alert("✅ Medication(s) added!");
+    alert("✅ Medication(s) added and inventory updated!");
     closeMedDetailsModal();
 
+    // 🔁 Refresh consultation display
     const snap = await getDoc(consultRef);
     showConsultationDetails(snap.data(), currentConsultationId);
+
+    // 🔁 Refresh available medicine list
+    await loadMedInventoryList();
 
   } catch (err) {
     console.error("❌ Failed to add medication:", err);
@@ -816,7 +907,7 @@ document.addEventListener("click", async (e) => {
     if (!currentConsultationId) return alert("No consultation selected!");
 
     const bp = prompt("Enter BP (e.g. 120/80):");
-    if (bp === null) return;   // ✅ Cancel stops everything
+    if (bp === null) return; // ✅ Cancel stops everything
 
     const temp = prompt("Enter Temperature (°C):");
     if (temp === null) return; // ✅ Stops
@@ -868,7 +959,6 @@ document.addEventListener("click", async (e) => {
     }
   }
 });
-
 
 /* -----------------------------------------------
  🔹 SAVE PHYSICAL EXAMINATION RECORD

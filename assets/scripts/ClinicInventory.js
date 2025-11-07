@@ -1,4 +1,4 @@
-import { db } from "../../firebaseconfig.js";
+import { db, auth, currentUserName } from "../../firebaseconfig.js";
 import {
   collection,
   addDoc,
@@ -15,35 +15,40 @@ const filter = document.getElementById("filter");
 
 let borrowers = [];
 
+// ✅ Utility function: check if a date is older than N days
+function isOlderThan(dateString, days) {
+  if (!dateString) return false;
+  const [datePart] = dateString.split(" "); // Extract "YYYY-MM-DD" only
+  const date = new Date(datePart);
+  if (isNaN(date)) return false;
+  const now = new Date();
+  const diffMs = now - date;
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays > days;
+}
+
 // Submit new borrower
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // get raw input value
-  const dateBorrowedInput = document.getElementById("date-borrowed").value;
-
-  // current date & time
   const now = new Date();
-  const currentDate = now.toISOString().split("T")[0]; // YYYY-MM-DD
+  const currentDate = now.toISOString().split("T")[0];
   const currentTime = now.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
   });
 
-  // if user picked a date, use it + current time
-  // else fallback to current date + current time
-  const finalDateBorrowed = dateBorrowedInput
-    ? `${dateBorrowedInput} ${currentTime}`
-    : `${currentDate} ${currentTime}`;
-
   const borrower = {
     itemName: document.getElementById("item-name").value,
     quantity: parseInt(document.getElementById("quantity").value),
     borrowerName: document.getElementById("borrower-name").value,
-    personnel: document.getElementById("personnel-incharge").value,
-    dateBorrowed: finalDateBorrowed,
+
+    // ✅ use current logged-in user as personnel
+    personnel: currentUserName || "Unknown User",
+
+    dateBorrowed: `${currentDate} ${currentTime}`,
     status: "Borrowed",
-    dateReturned: document.getElementById("date-returned").value || "",
+    dateReturned: "",
     createdAt: new Date(),
   };
 
@@ -58,13 +63,31 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-// Load borrowers
+// ✅ Load borrowers and clean up old returned ones
 async function loadBorrowers() {
   borrowers = [];
   const querySnapshot = await getDocs(collection(db, "ClinicInventory"));
+
+  const deletions = []; // track deletions to await them together
+
   querySnapshot.forEach((docSnap) => {
-    borrowers.push({ id: docSnap.id, ...docSnap.data() });
+    const data = docSnap.data();
+
+    // ✅ Auto-delete records returned > 30 days ago
+    if (data.status === "Returned" && isOlderThan(data.dateReturned, 30)) {
+      deletions.push(deleteDoc(doc(db, "ClinicInventory", docSnap.id)));
+    } else {
+      borrowers.push({ id: docSnap.id, ...data });
+    }
   });
+
+  // ✅ Wait for all deletions to finish before rendering
+  if (deletions.length > 0) {
+    console.log(`🧹 Deleting ${deletions.length} old returned record(s)...`);
+    await Promise.all(deletions);
+    alert(`${deletions.length} old returned record(s) were auto-deleted.`);
+  }
+
   renderBorrowers();
 }
 
@@ -89,9 +112,9 @@ function renderBorrowers() {
     const status = (b.status || "").toLowerCase();
     const statusColor =
       status === "borrowed"
-        ? "#EF4000" // Borrowed = Red-Orange
+        ? "#EF4000"
         : status === "returned"
-        ? "#66BB6A" // Returned = Green
+        ? "#66BB6A"
         : "gray";
 
     const row = document.createElement("tr");
@@ -130,13 +153,11 @@ function renderBorrowers() {
     btn.addEventListener("click", async () => {
       const id = btn.getAttribute("data-id");
       const borrower = borrowers.find((b) => b.id === id);
-
       if (!borrower) return;
 
       const confirmReturn = confirm(
         `Mark "${borrower.itemName}" borrowed by ${borrower.borrowerName} as returned?`
       );
-
       if (!confirmReturn) return;
 
       const now = new Date();
@@ -161,18 +182,16 @@ function renderBorrowers() {
     btn.addEventListener("click", async () => {
       const id = btn.getAttribute("data-id");
       const borrower = borrowers.find((b) => b.id === id);
-
       if (!borrower) return;
 
       const confirmUndo = confirm(
         `Undo return for "${borrower.itemName}" borrowed by ${borrower.borrowerName}?`
       );
-
       if (!confirmUndo) return;
 
       await updateDoc(doc(db, "ClinicInventory", id), {
         status: "Borrowed",
-        dateReturned: "", // clear returned date
+        dateReturned: "",
       });
 
       alert("↩️ Undo successful. Marked back as Borrowed.");
