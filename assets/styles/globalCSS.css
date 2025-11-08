@@ -72,10 +72,7 @@ body{
   left: 0;
 }
 
-/* Active Section Sidebar */
-.sidebar .active {
-  background-color: var(--primary-color);
-}
+
 
 /* SIDEBAR ICON STYLING */
 .sidebar-icon {
@@ -114,7 +111,7 @@ body{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 15%;
+  height: 75px;
   box-shadow: var(--shadow-light);
 }
 
@@ -309,7 +306,7 @@ tr:hover {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: none;
-  z-index: 1000;
+  z-index: 1001;
 }
 
 .overlay.show {

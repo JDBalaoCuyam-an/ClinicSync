@@ -1733,7 +1733,7 @@ button[onclick*="closeMedDetailsModal"] {
    🔹 Vitals Detail Inputs
 ============================================================ */
 .modal {
-  position: fixed; 
+  position: absolute; 
   inset: 0;
   /* background: rgba(0,0,0,0.5); */
   display: flex; 
@@ -1754,7 +1754,9 @@ button[onclick*="closeMedDetailsModal"] {
   flex-direction: column;
   gap: 10px;
 }
-
+.vitals-modal-content input{
+  padding: 8px 10px;
+}
 .vitals-modal-actions {
   display: flex;
   justify-content: end;

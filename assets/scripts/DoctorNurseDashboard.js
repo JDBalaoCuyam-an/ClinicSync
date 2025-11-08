@@ -387,127 +387,83 @@ setInterval(() => renderStockChart(currentFilter), 60000);
 /* ===========================================
 TODAY'S APPOINTMENTS SECTION
 =========================================== */
-// === TODAY'S APPOINTMENTS SECTION ===
 const appointmentsList = document.getElementById("appointmentsList");
-const appointmentFilterBtns = document.querySelectorAll(
-  ".filter-btn[data-chart='appointments']"
-);
+const currentDateTimeSpan = document.getElementById("currentDateTime");
 
-// 📅 Get today's date (YYYY-MM-DD)
-function getTodayString() {
-  const today = new Date();
-  return today.toISOString().split("T")[0];
+let appointments = [];
+
+// Utility: format date to YYYY-MM-DD
+function formatDate(date) {
+  return date.toISOString().split("T")[0];
 }
 
-// 🧾 Load Today's Appointments
-async function loadTodayAppointments(filter = "upcoming") {
-  appointmentsList.innerHTML = "<div class='loading'>Checking Today's Appointments...</div>";
-
-  const q = query(collection(db, "schedules"), orderBy("time"));
-  const snapshot = await getDocs(q);
-
-  const today = getTodayString();
+// Display current date/time
+function displayCurrentDate() {
   const now = new Date();
+  const options = { weekday: "long", month: "short", day: "numeric", year: "numeric" };
+  currentDateTimeSpan.textContent = now.toLocaleDateString(undefined, options);
+}
 
-  const filteredAppointments = [];
+// Load appointments from Firestore
+async function loadAppointments() {
+  appointments = [];
+  const querySnapshot = await getDocs(collection(db, "schedules"));
 
-  snapshot.forEach((docSnap) => {
+  querySnapshot.forEach((docSnap) => {
     const data = docSnap.data();
-    const appointmentDate = data.date;
-    const appointmentTime = data.time;
-    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
-
-    // Only include today's appointments
-    if (appointmentDate === today) {
-      if (filter === "upcoming" && appointmentDateTime >= now && data.status !== "finished") {
-        filteredAppointments.push({ id: docSnap.id, ...data });
-      } else if (filter === "completed" && data.status === "finished") {
-        filteredAppointments.push({ id: docSnap.id, ...data });
-      }
-    }
+    appointments.push({ id: docSnap.id, ...data });
   });
 
-  renderAppointments(filteredAppointments, filter);
+  renderAppointments();
 }
 
-// 🧱 Render Appointments in DOM
-function renderAppointments(list, filter) {
+// Render only today's appointments
+function renderAppointments() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const todayStr = `${yyyy}-${mm}-${dd}`; // e.g., "2025-11-09"
+
   appointmentsList.innerHTML = "";
 
-  if (list.length === 0) {
-    appointmentsList.innerHTML = `
-      <div style="border:solid 2px #4682b4;padding:10px 15px;border-radius:5px;" 
-           class="no-data">No ${filter} appointments today.</div>`;
+  // Filter appointments for today, upcoming status, and not in the past
+  const todaysAppointments = appointments.filter(appt => {
+    if (appt.date !== todayStr) return false;
+    if (appt.status !== "upcoming") return false; // Only show upcoming appointments
+    
+    if (!appt.time) return true; // If no time, assume it's still valid
+
+    const [hours, minutes] = appt.time.split(":").map(Number);
+    const apptDateTime = new Date(yyyy, now.getMonth(), dd, hours, minutes);
+
+    return apptDateTime >= now;
+  });
+
+  if (todaysAppointments.length === 0) {
+    appointmentsList.innerHTML = `<p class="no-appointments">No upcoming appointments for today.</p>`;
     return;
   }
 
-  list.forEach((appt) => {
-  const item = document.createElement("div");
-  item.classList.add("appointment-item");
-
-  item.innerHTML = `
-    <div class="patient-info">
-      <div class="patient-name">${appt.person}</div>
-      <div class="appointment-time">${appt.time}</div>
-      <div class="doctor-name">👨‍⚕️ ${appt.doctor}</div>
-      <div class="appointment-details">🗒️ ${appt.details || "No details provided"}</div>
-    </div>
-  `;
-
-  // ✅ Add click event to redirect to Schedules.html
-  item.addEventListener("click", () => {
-    window.location.href = "Schedules.html";
+  todaysAppointments.forEach(appt => {
+    const apptDiv = document.createElement("div");
+    apptDiv.className = "appointment-item";
+    apptDiv.innerHTML = `
+      <div class="patient-info">
+        <div class="patient-name">${appt.person || "-"}</div>
+        <div class="appointment-time">⏰${appt.date} ${appt.time || "-"}</div>
+        <div class="doctor-name">👨‍⚕️ ${appt.doctor || "-"}</div>
+        <div class="appointment-details">🗒️ ${appt.details || "No details provided"}</div>
+      </div>
+    `;
+    appointmentsList.appendChild(apptDiv);
   });
-
-  // Optional: cursor pointer for UX
-  item.style.cursor = "pointer";
-
-  appointmentsList.appendChild(item);
-});
-
 }
 
-// 🔘 Filter Button Events
-// appointmentFilterBtns.forEach((btn) => {
-//   btn.addEventListener("click", () => {
-//     appointmentFilterBtns.forEach((b) => b.classList.remove("active"));
-//     btn.classList.add("active");
-//     const filter = btn.dataset.filter;
-//     loadTodayAppointments(filter);
-//   });
-// });
-
-// 🚀 Initial Load
-loadTodayAppointments("upcoming");
-
-// 🔄 Auto Refresh Every 30 Seconds
-// setInterval(() => {
-//   const activeBtn = document.querySelector(".filter-btn[data-chart='appointments'].active");
-//   loadTodayAppointments(activeBtn.dataset.filter);
-// }, 30000);
-// Current Time and Date Display
-function updateCurrentDateTime() {
-  const now = new Date();
-
-  const options = {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  };
-
-  document.getElementById("currentDateTime").textContent = now.toLocaleString("en-US", options);
-}
-
-// Initial load
-updateCurrentDateTime();
-
-// Update every second
-setInterval(updateCurrentDateTime, 1000);
 
 
 
- 
+// Initialize
+displayCurrentDate();
+loadAppointments();
+
