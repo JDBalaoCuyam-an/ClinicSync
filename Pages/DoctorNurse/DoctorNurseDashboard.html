@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ClinicSync - Dashboard</title>
-  <script type="module" src="../../firebaseconfig.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
   <link rel="stylesheet" href="../../assets/styles/DoctorNurseDashboard.css" />
@@ -76,7 +75,7 @@
             <div class="chart-header">
               <div class="chart-title"><i class="fas fa-chart-line"></i> Patient Visits</div>
               <div class="chart-controls">
-                <button class="filter-btn" data-chart="visits" data-filter="day">Daily</button>
+                <button class="filter-btn" data-chart="visits" data-filter="day">Today</button>
                 <button class="filter-btn" data-chart="visits" data-filter="week">Week</button>
                 <button class="filter-btn" data-chart="visits" data-filter="month">Month</button>
                 <button class="filter-btn" data-chart="visits" data-filter="year">Year</button>
@@ -126,7 +125,7 @@
           <div class="chart-title"><i class="fas fa-head-side-cough"></i> Chief Complaints</div>
           <div class="chart-controls">
             <select class="chart-filter" id="complaintChartFilter" class="chart-filter">
-              <option value="day">Day</option>
+              <option value="day">Today</option>
               <option value="week" selected>Week</option>
               <option value="month">Month</option>
               <option value="year">Year</option>
@@ -154,6 +153,7 @@
   </div>
   <div id="footer-container"></div>
   <script src="../../assets/scripts/modal.js"></script>
+  <script type="module" src="../../firebaseconfig.js"></script>
   <script src="../../assets/scripts/DoctorNurseDashboard.js" type="module"></script>
 </body>
 

@@ -79,14 +79,18 @@ function closeButtonOverlay() {
 
 
 function loadHTML(id, file) {
-  fetch(file)
+  return fetch(file)
     .then(response => response.text())
     .then(data => {
-      document.getElementById(id).innerHTML = data;
+      const el = document.getElementById(id);
+      if (el) {
+        el.innerHTML = data;
+        document.dispatchEvent(new CustomEvent(`${id}-loaded`)); // 👈 this line
+      }
     });
 }
 
-// Load your reusable components
+// Example usage:
 loadHTML("header-container", "header.html");
 loadHTML("sidebar-container", "sidebar.html");
 loadHTML("footer-container", "footer.html");

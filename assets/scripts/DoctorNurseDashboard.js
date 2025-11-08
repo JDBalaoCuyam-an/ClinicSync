@@ -468,23 +468,23 @@ function renderAppointments(list, filter) {
 }
 
 // 🔘 Filter Button Events
-appointmentFilterBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    appointmentFilterBtns.forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    const filter = btn.dataset.filter;
-    loadTodayAppointments(filter);
-  });
-});
+// appointmentFilterBtns.forEach((btn) => {
+//   btn.addEventListener("click", () => {
+//     appointmentFilterBtns.forEach((b) => b.classList.remove("active"));
+//     btn.classList.add("active");
+//     const filter = btn.dataset.filter;
+//     loadTodayAppointments(filter);
+//   });
+// });
 
 // 🚀 Initial Load
 loadTodayAppointments("upcoming");
 
 // 🔄 Auto Refresh Every 30 Seconds
-setInterval(() => {
-  const activeBtn = document.querySelector(".filter-btn[data-chart='appointments'].active");
-  loadTodayAppointments(activeBtn.dataset.filter);
-}, 30000);
+// setInterval(() => {
+//   const activeBtn = document.querySelector(".filter-btn[data-chart='appointments'].active");
+//   loadTodayAppointments(activeBtn.dataset.filter);
+// }, 30000);
 // Current Time and Date Display
 function updateCurrentDateTime() {
   const now = new Date();

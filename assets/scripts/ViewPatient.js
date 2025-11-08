@@ -546,9 +546,12 @@ async function loadConsultations() {
 /* -----------------------------------------------
    🔹 SHOW CONSULTATION DETAILS IN MODAL
 ------------------------------------------------ */
-window.showConsultationDetails = function (data, consultId) {
+window.showConsultationDetails = async function (data, consultId) {
   currentConsultationId = consultId;
 
+  /* ============================
+     BASIC INFO
+  ============================ */
   document.getElementById("ovr-doctor").value = data.consultingDoctor || "";
   document.getElementById("ovr-date").value = data.date || "";
   document.getElementById("ovr-time").value = data.time || "";
@@ -556,14 +559,14 @@ window.showConsultationDetails = function (data, consultId) {
   document.getElementById("ovr-diagnosis").value = data.diagnosis || "";
   document.getElementById("ovr-notes").value = data.notes || "";
 
-  /* ============================================================
-     🧾 MEDICATIONS (READ-ONLY)
-  ============================================================ */
+  /* ============================
+     🧾 MEDICATIONS
+  ============================ */
   const meds = Array.isArray(data.meds) ? data.meds : [];
   const medsContainer = document.getElementById("cons-meds-list");
   medsContainer.innerHTML = "";
 
-  if (meds.length === 0) {
+  if (!meds.length) {
     medsContainer.innerHTML = `
       <tr><td colspan="7">No medications dispensed.</td></tr>
     `;
@@ -583,14 +586,14 @@ window.showConsultationDetails = function (data, consultId) {
     });
   }
 
-  /* ============================================================
-     🩺 VITALS HISTORY
-  ============================================================ */
+  /* ============================
+     🩺 VITALS
+  ============================ */
   const vitals = Array.isArray(data.vitals) ? data.vitals : [];
   const vitalsContainer = document.getElementById("cons-vitals-list");
   vitalsContainer.innerHTML = "";
 
-  if (vitals.length === 0) {
+  if (!vitals.length) {
     vitalsContainer.innerHTML = `
       <tr><td colspan="8">No vitals recorded.</td></tr>
     `;
@@ -611,9 +614,9 @@ window.showConsultationDetails = function (data, consultId) {
     });
   }
 
-  /* ============================================================
+  /* ============================
      ✅ SHOW MODAL
-  ============================================================ */
+  ============================ */
   document.getElementById("consultation-overview").classList.add("show");
   document.getElementById("overlay").classList.add("show");
 };
@@ -621,6 +624,15 @@ window.showConsultationDetails = function (data, consultId) {
 /* -----------------------------------------------
    🔹 EDIT, SAVE CONSULTATION DETAILS
 ------------------------------------------------ */
+const editOverviewBtn = document.getElementById("editOverviewBtn");
+const cancelBtn = document.querySelector(".modal-buttons button[style*='display: none']"); // Cancel button
+const closeBtn = document.querySelector(".modal-buttons button:last-child"); // Close button
+
+let pendingMeds = [];
+let pendingVitals = [];
+let global_medsInventory = [];
+
+// ENTER EDIT / SAVE MODE
 editOverviewBtn.addEventListener("click", async () => {
   const editableInputs = document.querySelectorAll(
     "#ovr-doctor, #ovr-date, #ovr-time, #ovr-complaint, #ovr-diagnosis, #ovr-notes"
@@ -630,13 +642,18 @@ editOverviewBtn.addEventListener("click", async () => {
   if (editOverviewBtn.textContent.includes("✏️")) {
     editableInputs.forEach((input) => input.removeAttribute("disabled"));
 
-    // ✅ Show add buttons
-    const addVitalsBtn = document.getElementById("addVitalsBtn");
-    if (addVitalsBtn) addVitalsBtn.style.display = "inline-block";
+    // Show add buttons
+    document.getElementById("addVitalsBtn").style.display = "inline-block";
+    document.getElementById("addMedBtn").style.display = "inline-block";
 
-    const addMedBtn = document.getElementById("addMedBtn");
-    if (addMedBtn) addMedBtn.style.display = "inline-block";
+    // Show Cancel button
+    cancelBtn.style.display = "inline-block";
 
+    // Reset pending arrays
+    pendingMeds = [];
+    pendingVitals = [];
+
+    // Change Edit button text to Save
     editOverviewBtn.textContent = "💾 Save";
     return;
   }
@@ -654,6 +671,9 @@ editOverviewBtn.addEventListener("click", async () => {
     updatedAt: new Date(),
   };
 
+  if (pendingMeds.length > 0) updatedData.meds = arrayUnion(...pendingMeds);
+  if (pendingVitals.length > 0) updatedData.vitals = arrayUnion(...pendingVitals);
+
   try {
     const consultRef = doc(
       db,
@@ -662,17 +682,27 @@ editOverviewBtn.addEventListener("click", async () => {
       "consultations",
       currentConsultationId
     );
+
     await updateDoc(consultRef, updatedData);
+
+    if (pendingMeds.length > 0) {
+      for (let m of pendingMeds) {
+        const medRef = doc(db, "MedicineInventory", m.id);
+        const medSnap = await getDoc(medRef);
+
+        if (medSnap.exists()) {
+          const data = medSnap.data();
+          const newStock = Math.max((data.stock || 0) - m.quantity, 0);
+          const newDispensed = (data.dispensed || 0) + m.quantity;
+
+          await updateDoc(medRef, { stock: newStock, dispensed: newDispensed });
+        }
+      }
+    }
 
     alert("✅ Consultation updated!");
 
-    editableInputs.forEach((input) => input.setAttribute("disabled", true));
-    editOverviewBtn.textContent = "✏️ Edit";
-
-    // ✅ Hide add buttons again
-    document.getElementById("addVitalsBtn").style.display = "none";
-    document.getElementById("addMedBtn").style.display = "none";
-
+    exitEditMode();
     loadConsultations();
   } catch (err) {
     console.error(err);
@@ -680,12 +710,48 @@ editOverviewBtn.addEventListener("click", async () => {
   }
 });
 
+// CANCEL BUTTON - EXIT EDIT MODE
+cancelBtn.addEventListener("click", () => {
+  exitEditMode();
+});
+
+// CLOSE BUTTON - EXIT EDIT MODE
+closeBtn.addEventListener("click", () => {
+  exitEditMode();
+  closeButtonOverlay(); // keep your original close logic
+});
+
+// ✅ Helper function to exit edit mode
+function exitEditMode() {
+  const editableInputs = document.querySelectorAll(
+    "#ovr-doctor, #ovr-date, #ovr-time, #ovr-complaint, #ovr-diagnosis, #ovr-notes"
+  );
+
+  // Disable all inputs
+  editableInputs.forEach((input) => input.setAttribute("disabled", true));
+
+  // Hide add buttons
+  document.getElementById("addVitalsBtn").style.display = "none";
+  document.getElementById("addMedBtn").style.display = "none";
+
+  // Hide Cancel button
+  cancelBtn.style.display = "none";
+
+  // Reset Edit button text
+  editOverviewBtn.textContent = "✏️ Edit";
+
+  // Clear pending arrays
+  pendingMeds = [];
+  pendingVitals = [];
+}
+
+
 /* -----------------------------------------------
    🔹 ADD Meds (arrayUnion)
 ------------------------------------------------ */
 
 /* ============================================================
-   SHOW MULTI SELECT MED MODAL
+   MED SELECTION MODAL
 ============================================================ */
 const selectMedModal = document.getElementById("selectMedModal");
 const medSelect = document.getElementById("medSelect");
@@ -698,12 +764,12 @@ function closeSelectMedModal() {
   selectMedModal.style.display = "none";
 }
 
-/* ✅ MAKE FUNCTIONS ACCESSIBLE TO HTML onclick */
+/* ✅ MAKE FUNCTIONS ACCESSIBLE TO HTML */
 window.openSelectMedModal = openSelectMedModal;
 window.closeSelectMedModal = closeSelectMedModal;
 
 /* ============================================================
-   FETCH & DISPLAY MED INVENTORY (with Available Stock)
+   FETCH MED INVENTORY
 ============================================================ */
 async function loadMedInventoryList() {
   medSelect.innerHTML = "";
@@ -711,13 +777,12 @@ async function loadMedInventoryList() {
   const medSnap = await getDocs(collection(db, "MedicineInventory"));
   let meds = [];
 
-  medSnap.forEach((doc) => {
-    const data = doc.data();
-    const stock = data.stock ?? 0; // ✅ stock from DB
-    meds.push({ id: doc.id, ...data, stock });
+  medSnap.forEach((docu) => {
+    const data = docu.data();
+    const stock = data.stock ?? 0;
+    meds.push({ id: docu.id, ...data, stock });
   });
 
-  // ✅ Show "Available: X" beside each medicine name
   meds.forEach((m) => {
     const opt = document.createElement("option");
     opt.value = m.id;
@@ -728,10 +793,8 @@ async function loadMedInventoryList() {
   return meds;
 }
 
-let global_medsInventory = []; // stored list for lookup
-
 /* ============================================================
-   WHEN ➕ ADD MED IS CLICKED
+   ADD MED CLICK → OPEN SELECT
 ============================================================ */
 document.addEventListener("click", async (e) => {
   if (e.target && e.target.id === "addMedBtn") {
@@ -743,7 +806,7 @@ document.addEventListener("click", async (e) => {
 });
 
 /* ============================================================
-   NEXT STEP → ASK QTY + TYPE + REMARKS THEN SAVE
+   NEXT → DETAIL MODAL
 ============================================================ */
 const medDetailsModal = document.getElementById("medDetailsModal");
 const medDetailsContainer = document.getElementById("medDetailsContainer");
@@ -756,7 +819,6 @@ function closeMedDetailsModal() {
   medDetailsModal.style.display = "none";
 }
 
-// ✅ NEXT STEP → show details modal instead of prompt
 nextBtn.addEventListener("click", async () => {
   const selectedIds = Array.from(medSelect.selectedOptions).map((o) => o.value);
   if (selectedIds.length === 0) return alert("Select at least 1 item");
@@ -801,6 +863,9 @@ nextBtn.addEventListener("click", async () => {
   openMedDetailsModal();
 });
 
+/* ============================================================
+   SAVE MED DETAILS → PENDING ONLY
+============================================================ */
 saveMedDetailsBtn.addEventListener("click", async () => {
   const qtyInputs = medDetailsContainer.querySelectorAll(".qty-input");
   const typeInputs = medDetailsContainer.querySelectorAll(".type-input");
@@ -827,7 +892,7 @@ saveMedDetailsBtn.addEventListener("click", async () => {
     const remarks = remarksEl ? remarksEl.value : "";
 
     medsToAdd.push({
-      id, // ✅ include id for lookup later
+      id,
       name: med.name,
       quantity: qty,
       type,
@@ -843,122 +908,105 @@ saveMedDetailsBtn.addEventListener("click", async () => {
     return;
   }
 
-  try {
-    const consultRef = doc(
-      db,
-      "patients",
-      patientId,
-      "consultations",
-      currentConsultationId
-    );
+  // ✅ Store temporarily — not DB yet
+  pendingMeds.push(...medsToAdd);
 
-    // ✅ Update consultation (arrayUnion) and inventory at the same time
-    for (let m of medsToAdd) {
-      // 🔹 Add to consultation meds array
-      await updateDoc(consultRef, { meds: arrayUnion(m) });
-
-      // 🔹 Deduct from inventory + increment dispensed
-      const medRef = doc(db, "MedicineInventory", m.id);
-      const medSnap = await getDoc(medRef);
-
-      if (medSnap.exists()) {
-        const data = medSnap.data();
-        const currentStock = data.stock || 0;
-        const currentDispensed = data.dispensed || 0;
-
-        const newStock = Math.max(currentStock - m.quantity, 0);
-        const newDispensed = currentDispensed + m.quantity;
-
-        await updateDoc(medRef, {
-          stock: newStock,
-          dispensed: newDispensed,
-        });
-
-        console.log(
-          `✅ ${m.name} stock updated: ${currentStock} → ${newStock}, dispensed: ${currentDispensed} → ${newDispensed}`
-        );
-      } else {
-        console.warn(`⚠️ Medicine not found in inventory: ${m.name}`);
-      }
-    }
-
-    alert("✅ Medication(s) added and inventory updated!");
-    closeMedDetailsModal();
-
-    // 🔁 Refresh consultation display
-    const snap = await getDoc(consultRef);
-    showConsultationDetails(snap.data(), currentConsultationId);
-
-    // 🔁 Refresh available medicine list
-    await loadMedInventoryList();
-
-  } catch (err) {
-    console.error("❌ Failed to add medication:", err);
-    alert("Failed to add medication");
-  }
+  alert("✅ Medication(s) added! (Pending Save)");
+  closeMedDetailsModal();
 });
+window.openMedDetailsModal = openMedDetailsModal;
+window.closeMedDetailsModal = closeMedDetailsModal;
 
 
-/* -----------------------------------------------
-   🔹 ADD VITALS (arrayUnion)
------------------------------------------------- */
-document.addEventListener("click", async (e) => {
+/* ============================================================
+   ADD VITALS (arrayUnion pending) — same logic as meds
+============================================================ */
+const vitalsModal = document.getElementById("vitalsModal");
+const saveVitalsBtn = document.getElementById("saveVitalsBtn");
+const cancelVitalsBtn = document.getElementById("cancelVitalsBtn");
+
+function openVitalsModal() {
+  vitalsModal.style.display = "flex";
+}
+
+function closeVitalsModal() {
+  vitalsModal.style.display = "none";
+  // Clear fields after closing
+  document.getElementById("vital-bp").value = "";
+  document.getElementById("vital-temp").value = "";
+  document.getElementById("vital-spo2").value = "";
+  document.getElementById("vital-pr").value = "";
+  document.getElementById("vital-lmp").value = "";
+}
+
+/* ✅ Make accessible to window for inline calls */
+window.openVitalsModal = openVitalsModal;
+window.closeVitalsModal = closeVitalsModal;
+
+/* ============================================================
+   ADD VITALS BUTTON CLICK → OPEN MODAL
+============================================================ */
+document.addEventListener("click", (e) => {
   if (e.target && e.target.id === "addVitalsBtn") {
-    if (!currentConsultationId) return alert("No consultation selected!");
-
-    const bp = prompt("Enter BP (e.g. 120/80):");
-    if (bp === null) return; // ✅ Cancel stops everything
-
-    const temp = prompt("Enter Temperature (°C):");
-    if (temp === null) return; // ✅ Stops
-
-    const spo2 = prompt("Enter SpO2:");
-    if (spo2 === null) return; // ✅ Stops
-
-    const pr = prompt("Enter Pulse Rate:");
-    if (pr === null) return; // ✅ Stops
-
-    const lmp = prompt("Enter LMP:");
-    if (lmp === null) return; // ✅ Stops
-
-    const newVital = {
-      bp,
-      temp,
-      spo2,
-      pr,
-      lmp,
-      takenBy: currentUserName,
-      recordedDate: new Date().toISOString().split("T")[0],
-      recordedTime: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-
-    try {
-      const consultRef = doc(
-        db,
-        "patients",
-        patientId,
-        "consultations",
-        currentConsultationId
-      );
-
-      await updateDoc(consultRef, {
-        vitals: arrayUnion(newVital),
-      });
-
-      alert("✅ Vitals Added!");
-
-      // auto-refresh
-      const snap = await getDoc(consultRef);
-      showConsultationDetails(snap.data(), currentConsultationId);
-    } catch (err) {
-      console.error("❌ Failed to add vitals:", err);
-      alert("Failed to add vitals");
+    if (!currentConsultationId) {
+      alert("No consultation selected!");
+      return;
     }
+    openVitalsModal();
   }
 });
+
+/* ============================================================
+   SAVE VITALS → PENDING ONLY
+============================================================ */
+saveVitalsBtn.addEventListener("click", (e) => {
+  // Fetch all inputs safely
+  const bp   = document.getElementById("new-vital-bp").value;
+  const temp = document.getElementById("new-vital-temp").value;
+  const spo2 = document.getElementById("new-vital-spo2").value;
+  const pr   = document.getElementById("new-vital-pr").value;
+  const lmp  = document.getElementById("new-vital-lmp").value;
+
+  console.log("Vitals entered:", { bp, temp, spo2, pr, lmp }); // 🩺 Debug log
+
+  // Validate: at least one value should be filled
+  // const hasAny = bp || temp || spo2 || pr || lmp;
+  // if (!hasAny) {
+  //   alert("Please enter at least one vital sign.");
+  //   return;
+  // }
+
+  const now = new Date();
+  const newVital = {
+    bp,
+    temp,
+    spo2,
+    pr,
+    lmp,
+    takenBy: currentUserName || "Unknown",
+    recordedDate: now.toISOString().split("T")[0],
+    recordedTime: now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  };
+console
+  // ✅ Temporarily store vitals (not yet in DB)
+  pendingVitals.push(newVital);
+  console.log("✅ Added vitals (pending):", pendingVitals);
+
+  alert("✅ Vitals added! (Pending Save)");
+  closeVitalsModal();
+});
+
+/* ============================================================
+   CANCEL BUTTON
+============================================================ */
+cancelVitalsBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  closeVitalsModal();
+});
+
 
 /* -----------------------------------------------
  🔹 SAVE PHYSICAL EXAMINATION RECORD

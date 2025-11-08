@@ -627,6 +627,7 @@
               </table>
 
               <div class="modal-buttons">
+                <button style="background-color: #95a5a6;display: none;">Cancel</button>
                 <button id="editOverviewBtn">✏️ Edit</button>
                 <button onclick="closeButtonOverlay()">Close</button>
               </div>
@@ -659,6 +660,35 @@
                   <div style="margin-top: 15px">
                     <button id="saveMedDetailsBtn">Save</button>
                     <button onclick="closeMedDetailsModal()">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div id="vitalsModal" class="modal" style="display: none">
+                <div class="vitals-modal-content">
+                  <h3>Add Vitals</h3>
+
+                  <label>BP</label>
+                  <input type="text" id="new-vital-bp" placeholder="e.g. 120/80" />
+
+                  <label>Temperature (°C)</label>
+                  <input type="text" id="new-vital-temp" placeholder="e.g. 37.0" />
+
+                  <label>SpO2</label>
+                  <input type="text" id="new-vital-spo2" placeholder="e.g. 98%" />
+
+                  <label>Pulse Rate</label>
+                  <input type="text" id="new-vital-pr" placeholder="e.g. 72" />
+
+                  <label>LMP</label>
+                  <input
+                    type="date"
+                    id="new-vital-lmp"
+                    placeholder="e.g. 2024-10-05"
+                  />
+
+                  <div class="vitals-modal-actions">
+                    <button id="saveVitalsBtn">Save</button>
+                    <button id="cancelVitalsBtn">Cancel</button>
                   </div>
                 </div>
               </div>
@@ -883,8 +913,7 @@
         </div>
       </div>
     </div>
-  <div id="footer-container"></div>
-
+    <div id="footer-container"></div>
   </body>
   <script src="../../assets/scripts/modal.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js"></script>

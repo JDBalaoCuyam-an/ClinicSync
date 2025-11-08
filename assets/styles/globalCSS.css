@@ -8,11 +8,9 @@
   scroll-behavior: smooth;
 }
 body{
-  /* padding:0 5%; */
-  padding-top: 75px;
   position: relative;
   background-color: #f5f7fa;
-  padding-bottom: 150px;
+  padding: 75px 50px 150px 50px;
 }
 /* COLOR SYSTEM */
 :root {
