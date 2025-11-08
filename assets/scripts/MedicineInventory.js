@@ -4,68 +4,96 @@ import {
   addDoc,
   getDocs,
   updateDoc,
-  deleteDoc,
   doc,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const form = document.getElementById("add-medicine-form");
 const tableBody = document.getElementById("medicine-table-body");
 const searchBar = document.getElementById("search-bar");
+const modal = document.getElementById("add-medicine");
+const overlay = document.getElementById("overlay");
+const modalTitle = modal.querySelector("h2"); // 🔹 The modal label
+const saveBtn = document.getElementById("save-btn");
 
 let medicines = []; // cache all medicines
+let editMode = false;
+let editId = null;
 
-// ✅ Add Medicine (with full fields)
+/* ============================================================
+   ✅ ADD or UPDATE MEDICINE
+============================================================ */
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const name = document.getElementById("medicine-name").value;
+  const name = document.getElementById("medicine-name").value.trim();
   const stock = parseInt(document.getElementById("stock-quantity").value);
   const expiry = document.getElementById("expiry-date").value;
-
-  // 🔥 Additional Fields
-  const perPack = parseInt(
-    document.getElementById("per-pack")?.value || 0
-  );
+  const perPack = parseInt(document.getElementById("per-pack")?.value || 0);
   const datePurchased =
     document.getElementById("date-purchased")?.value ||
     new Date().toISOString().split("T")[0];
 
-  try {
-    await addDoc(collection(db, "MedicineInventory"), {
-      name,
-      stock,
-      expiry,
-      perPack,
-      datePurchased,
-      dispensed: 0, // default
-      createdAt: new Date(),
-    });
+  if (!name || isNaN(stock) || !expiry) {
+    alert("⚠️ Please fill in all required fields!");
+    return;
+  }
 
-    alert("✅ Medicine added successfully!");
+  try {
+    if (editMode && editId) {
+      // 🔄 UPDATE EXISTING MEDICINE
+      await updateDoc(doc(db, "MedicineInventory", editId), {
+        name,
+        stock,
+        expiry,
+        perPack,
+        datePurchased,
+      });
+
+      alert("✅ Medicine updated successfully!");
+      editMode = false;
+      editId = null;
+      modalTitle.textContent = "Add New Medicine";
+      saveBtn.textContent = "Save";
+    } else {
+      // ➕ ADD NEW MEDICINE
+      await addDoc(collection(db, "MedicineInventory"), {
+        name,
+        stock,
+        expiry,
+        perPack,
+        datePurchased,
+        dispensed: 0,
+        createdAt: new Date(),
+      });
+
+      alert("✅ Medicine added successfully!");
+    }
+
     form.reset();
     closeButtonOverlay();
     loadMedicines();
   } catch (error) {
-    console.error("Error adding medicine:", error);
+    console.error("Error saving medicine:", error);
   }
 });
 
-// ✅ Load medicines
+/* ============================================================
+   ✅ LOAD MEDICINES
+============================================================ */
 async function loadMedicines() {
   medicines = [];
-
   const querySnapshot = await getDocs(collection(db, "MedicineInventory"));
   querySnapshot.forEach((docSnap) => {
     medicines.push({ id: docSnap.id, ...docSnap.data() });
   });
-
   renderMedicines();
 }
 
-// ✅ Render to table
+/* ============================================================
+   ✅ RENDER TABLE
+============================================================ */
 function renderMedicines() {
   const searchValue = searchBar.value.toLowerCase();
-
   tableBody.innerHTML = "";
 
   const filtered = medicines.filter((med) =>
@@ -83,13 +111,21 @@ function renderMedicines() {
       <td>${med.perPack ?? "-"}</td>
       <td>${med.dispensed ?? 0}</td>
       <td>
-        <button class="delete-btn" data-id="${med.id}">Delete</button>
+        <button style="padding:5px; 
+        background-color:#4682B4; 
+        border:none; 
+        color:white; 
+        border-radius:5px;
+        cursor:pointer;
+        " class="update-btn" data-id="${
+          med.id
+        }">Update</button>
       </td>
     `;
 
-    // ✅ row click = dispense
+    // ✅ Row click opens dispense (except edit button)
     row.addEventListener("click", (e) => {
-      if (e.target.classList.contains("delete-btn")) return;
+      if (e.target.classList.contains("update-btn")) return;
 
       const popup = document.getElementById("dispense-medicine");
       const overlay = document.getElementById("overlay");
@@ -103,20 +139,44 @@ function renderMedicines() {
     tableBody.appendChild(row);
   });
 
-  // ✅ delete listener
-  document.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", async () => {
+  // ✅ Edit button listener
+  document.querySelectorAll(".update-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-id");
-      await deleteDoc(doc(db, "MedicineInventory", id));
-      loadMedicines();
+      const med = medicines.find((m) => m.id === id);
+      if (!med) return;
+
+      // 🧾 Fill form fields
+      document.getElementById("medicine-name").value = med.name || "";
+      document.getElementById("stock-quantity").value = med.stock || 0;
+      document.getElementById("per-pack").value = med.perPack || 0;
+      document.getElementById("date-purchased").value =
+        med.datePurchased || new Date().toISOString().split("T")[0];
+      document.getElementById("expiry-date").value = med.expiry || "";
+
+      // 🟢 Switch to Edit mode
+      editMode = true;
+      editId = id;
+
+      // 🔹 Change modal title & button
+      modalTitle.textContent = "Edit Medicine";
+      saveBtn.textContent = "Update";
+
+      // 🧩 Show modal
+      modal.style.display = "block";
+      overlay.classList.add("show");
     });
   });
 }
 
-// ✅ Search listener
+/* ============================================================
+   ✅ SEARCH FILTER
+============================================================ */
 searchBar.addEventListener("input", renderMedicines);
 
-// ✅ Dispense functionality update
+/* ============================================================
+   ✅ DISPENSE MEDICINE
+============================================================ */
 const dispenseForm = document.getElementById("dispense-medicine-form");
 dispenseForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -133,7 +193,6 @@ dispenseForm.addEventListener("submit", async (e) => {
   }
 
   const med = medicines.find((m) => m.id === medicineId);
-
   if (!med) {
     alert("⚠️ Medicine not found");
     return;
@@ -162,4 +221,23 @@ dispenseForm.addEventListener("submit", async (e) => {
   }
 });
 
+/* ============================================================
+   ✅ RESET MODAL STATE WHEN CLOSED
+============================================================ */
+window.closeButtonOverlay = function () {
+  overlay.classList.remove("show");
+  modal.style.display = "none";
+  document.getElementById("dispense-medicine")?.classList.remove("show");
+
+  // 🧹 Reset form and modal label
+  form.reset();
+  editMode = false;
+  editId = null;
+  modalTitle.textContent = "Add New Medicine";
+  saveBtn.textContent = "Save";
+};
+
+/* ============================================================
+   ✅ INITIAL LOAD
+============================================================ */
 loadMedicines();

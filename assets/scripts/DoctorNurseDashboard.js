@@ -109,10 +109,7 @@ function renderVisitsChart(filter = "week") {
 
 /* DEFAULT */
 renderVisitsChart("week");
-
-/* ============================
-   FILTER CONTROLS
-============================ */
+  //  FILTER CONTROLS
 document.querySelectorAll(".filter-btn[data-chart='visits']").forEach((btn) => {
   btn.addEventListener("click", () => {
     document
@@ -126,15 +123,15 @@ document.querySelectorAll(".filter-btn[data-chart='visits']").forEach((btn) => {
   });
 });
 
-// Chief Complaints
+/* ===========================================
+Chief Complaints Chart
+=========================================== */
 let complaintsChart;
 const complaintsCtx = document
   .getElementById("complaintsChart")
   .getContext("2d");
 
-/* ===========================================
-   GET START + END DATE RANGE BY FILTER
-=========================================== */
+  //  GET START + END DATE RANGE BY FILTER
 function getDateRange(filter) {
   const now = new Date();
   let start = new Date();
@@ -147,9 +144,7 @@ function getDateRange(filter) {
   return { start, end: now };
 }
 
-/* ===========================================
-   LOAD CHIEF COMPLAINTS
-=========================================== */
+  //  LOAD CHIEF COMPLAINTS
 async function loadComplaints(filter = "week") {
   try {
     const { start, end } = getDateRange(filter);
@@ -188,9 +183,7 @@ async function loadComplaints(filter = "week") {
   }
 }
 
-/* ===========================================
-   RENDER BAR CHART
-=========================================== */
+  //  RENDER BAR CHART
 function renderComplaintsChart(labels, values) {
   if (complaintsChart) complaintsChart.destroy();
 
@@ -214,9 +207,7 @@ function renderComplaintsChart(labels, values) {
   });
 }
 
-/* ===========================================
-   FILTER BUTTON EVENTS
-=========================================== */
+  //  FILTER BUTTON EVENTS
 document
   .querySelectorAll(".filter-btn[data-chart='complaints']")
   .forEach((btn) => {
@@ -232,3 +223,147 @@ document
 
 /* ✅ Default load */
 loadComplaints("week");
+
+
+/* ===========================================
+   Medicine Chart
+=========================================== */
+let stockChartInstance = null;
+let currentFilter = "expiry"; // default view
+
+// 🧠 Fetch medicines from Firestore
+async function fetchMedicines() {
+  const medicines = [];
+  const querySnapshot = await getDocs(collection(db, "MedicineInventory"));
+  querySnapshot.forEach((docSnap) => {
+    medicines.push({ id: docSnap.id, ...docSnap.data() });
+  });
+  return medicines;
+}
+
+// 🎨 Render chart based on selected mode
+async function renderStockChart(filterType = "expiry") {
+  const medicines = await fetchMedicines();
+  const today = new Date();
+
+  let chartTitle = "";
+  let labels = [];
+  let data = [];
+  let colors = [];
+
+  if (filterType === "expiry") {
+    // ✅ Days until expiration
+    const withDays = medicines
+      .map((med) => {
+        const expiryDate = med.expiry ? new Date(med.expiry) : null;
+        const diffTime = expiryDate ? expiryDate - today : NaN;
+        const daysRemaining = isNaN(diffTime)
+          ? 0
+          : Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return { ...med, daysRemaining };
+      })
+      .filter((m) => m.daysRemaining >= 0)
+      .sort((a, b) => a.daysRemaining - b.daysRemaining)
+      .slice(0, 10);
+
+    labels = withDays.map((m) => m.name);
+    data = withDays.map((m) => m.daysRemaining);
+    colors = data.map((days) =>
+      days <= 30
+        ? "rgba(255, 99, 132, 0.7)" // Red
+        : days <= 90
+        ? "rgba(255, 206, 86, 0.7)" // Yellow
+        : "rgba(75, 192, 192, 0.7)" // Green
+    );
+    chartTitle = "Top 10 Medicines Closest to Expiration";
+  } else if (filterType === "stock") {
+    // ⚠️ Low stock
+    const lowStock = medicines
+      .filter((m) => typeof m.stock === "number")
+      .sort((a, b) => a.stock - b.stock)
+      .slice(0, 10);
+
+    labels = lowStock.map((m) => m.name);
+    data = lowStock.map((m) => m.stock);
+    colors = data.map((qty) =>
+      qty <= 20
+        ? "rgba(255, 99, 132, 0.7)" // Red
+        : qty <= 50
+        ? "rgba(255, 206, 86, 0.7)" // Yellow
+        : "rgba(75, 192, 192, 0.7)" // Green
+    );
+    chartTitle = "Top 10 Medicines About to Run Out of Stock";
+  }
+
+  const ctx = document.getElementById("stockChart").getContext("2d");
+
+  if (stockChartInstance) stockChartInstance.destroy();
+
+  stockChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label:
+            filterType === "expiry"
+              ? "Days Remaining Until Expiry"
+              : "Current Stock",
+          data,
+          backgroundColor: colors,
+          borderRadius: 8,
+        },
+      ],
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: chartTitle,
+          font: { size: 16 },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) =>
+              filterType === "expiry"
+                ? `${ctx.raw} days remaining`
+                : `${ctx.raw} units left`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text:
+              filterType === "expiry"
+                ? "Days Remaining"
+                : "Stock Quantity",
+          },
+        },
+        y: {
+          title: { display: true, text: "Medicine Name" },
+        },
+      },
+    },
+  });
+}
+
+// 🔘 Handle filter change
+document
+  .getElementById("chartFilter")
+  .addEventListener("change", (e) => {
+    currentFilter = e.target.value;
+    renderStockChart(currentFilter);
+  });
+
+// 🚀 Initial chart render
+renderStockChart(currentFilter);
+
+// 🔄 Optional: Auto-refresh every minute
+setInterval(() => renderStockChart(currentFilter), 60000);

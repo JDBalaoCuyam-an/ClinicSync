@@ -251,12 +251,6 @@ canvas {
     flex: 1;
 }
 
-.low-stock {
-    color: #e74c3c;
-    font-size: 0.9rem;
-    margin-top: 8px;
-    font-weight: 500;
-}
 
 /* ===== APPOINTMENTS LIST ===== */
 .appointments-list {

@@ -35,9 +35,6 @@
   <div id="sidebar" class="sidebar">
     <div class="current-user">
       <div class="user-info">
-        <!-- <div class="user-icon">
-      <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
-    </div> -->
       </div>
       <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
     </div>
@@ -174,16 +171,27 @@
       <!-- Medicine Stock Levels -->
       <div class="chart-card">
         <div class="chart-header">
-          <div class="chart-title"><i class="fas fa-prescription-bottle"></i> Medicine Stocks</div>
-          <div class="chart-controls">
-            <button class="filter-btn active" data-chart="stock" data-filter="all">All</button>
-            <button class="filter-btn" data-chart="stock" data-filter="low">Low</button>
-            <button class="filter-btn" data-chart="stock" data-filter="critical">Critical</button>
+          <div class="chart-title">
+            <i class="fas fa-prescription-bottle"></i> Medicine Stocks
           </div>
+          <div class="chart-controls">
+                  <select id="chartFilter" style="
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+          ">
+          <option value="expiry" selected>Top 10 Expiring Soon</option>
+          <option value="stock">Top 10 Low Stock</option>
+        </select>
+                </div>
         </div>
-        <canvas id="stockChart"></canvas>
-        <div class="low-stock" id="lowStockAlert"></div>
+
+        <div class="chart-container">
+          <canvas id="stockChart"></canvas>
+        </div>
       </div>
+
 
       <!-- Chief Complaints -->
       <div class="chart-card">
