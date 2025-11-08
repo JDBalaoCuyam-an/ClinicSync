@@ -32,49 +32,7 @@
     </header>
 
     <!-- SideBar -->
-    <div id="sidebar" class="sidebar">
-      <div class="current-user">
-        <div class="user-info">
-          <!-- <div class="user-icon">
-      <img src="../../assets/images/ClinicSyncLogo.png" alt="User Icon" />
-    </div> -->
-        </div>
-        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-      </div>
-      <ul>
-        <li>
-          <a href="DoctorNurseDashboard.html">
-            <i class="fas fa-home sidebar-icon"></i> Home
-          </a>
-        </li>
-        <li>
-          <a href="MedicalRecords.html">
-            <i class="fas fa-file-medical sidebar-icon"></i> Medical Records
-          </a>
-        </li>
-        <li>
-          <a href="Schedules.html">
-            <i class="fas fa-calendar-alt sidebar-icon"></i> Schedules
-          </a>
-        </li>
-        <li>
-          <a href="MedicineInventory.html">
-            <i class="fas fa-pills sidebar-icon"></i> Medicine Inventory
-          </a>
-        </li>
-        <li>
-          <a href="ClinicInventory.html">
-            <i class="fas fa-clipboard-list sidebar-icon"></i> Clinic Inventory
-          </a>
-        </li>
-        <li>
-          <a href="ActivityLogs.html">
-            <i class="fas fa-history sidebar-icon"></i> Activity Logs
-          </a>
-        </li>
-      </ul>
-      
-    </div>
+    <div id="sidebar-container"></div>
     <div id="overlay" class="overlay"></div>
 
     <!-- Appointment Modal -->
@@ -925,6 +883,8 @@
         </div>
       </div>
     </div>
+  <div id="footer-container"></div>
+
   </body>
   <script src="../../assets/scripts/modal.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js"></script>

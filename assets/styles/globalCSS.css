@@ -7,7 +7,13 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   scroll-behavior: smooth;
 }
-
+body{
+  /* padding:0 5%; */
+  padding-top: 75px;
+  position: relative;
+  background-color: #f5f7fa;
+  padding-bottom: 150px;
+}
 /* COLOR SYSTEM */
 :root {
   --primary-color: #4682B4;
@@ -60,7 +66,7 @@
   height: 100%;
   background-color: var(--primary-light);
   transition: left var(--transition-slow);
-  z-index: 900;
+  z-index: 1001;
   box-shadow: var(--shadow-medium);
 }
 
@@ -172,8 +178,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  height: 10%;
+  height: 75px;
   box-shadow: var(--shadow-light);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1001;
+  width: 100%;
 }
 .left-header, .right-header{
   display: flex;
@@ -305,4 +316,14 @@ tr:hover {
 
 .overlay.show {
   display: block;
+}
+
+#footer-container{
+  height: 150px;
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }

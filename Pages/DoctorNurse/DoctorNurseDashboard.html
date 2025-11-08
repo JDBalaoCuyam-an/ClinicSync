@@ -20,64 +20,10 @@
 </style>
 <body>
   <!-- NavBar -->
-  <header class="navbar">
-      <div class="left-header">
-        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-        <h1>ClinicSync</h1>
-      </div>
-      <div class="right-header">
-        <div class="user-name" id="displayName"></div>
-        <div class="logout-container">
-          <form>
-            <button type="submit" id="logout-button">
-              <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-          </form>
-        </div>
-      </div>
-    </header>
-
+  
+  <div id="header-container"></div>
   <!-- SideBar -->
-  <div id="sidebar" class="sidebar">
-    <div class="current-user">
-      <div class="user-info">
-      </div>
-      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-    </div>
-    <ul>
-      <li class="active">
-        <a href="DoctorNurseDashboard.html">
-          <i class="fas fa-home sidebar-icon"></i> Home
-        </a>
-      </li>
-      <li>
-        <a href="MedicalRecords.html">
-          <i class="fas fa-file-medical sidebar-icon"></i> Medical Records
-        </a>
-      </li>
-      <li>
-        <a href="Schedules.html">
-          <i class="fas fa-calendar-alt sidebar-icon"></i> Schedules
-        </a>
-      </li>
-      <li>
-        <a href="MedicineInventory.html">
-          <i class="fas fa-pills sidebar-icon"></i> Medicine Inventory
-        </a>
-      </li>
-      <li>
-        <a href="ClinicInventory.html">
-          <i class="fas fa-clipboard-list sidebar-icon"></i> Clinic Inventory
-        </a>
-      </li>
-      <li>
-        <a href="ActivityLogs.html">
-          <i class="fas fa-history sidebar-icon"></i> Activity Logs
-        </a>
-      </li>
-    </ul>
-    
-  </div>
+  <div id="sidebar-container"></div>
   <div id="overlay" class="overlay"></div>
 
   <!-- Dashboard Content -->
@@ -104,13 +50,13 @@
       </a>
 
       <!-- Low Stock Items -->
-      <div class="summary-card">
+      <a href="MedicineInventory.html" class="summary-card">
         <div class="card-icon"><i class="fas fa-prescription-bottle-alt"></i></div>
         <div class="card-content">
           <div class="card-value" id="lowStockItems">5</div>
           <div class="card-label">Low Stock Items</div>
         </div>
-      </div>
+      </a>
 
       <!-- Avg. Rating -->
       <div class="summary-card">
@@ -162,20 +108,17 @@
             <i class="fas fa-prescription-bottle"></i> Medicine Stocks
           </div>
           <div class="chart-controls">
-                  <select class="chart-filter" id="medChartFilter" style="
-            
-          ">
-          <option value="expiry" selected>Top 10 Expiring Soon</option>
-          <option value="stock">Top 10 Low Stock</option>
-        </select>
-                </div>
+            <select class="chart-filter" id="medChartFilter">
+              <option value="expiry" selected>Top 10 Expiring Soon</option>
+              <option value="stock">Top 10 Low Stock</option>
+            </select>
+          </div>
         </div>
 
         <div class="chart-container">
           <canvas id="stockChart"></canvas>
         </div>
       </div>
-
 
       <!-- Chief Complaints -->
       <div class="chart-card">
@@ -209,7 +152,7 @@
     </div>
   </div>
   </div>
-
+  <div id="footer-container"></div>
   <script src="../../assets/scripts/modal.js"></script>
   <script src="../../assets/scripts/DoctorNurseDashboard.js" type="module"></script>
 </body>

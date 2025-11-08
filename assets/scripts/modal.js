@@ -76,3 +76,17 @@ function closeButtonOverlay() {
     overlay.classList.remove("show");
   }
 }
+
+
+function loadHTML(id, file) {
+  fetch(file)
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById(id).innerHTML = data;
+    });
+}
+
+// Load your reusable components
+loadHTML("header-container", "header.html");
+loadHTML("sidebar-container", "sidebar.html");
+loadHTML("footer-container", "footer.html");
