@@ -12,6 +12,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
+<style>
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+</style>
 <body>
   <!-- NavBar -->
   <header class="navbar">
@@ -79,22 +85,23 @@
     <!-- Summary Cards -->
     <div class="summary-cards">
       <!-- Today's Patients -->
-      <div class="summary-card">
+      <a href="#patient-visit-chart" class="summary-card" style="text-decoration: none; color: inherit;">
         <div class="card-icon"><i class="fas fa-user-friends"></i></div>
         <div class="card-content">
           <div class="card-value" id="todayVisits">24</div>
           <div class="card-label">Today's Patients</div>
         </div>
-      </div>
+      </a>
+
 
       <!-- Unreturned Items -->
-      <div class="summary-card">
+      <a href="ClinicInventory.html" class="summary-card">
         <div class="card-icon"><i class="fas fa-box-open"></i></div>
         <div class="card-content">
           <div class="card-value" id="unreturnedItems">12</div>
           <div class="card-label">Unreturned Items</div>
         </div>
-      </div>
+      </a>
 
       <!-- Low Stock Items -->
       <div class="summary-card">
@@ -117,11 +124,11 @@
 
     <!-- Main Dashboard Grid -->
     <div class="dashboard-grid">
-      <div class="chart-card full-width combined-visits-card">
+      <div id="patient-visit-chart" class="chart-card full-width combined-visits-card">
         <div class="combined-grid">
           <div class="visits-section">
             <div class="chart-header">
-              <div class="chart-title"><i class="fas fa-chart-line"></i> Patient Visits Trend</div>
+              <div class="chart-title"><i class="fas fa-chart-line"></i> Patient Visits</div>
               <div class="chart-controls">
                 <button class="filter-btn" data-chart="visits" data-filter="day">Daily</button>
                 <button class="filter-btn" data-chart="visits" data-filter="week">Week</button>
@@ -134,37 +141,17 @@
             </canvas>
           </div>
           <div class="appointments-section">
-            <div class="chart-header">
-              <div class="chart-title"><i class="fas fa-calendar-check"></i> Today</div>
-              <div class="chart-controls">
-                <button class="filter-btn active" data-chart="appointments" data-filter="upcoming">Upcoming</button>
-                <button class="filter-btn" data-chart="appointments" data-filter="completed">Completed</button>
-              </div>
-            </div>
-            <div class="appointments-list" id="appointmentsList">
-              <div class="appointment-item">
-                <div class="patient-info">
-                  <div class="patient-name">John Smith</div>
-                  <div class="appointment-time">09:30 AM</div>
-                </div>
-                <div class="appointment-status scheduled">Scheduled</div>
-              </div>
-              <div class="appointment-item">
-                <div class="patient-info">
-                  <div class="patient-name">Sarah Johnson</div>
-                  <div class="appointment-time">10:15 AM</div>
-                </div>
-                <div class="appointment-status waiting">Waiting</div>
-              </div>
-              <div class="appointment-item">
-                <div class="patient-info">
-                  <div class="patient-name">Michael Brown</div>
-                  <div class="appointment-time">11:00 AM</div>
-                </div>
-                <div class="appointment-status in-progress">In Progress</div>
-              </div>
-            </div>
-          </div>
+      <div class="chart-header">
+        <div class="chart-title">
+          <i class="fas fa-calendar-check"></i> Today 
+          <span id="currentDateTime" style="font-weight: normal; font-size: 0.9em; margin-left: 10px;"></span>
+        </div>
+      </div>
+      <div  class="appointments-list" id="appointmentsList">
+        <!-- JS will populate here -->
+      </div>
+    </div>
+
         </div>
       </div>
 
@@ -175,11 +162,8 @@
             <i class="fas fa-prescription-bottle"></i> Medicine Stocks
           </div>
           <div class="chart-controls">
-                  <select id="chartFilter" style="
-            padding: 5px 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 14px;
+                  <select class="chart-filter" id="medChartFilter" style="
+            
           ">
           <option value="expiry" selected>Top 10 Expiring Soon</option>
           <option value="stock">Top 10 Low Stock</option>
@@ -198,10 +182,13 @@
         <div class="chart-header">
           <div class="chart-title"><i class="fas fa-head-side-cough"></i> Chief Complaints</div>
           <div class="chart-controls">
-            <button class="filter-btn" data-chart="complaints" data-filter="day">Day</button>
-            <button class="filter-btn active" data-chart="complaints" data-filter="week">Week</button>
-            <button class="filter-btn" data-chart="complaints" data-filter="month">Month</button>
-            <button class="filter-btn" data-chart="complaints" data-filter="year">Year</button>
+            <select class="chart-filter" id="complaintChartFilter" class="chart-filter">
+              <option value="day">Day</option>
+              <option value="week" selected>Week</option>
+              <option value="month">Month</option>
+              <option value="year">Year</option>
+              <option value="all">All Time</option>
+            </select>
           </div>
         </div>
         <canvas id="complaintsChart"></canvas>

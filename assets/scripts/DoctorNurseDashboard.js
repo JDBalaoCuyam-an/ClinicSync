@@ -8,6 +8,7 @@ import {
   getDocs, // ✅ <-- added
   query,
   where,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 /* ============================
@@ -127,24 +128,34 @@ document.querySelectorAll(".filter-btn[data-chart='visits']").forEach((btn) => {
 Chief Complaints Chart
 =========================================== */
 let complaintsChart;
-const complaintsCtx = document
-  .getElementById("complaintsChart")
-  .getContext("2d");
-
-  //  GET START + END DATE RANGE BY FILTER
+const complaintsCtx = document.getElementById("complaintsChart").getContext("2d");
+  //  🕒 GET START + END DATE RANGE
 function getDateRange(filter) {
   const now = new Date();
   let start = new Date();
-  if (filter === "day") {
-    start.setDate(now.getDate() - 1);
-  } else if (filter === "week") start.setDate(now.getDate() - 7);
-  else if (filter === "month") start.setMonth(now.getMonth() - 1);
-  else if (filter === "year") start.setFullYear(now.getFullYear() - 1);
+
+  switch (filter) {
+    case "day":
+      start.setDate(now.getDate() - 1);
+      break;
+    case "week":
+      start.setDate(now.getDate() - 7);
+      break;
+    case "month":
+      start.setMonth(now.getMonth() - 1);
+      break;
+    case "year":
+      start.setFullYear(now.getFullYear() - 1);
+      break;
+    case "all":
+      start = new Date("1970-01-01");
+      break;
+  }
 
   return { start, end: now };
 }
 
-  //  LOAD CHIEF COMPLAINTS
+  //  📊 LOAD CHIEF COMPLAINTS
 async function loadComplaints(filter = "week") {
   try {
     const { start, end } = getDateRange(filter);
@@ -154,6 +165,7 @@ async function loadComplaints(filter = "week") {
 
     const complaintCounts = {};
 
+    // 🔁 Iterate through all patients and consultations
     for (const p of patientsSnap.docs) {
       const consultRef = collection(db, "patients", p.id, "consultations");
       const consultSnap = await getDocs(consultRef);
@@ -164,7 +176,7 @@ async function loadComplaints(filter = "week") {
         const recordDate = data.date ? new Date(data.date) : null;
 
         if (
-          complaint !== "" &&
+          complaint &&
           recordDate &&
           recordDate >= start &&
           recordDate <= end
@@ -183,7 +195,7 @@ async function loadComplaints(filter = "week") {
   }
 }
 
-  //  RENDER BAR CHART
+  //  🎨 RENDER BAR CHART
 function renderComplaintsChart(labels, values) {
   if (complaintsChart) complaintsChart.destroy();
 
@@ -193,38 +205,42 @@ function renderComplaintsChart(labels, values) {
       labels,
       datasets: [
         {
-          label: "Complaints Count",
+          label: "Number of Complaints",
           data: values,
-          borderWidth: 1,
+          backgroundColor: "rgba(54, 162, 235, 0.7)",
+          borderRadius: 6,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      scales: { y: { beginAtZero: true } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "Count" } },
+        x: { title: { display: true, text: "Complaint" } },
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: "Most Common Chief Complaints",
+          font: { size: 16 },
+        },
+        legend: { display: false },
+      },
     },
   });
 }
 
-  //  FILTER BUTTON EVENTS
+// 🔄 FILTER SELECT CHANGE
 document
-  .querySelectorAll(".filter-btn[data-chart='complaints']")
-  .forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document
-        .querySelectorAll(".filter-btn[data-chart='complaints']")
-        .forEach((b) => b.classList.remove("active"));
-
-      btn.classList.add("active");
-      loadComplaints(btn.dataset.filter);
-    });
+  .getElementById("complaintChartFilter")
+  .addEventListener("change", (e) => {
+    const filter = e.target.value;
+    loadComplaints(filter);
   });
 
-/* ✅ Default load */
+/* ✅ Default Load */
 loadComplaints("week");
-
-
 /* ===========================================
    Medicine Chart
 =========================================== */
@@ -356,7 +372,7 @@ async function renderStockChart(filterType = "expiry") {
 
 // 🔘 Handle filter change
 document
-  .getElementById("chartFilter")
+  .getElementById("medChartFilter")
   .addEventListener("change", (e) => {
     currentFilter = e.target.value;
     renderStockChart(currentFilter);
@@ -367,3 +383,127 @@ renderStockChart(currentFilter);
 
 // 🔄 Optional: Auto-refresh every minute
 setInterval(() => renderStockChart(currentFilter), 60000);
+
+/* ===========================================
+TODAY'S APPOINTMENTS SECTION
+=========================================== */
+// === TODAY'S APPOINTMENTS SECTION ===
+const appointmentsList = document.getElementById("appointmentsList");
+const appointmentFilterBtns = document.querySelectorAll(
+  ".filter-btn[data-chart='appointments']"
+);
+
+// 📅 Get today's date (YYYY-MM-DD)
+function getTodayString() {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
+}
+
+// 🧾 Load Today's Appointments
+async function loadTodayAppointments(filter = "upcoming") {
+  appointmentsList.innerHTML = "<div class='loading'>Checking Today's Appointments...</div>";
+
+  const q = query(collection(db, "schedules"), orderBy("time"));
+  const snapshot = await getDocs(q);
+
+  const today = getTodayString();
+  const now = new Date();
+
+  const filteredAppointments = [];
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const appointmentDate = data.date;
+    const appointmentTime = data.time;
+    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+
+    // Only include today's appointments
+    if (appointmentDate === today) {
+      if (filter === "upcoming" && appointmentDateTime >= now && data.status !== "finished") {
+        filteredAppointments.push({ id: docSnap.id, ...data });
+      } else if (filter === "completed" && data.status === "finished") {
+        filteredAppointments.push({ id: docSnap.id, ...data });
+      }
+    }
+  });
+
+  renderAppointments(filteredAppointments, filter);
+}
+
+// 🧱 Render Appointments in DOM
+function renderAppointments(list, filter) {
+  appointmentsList.innerHTML = "";
+
+  if (list.length === 0) {
+    appointmentsList.innerHTML = `
+      <div style="border:solid 2px #4682b4;padding:10px 15px;border-radius:5px;" 
+           class="no-data">No ${filter} appointments today.</div>`;
+    return;
+  }
+
+  list.forEach((appt) => {
+  const item = document.createElement("div");
+  item.classList.add("appointment-item");
+
+  item.innerHTML = `
+    <div class="patient-info">
+      <div class="patient-name">${appt.person}</div>
+      <div class="appointment-time">${appt.time}</div>
+      <div class="doctor-name">👨‍⚕️ ${appt.doctor}</div>
+      <div class="appointment-details">🗒️ ${appt.details || "No details provided"}</div>
+    </div>
+  `;
+
+  // ✅ Add click event to redirect to Schedules.html
+  item.addEventListener("click", () => {
+    window.location.href = "Schedules.html";
+  });
+
+  // Optional: cursor pointer for UX
+  item.style.cursor = "pointer";
+
+  appointmentsList.appendChild(item);
+});
+
+}
+
+// 🔘 Filter Button Events
+appointmentFilterBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    appointmentFilterBtns.forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    const filter = btn.dataset.filter;
+    loadTodayAppointments(filter);
+  });
+});
+
+// 🚀 Initial Load
+loadTodayAppointments("upcoming");
+
+// 🔄 Auto Refresh Every 30 Seconds
+setInterval(() => {
+  const activeBtn = document.querySelector(".filter-btn[data-chart='appointments'].active");
+  loadTodayAppointments(activeBtn.dataset.filter);
+}, 30000);
+// Current Time and Date Display
+function updateCurrentDateTime() {
+  const now = new Date();
+
+  const options = {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  };
+
+  document.getElementById("currentDateTime").textContent = now.toLocaleString("en-US", options);
+}
+
+// Initial load
+updateCurrentDateTime();
+
+// Update every second
+setInterval(updateCurrentDateTime, 1000);
