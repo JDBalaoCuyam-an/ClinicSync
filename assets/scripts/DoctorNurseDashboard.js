@@ -4,12 +4,12 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/fi
 import {
   collection,
   doc,
-  getDoc,
   getDocs, // ✅ <-- added
   query,
   where,
   orderBy
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
 
 /* ============================
    MOCK DATA (replace later)
@@ -125,11 +125,17 @@ document.querySelectorAll(".filter-btn[data-chart='visits']").forEach((btn) => {
 });
 
 /* ===========================================
-Chief Complaints Chart
+Chief Complaints Chart with Department & Course Filters
 =========================================== */
 let complaintsChart;
 const complaintsCtx = document.getElementById("complaintsChart").getContext("2d");
-  //  🕒 GET START + END DATE RANGE
+
+// === SELECT ELEMENTS ===
+const deptFilter = document.getElementById("departmentComplaintFilter");
+const courseFilter = document.getElementById("courseComplaintFilter");
+const dateFilter = document.getElementById("complaintChartFilter");
+
+// 🕒 GET START + END DATE RANGE
 function getDateRange(filter) {
   const now = new Date();
   let start = new Date();
@@ -155,18 +161,38 @@ function getDateRange(filter) {
   return { start, end: now };
 }
 
-  //  📊 LOAD CHIEF COMPLAINTS
-async function loadComplaints(filter = "week") {
+// 📊 LOAD CHIEF COMPLAINTS
+async function loadComplaints(
+  timeFilter = "week",
+  departmentFilter = "all-dept",
+  courseFilterValue = "all-course-strand-genEduc"
+) {
   try {
-    const { start, end } = getDateRange(filter);
+    const { start, end } = getDateRange(timeFilter);
 
     const patientsRef = collection(db, "patients");
     const patientsSnap = await getDocs(patientsRef);
 
     const complaintCounts = {};
 
-    // 🔁 Iterate through all patients and consultations
     for (const p of patientsSnap.docs) {
+      const patientData = p.data();
+
+      // 🎯 Department filter
+      if (
+        departmentFilter !== "all-dept" &&
+        patientData.department !== departmentFilter
+      )
+        continue;
+
+      // 🎯 Course/Strand filter
+      if (
+        courseFilterValue !== "all-course-strand-genEduc" &&
+        patientData.course !== courseFilterValue
+      )
+        continue;
+
+      // 🔍 Get consultations for this patient
       const consultRef = collection(db, "patients", p.id, "consultations");
       const consultSnap = await getDocs(consultRef);
 
@@ -195,7 +221,7 @@ async function loadComplaints(filter = "week") {
   }
 }
 
-  //  🎨 RENDER BAR CHART
+// 🎨 RENDER BAR CHART
 function renderComplaintsChart(labels, values) {
   if (complaintsChart) complaintsChart.destroy();
 
@@ -231,16 +257,22 @@ function renderComplaintsChart(labels, values) {
   });
 }
 
-// 🔄 FILTER SELECT CHANGE
-document
-  .getElementById("complaintChartFilter")
-  .addEventListener("change", (e) => {
-    const filter = e.target.value;
-    loadComplaints(filter);
-  });
+// 🔄 FILTER CHANGE HANDLERS
+function applyFilters() {
+  const timeFilter = dateFilter.value;
+  const departmentFilter = deptFilter.value;
+  const courseFilterValue = courseFilter.value;
+
+  loadComplaints(timeFilter, departmentFilter, courseFilterValue);
+}
+
+deptFilter.addEventListener("change", applyFilters);
+courseFilter.addEventListener("change", applyFilters);
+dateFilter.addEventListener("change", applyFilters);
 
 /* ✅ Default Load */
 loadComplaints("week");
+
 /* ===========================================
    Medicine Chart
 =========================================== */
@@ -447,7 +479,7 @@ function renderAppointments() {
 
   todaysAppointments.forEach(appt => {
     const apptDiv = document.createElement("div");
-    apptDiv.className = "appointment-item";
+    apptDiv.className = "appointment-item onclick window href";
     apptDiv.innerHTML = `
       <div class="patient-info">
         <div class="patient-name">${appt.person || "-"}</div>
@@ -456,14 +488,42 @@ function renderAppointments() {
         <div class="appointment-details">🗒️ ${appt.details || "No details provided"}</div>
       </div>
     `;
+     // ✅ Make the whole div clickable
+  apptDiv.addEventListener("click", () => {
+    // Example: redirect to an appointment details page
+    window.location.href = `Schedules.html`;
+  });
+
+  // Optional: make it look clickable with CSS
+  apptDiv.style.cursor = "pointer";
     appointmentsList.appendChild(apptDiv);
   });
 }
-
-
-
 
 // Initialize
 displayCurrentDate();
 loadAppointments();
 
+const unreturnedItemsDiv = document.getElementById("unreturnedItems");
+
+async function loadUnreturnedItemsCount() {
+  try {
+    const querySnapshot = await getDocs(collection(db, "ClinicInventory"));
+    let totalUnreturned = 0;
+
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.status === "Borrowed") {
+        totalUnreturned += data.quantity || 1; // counts quantities if available
+      }
+    });
+
+    unreturnedItemsDiv.textContent = totalUnreturned;
+  } catch (error) {
+    console.error("Error loading unreturned items:", error);
+    unreturnedItemsDiv.textContent = "0";
+  }
+}
+
+// Run once on load
+loadUnreturnedItemsCount();
