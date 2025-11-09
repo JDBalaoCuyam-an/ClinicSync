@@ -13,10 +13,22 @@
   <body>
     <!-- NavBar -->
     <header class="navbar">
-      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-      <h1>ClinicSync</h1>
+      <div class="left-header">
+        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+        <h1>ClinicSync</h1>
+      </div>
+      <div class="right-header">
+        <div class="user-name" id="displayName"></div>
+        <div style="padding: 25px;background-color: aliceblue;border-radius: 50%;"></div>
+        <div class="logout-container">
+          <form>
+            <button type="submit" id="logout-button">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </form>
+        </div>
+      </div>
     </header>
-
     <!-- SideBar -->
     <div id="sidebar-container"></div>
 

@@ -91,6 +91,6 @@ function loadHTML(id, file) {
 }
 
 // Example usage:
-loadHTML("header-container", "header.html");
+// loadHTML("header-container", "header.html");
 loadHTML("sidebar-container", "sidebar.html");
 loadHTML("footer-container", "footer.html");
