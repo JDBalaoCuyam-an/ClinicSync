@@ -449,50 +449,88 @@ document
     }
 
     try {
-      // ✅ Save Consultation Record
-      const consultRef = collection(db, "patients", patientId, "consultations");
-      await addDoc(consultRef, consultData);
+  // ✅ Save Consultation Record
+  const consultRef = collection(db, "patients", patientId, "consultations");
+  const newConsultDoc = await addDoc(consultRef, consultData);
 
-      // ✅ Deduct Medicine Stock
-      for (const med of medsDispensed) {
-        if (med.name && med.quantity > 0) {
-          const invRef = collection(db, "MedicineInventory");
-          const q = query(invRef, where("name", "==", med.name));
-          const snapshot = await getDocs(q);
+  const consultationId = newConsultDoc.id; // ⬅️ NEW
+  console.log("✅ New Consultation ID:", consultationId);
 
-          if (!snapshot.empty) {
-            const medDoc = snapshot.docs[0];
-            const data = medDoc.data();
+  /* ======================================================
+        🔹 SAVE PATIENT VISIT RECORD
+  ====================================================== */
 
-            const currentStock = data.stock || 0;
-            const currentDispensed = data.dispensed || 0;
+  // ✅ Get patient details (department + course)
+  const patientRef = doc(db, "patients", patientId);
+  const patientSnap = await getDoc(patientRef);
 
-            const newStock = Math.max(currentStock - med.quantity, 0);
-            const newDispensed = currentDispensed + med.quantity;
+  let department = "";
+  let course = "";
 
-            await updateDoc(medDoc.ref, {
-              stock: newStock,
-              dispensed: newDispensed,
-            });
+  if (patientSnap.exists()) {
+    const pdata = patientSnap.data();
+    department = pdata?.department || "";
+    course = pdata?.course || "";
+  } else {
+    console.warn("⚠️ patient not found",{patientId});
+  }
 
-            console.log(
-              `✅ ${med.name} stock updated: ${currentStock} → ${newStock}, dispensed: ${currentDispensed} → ${newDispensed}`
-            );
-          } else {
-            console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
-          }
-        }
+  // ✅ Add document in PatientVisits
+  await addDoc(collection(db, "PatientVisits"), {
+    patientId,
+    consultationId,
+    department,
+    course,
+    timestamp: serverTimestamp(),
+  });
+
+  console.log("✅ PatientVisits logged.");
+
+  /* ======================================================
+        🔹 DEDUCT MEDICINE STOCK
+  ====================================================== */
+
+  for (const med of medsDispensed) {
+    if (med.name && med.quantity > 0) {
+      const invRef = collection(db, "MedicineInventory");
+      const q = query(invRef, where("name", "==", med.name));
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        const medDoc = snapshot.docs[0];
+        const data = medDoc.data();
+
+        const currentStock = data.stock || 0;
+        const currentDispensed = data.dispensed || 0;
+
+        const newStock = Math.max(currentStock - med.quantity, 0);
+        const newDispensed = currentDispensed + med.quantity;
+
+        await updateDoc(medDoc.ref, {
+          stock: newStock,
+          dispensed: newDispensed,
+        });
+
+        console.log(
+          `✅ ${med.name} stock updated: ${currentStock} → ${newStock}, dispensed: ${currentDispensed} → ${newDispensed}`
+        );
+      } else {
+        console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
       }
-
-      alert("✅ Consultation Record Saved & Medicine Deducted!");
-      closeButtonOverlay();
-      loadConsultations();
-      loadComplaints();
-      loadMedicineOptions(); // 🔁 Refresh available stocks in dropdown
-    } catch (err) {
-      console.error("❌ Error adding consultation:", err);
-      alert("Failed to save consultation record.");
     }
+  }
+
+  alert("✅ Consultation Record Saved + Visit Logged + Medicine Deducted!");
+  closeButtonOverlay();
+  loadConsultations();
+  loadComplaints();
+  loadMedicineOptions();
+
+} catch (err) {
+  console.error("❌ Error adding consultation:", err);
+  alert("Failed to save consultation record.");
+}
+
   });
 
 /* -----------------------------------------------
@@ -530,13 +568,15 @@ async function loadConsultations() {
         <td>${data.complaint}</td>
         <td>${data.diagnosis || "-"}</td>
         <td>${medsDisplay}</td>
+        
       `;
-
       // ✅ Pass both data and ID
       tr.addEventListener("click", () =>
         showConsultationDetails(data, consultId)
+      
       );
       tableBody.appendChild(tr);
+      
     });
   } catch (err) {
     console.error("Error loading consultations:", err);
@@ -675,39 +715,73 @@ editOverviewBtn.addEventListener("click", async () => {
   if (pendingVitals.length > 0) updatedData.vitals = arrayUnion(...pendingVitals);
 
   try {
-    const consultRef = doc(
-      db,
-      "patients",
-      patientId,
-      "consultations",
-      currentConsultationId
-    );
+  const consultRef = doc(
+    db,
+    "patients",
+    patientId,
+    "consultations",
+    currentConsultationId
+  );
 
-    await updateDoc(consultRef, updatedData);
+  await updateDoc(consultRef, updatedData);
 
-    if (pendingMeds.length > 0) {
-      for (let m of pendingMeds) {
-        const medRef = doc(db, "MedicineInventory", m.id);
-        const medSnap = await getDoc(medRef);
+  if (pendingMeds.length > 0) {
+    for (let m of pendingMeds) {
+      const medRef = doc(db, "MedicineInventory", m.id);
+      const medSnap = await getDoc(medRef);
 
-        if (medSnap.exists()) {
-          const data = medSnap.data();
-          const newStock = Math.max((data.stock || 0) - m.quantity, 0);
-          const newDispensed = (data.dispensed || 0) + m.quantity;
+      if (medSnap.exists()) {
+        const data = medSnap.data();
+        const newStock = Math.max((data.stock || 0) - m.quantity, 0);
+        const newDispensed = (data.dispensed || 0) + m.quantity;
 
-          await updateDoc(medRef, { stock: newStock, dispensed: newDispensed });
-        }
+        await updateDoc(medRef, { stock: newStock, dispensed: newDispensed });
       }
     }
-
-    alert("✅ Consultation updated!");
-
-    exitEditMode();
-    loadConsultations();
-  } catch (err) {
-    console.error(err);
-    alert("Failed to update consultation.");
   }
+
+  /* ======================================================
+      ✅ ASK IF NEW VISIT
+  ====================================================== */
+  const isNewVisit = confirm("Is this a new visit?");
+
+  if (isNewVisit) {
+    // ✅ Get patient details (department + course)
+    const patientRef = doc(db, "patients", patientId);
+    const patientSnap = await getDoc(patientRef);
+
+    let department = "";
+    let course = "";
+
+    if (patientSnap.exists()) {
+      const pData = patientSnap.data();
+      department = pData?.department || "";
+      course = pData?.course || "";
+    } else {
+      console.warn("⚠️ Patient not found:", patientId);
+    }
+
+    // ✅ Save new PatientVisit
+    await addDoc(collection(db, "PatientVisits"), {
+      patientId,
+      consultationId: currentConsultationId,
+      department,
+      course,
+      timestamp: serverTimestamp(),
+    });
+
+    console.log("✅ PatientVisits entry added.");
+  }
+
+  alert("✅ Consultation updated!");
+
+  exitEditMode();
+  loadConsultations();
+} catch (err) {
+  console.error(err);
+  alert("Failed to update consultation.");
+}
+
 });
 
 // CANCEL BUTTON - EXIT EDIT MODE
