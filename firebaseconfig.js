@@ -127,17 +127,27 @@ if (login) {
   });
 }
 
-// ✅ Logout
+// ✅ Logout with confirmation
 const logoutButton = document.getElementById("logout-button");
 if (logoutButton) {
   logoutButton.addEventListener("click", function (e) {
     e.preventDefault();
-    signOut(auth).then(() => {
-      alert("Logged out!");
-      window.location.href = "../../Login.html";
-    });
+
+    const confirmLogout = confirm("Are you sure you want to log out?");
+    if (!confirmLogout) return; // User cancelled
+
+    signOut(auth)
+      .then(() => {
+        alert("Logged out!");
+        window.location.href = "../../Login.html";
+      })
+      .catch((error) => {
+        console.error("Error logging out:", error);
+        alert("Failed to log out. Please try again.");
+      });
   });
 }
+
 
 // ✅ Prevent access without login
 if (!window.location.pathname.includes("Login.html")) {
