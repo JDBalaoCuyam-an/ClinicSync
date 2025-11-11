@@ -12,7 +12,44 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+// ✅ Function to count today's visits
+async function getTodayVisitCount() {
+  try {
+    const visitsRef = collection(db, "PatientVisits");
 
+    // Get start and end of current day (LOCAL time)
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+
+    // Convert to Firestore Timestamps
+    const startTimestamp = Timestamp.fromDate(startOfDay);
+    const endTimestamp = Timestamp.fromDate(endOfDay);
+
+    // Query Firestore
+    const q = query(
+      visitsRef,
+      where("timestamp", ">=", startTimestamp),
+      where("timestamp", "<", endTimestamp),
+      orderBy("timestamp", "asc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.size; // ✅ returns how many visits today
+  } catch (error) {
+    console.error("Error fetching today's visits:", error);
+    return 0;
+  }
+}
+
+// ✅ Update the card UI
+async function updateTodayVisitsCard() {
+  const count = await getTodayVisitCount();
+  document.getElementById("todayVisits").textContent = count;
+}
+
+// ✅ Auto-run when the page loads
+document.addEventListener("DOMContentLoaded", updateTodayVisitsCard);
 /* ============================
    FIREBASE FETCH
 ============================ */
@@ -380,52 +417,55 @@ async function loadComplaints(
   try {
     const { start, end } = getDateRange(timeFilter);
 
-    const patientsRef = collection(db, "patients");
-    const patientsSnap = await getDocs(patientsRef);
+    // ✅ Directly read all consultation documents
+    const consultRef = collection(db, "complaintRecords");
+    const consultSnap = await getDocs(consultRef);
 
     const complaintCounts = {};
 
-    for (const p of patientsSnap.docs) {
-      const patientData = p.data();
+    for (const docSnap of consultSnap.docs) {
+      const data = docSnap.data();
+      const complaint = (data.complaint || "").trim();
+      const recordDate = data.timestamp?.toDate?.() ?? null;
+if (!recordDate || recordDate < start || recordDate > end) continue;
 
-      // 🎯 Department filter
+
+      // Filter only consultations within date range
+      if (!recordDate || recordDate < start || recordDate > end) continue;
+
+      // 🔍 Fetch patient info to apply department/course filters
+      const patientRef = doc(db, "patients", data.patientId);
+      const patientSnap = await getDoc(patientRef);
+      const patient = patientSnap.exists() ? patientSnap.data() : {};
+
+      // Department filter
       if (
         departmentFilter !== "all-dept" &&
-        patientData.department !== departmentFilter
+        patient.department !== departmentFilter
       )
         continue;
 
-      // 🎯 Course/Strand filter
+      // Course/Strand filter
       if (
         courseFilterValue !== "all-course-strand-genEduc" &&
-        patientData.course !== courseFilterValue
+        patient.course !== courseFilterValue
       )
         continue;
 
-      // 🔍 Get consultations for this patient
-      const consultRef = collection(db, "patients", p.id, "consultations");
-      const consultSnap = await getDocs(consultRef);
-
-      consultSnap.forEach((doc) => {
-        const data = doc.data();
-        const complaint = (data.complaint || "").trim();
-        const recordDate = data.date ? new Date(data.date) : null;
-
-        if (
-          complaint &&
-          recordDate &&
-          recordDate >= start &&
-          recordDate <= end
-        ) {
-          complaintCounts[complaint] = (complaintCounts[complaint] || 0) + 1;
-        }
-      });
+      // ✅ Count complaints
+      if (complaint) {
+        complaintCounts[complaint] = (complaintCounts[complaint] || 0) + 1;
+      }
     }
 
     const labels = Object.keys(complaintCounts);
     const values = Object.values(complaintCounts);
 
     renderComplaintsChart(labels, values);
+
+    if (labels.length === 0) {
+      console.warn("No complaints found within the selected date range.");
+    }
   } catch (err) {
     console.error("❌ Error loading complaints:", err);
   }

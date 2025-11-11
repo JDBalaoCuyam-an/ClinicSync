@@ -710,23 +710,8 @@ document
       /* ======================================================
         🔹 SAVE PATIENT VISIT RECORD
   ====================================================== */
-
-      // ✅ Get patient details (department + course)
       const patientRef = doc(db, "patients", patientId);
-      // const patientSnap = await getDoc(patientRef);
-
-      // let department = "";
-      // let course = "";
-
-      // if (patientSnap.exists()) {
-      //   const pdata = patientSnap.data();
-      //   department = pdata?.department || "";
-      //   course = pdata?.course || "";
-      // } else {
-      //   console.warn("⚠️ patient not found", { patientId });
-      // }
-
-      // ✅ Add document in PatientVisits
+      
       await addDoc(collection(db, "PatientVisits"), {
         patientId,
         consultationId,
@@ -734,7 +719,11 @@ document
       });
 
       console.log("✅ PatientVisits logged.");
-
+      await addDoc(collection(db, "complaintRecords"),{
+        patientId,
+        complaint: consultData.complaint,
+        timestamp: serverTimestamp(),
+      });
       /* ======================================================
         🔹 DEDUCT MEDICINE STOCK
   ====================================================== */
