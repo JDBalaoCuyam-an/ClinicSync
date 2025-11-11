@@ -225,6 +225,115 @@ patientForm.addEventListener("submit", async (e) => {
     alert("Failed to add patient. Check console.");
   }
 });
+// ======================================================
+// ✅ DYNAMIC DEPARTMENT → COURSE FOR NEW PATIENT FORM
+// ======================================================
 
+// Grab selects
+const roleSelectNew = document.querySelector('select[name="role"]');
+const deptSelectNew = document.querySelector('select[name="department"]');
+const courseSelectNew = document.querySelector('select[name="course"]');
+
+// Store original options
+const originalDeptOptionsNew = Array.from(deptSelectNew.options);
+const originalCourseOptionsNew = Array.from(courseSelectNew.options);
+
+// Department → allowed courses mapping
+const deptCourseMappingNew = {
+  BasicEd: [
+    "Kindergarten",
+    "Elementary",
+    "Junior Highschool",
+    "Accountancy and Business Management",
+    "Science, Technology, Engineering, and Mathematics",
+    "Humanities and Sciences",
+  ],
+  CABM: [
+    "Bachelor of Science in Accountancy",
+    "Bachelor of Science in Office Administration",
+    "Bachelor of Science in Hospitality Management",
+    "Bachelor of Science in Business Administration",
+  ],
+  CTE: [
+    "Bachelor of Elementary Education",
+    "Bachelor of Science in Psychology",
+    "Bachelor of Science in Social Work",
+    "Bachelor of Secondary Education",
+    "Technical Vocational Teacher Education",
+  ],
+  CIT: ["Bachelor of Science in Information Technology"],
+  TTED: ["NC1 NC2 NC3"],
+  COT: ["Bachelor of Theology"],
+  CCJE: ["Bachelor of Science in Criminology"],
+  Visitor: ["Visitor"],
+};
+
+// Function to update Department & Course dynamically
+function updateDeptCourseNewForm() {
+  const selectedRole = roleSelectNew.value;
+  const selectedDept = deptSelectNew.value;
+
+  // --- VISITOR RULE ---
+  if (selectedRole === "Visitor") {
+    // Department: only Visitor
+    deptSelectNew.innerHTML = "";
+    const visitorDept = originalDeptOptionsNew.find(opt => opt.value === "Visitor");
+    if (visitorDept) deptSelectNew.appendChild(visitorDept.cloneNode(true));
+
+    // Course: only Visitor
+    courseSelectNew.innerHTML = "";
+    const visitorCourse = originalCourseOptionsNew.find(opt => opt.value === "Visitor");
+    if (visitorCourse) courseSelectNew.appendChild(visitorCourse.cloneNode(true));
+
+    courseSelectNew.disabled = false;
+    return;
+  }
+
+  // Restore all departments if needed
+  if (deptSelectNew.options.length < originalDeptOptionsNew.length) {
+    deptSelectNew.innerHTML = "";
+    originalDeptOptionsNew.forEach(opt => deptSelectNew.appendChild(opt.cloneNode(true)));
+  }
+
+  // --- COURSE FILTER BASED ON DEPARTMENT ---
+  if (!selectedDept) {
+    // No department selected → disable course
+    courseSelectNew.innerHTML = "";
+    const defaultOption = originalCourseOptionsNew.find(opt => opt.value === "");
+    if (defaultOption) courseSelectNew.appendChild(defaultOption.cloneNode(true));
+    courseSelectNew.disabled = true;
+    return;
+  }
+
+  // Department selected → enable course
+  courseSelectNew.disabled = false;
+  courseSelectNew.innerHTML = "";
+  const defaultCourseOption = originalCourseOptionsNew.find(opt => opt.value === "");
+  if (defaultCourseOption) courseSelectNew.appendChild(defaultCourseOption.cloneNode(true));
+
+  // Show department-specific courses
+  if (deptCourseMappingNew[selectedDept]) {
+    deptCourseMappingNew[selectedDept].forEach(courseName => {
+      const match = originalCourseOptionsNew.find(opt =>
+        opt.textContent.includes(courseName)
+      );
+      if (match) courseSelectNew.appendChild(match.cloneNode(true));
+    });
+  } else {
+    // Show all courses if department not in mapping
+    originalCourseOptionsNew.forEach(opt => {
+      if (opt.value !== "") courseSelectNew.appendChild(opt.cloneNode(true));
+    });
+  }
+
+  courseSelectNew.value = "";
+}
+
+// --- Event Listeners ---
+roleSelectNew.addEventListener("change", updateDeptCourseNewForm);
+deptSelectNew.addEventListener("change", updateDeptCourseNewForm);
+
+// ✅ Initial call
+updateDeptCourseNewForm();
 // Initial load
 loadPatients();
