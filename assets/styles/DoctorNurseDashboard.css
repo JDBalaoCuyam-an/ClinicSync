@@ -1,3 +1,6 @@
+/* ===== ENHANCED RESPONSIVE STYLES ===== */
+
+/* Base responsive adjustments */
 * {
   margin: 0;
   padding: 0;
@@ -79,70 +82,10 @@ body {
   color: #2c3e50 !important;
 }
 
-/* COMBINED CARD LAYOUT */
-.combined-visits-card {
-  padding: 20px;
-}
-
-.combined-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
-  height: 100%;
-}
-
-.visits-section,
-.appointments-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.visits-section canvas {
-  flex: 1;
-  /* max-height: 100% !important; */
-}
-
-.appointments-section .appointments-list {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-/* SAME HEIGHT AS OTHER CARDS */
-.chart-card {
-  height: 380px;
-}
-
-.chart-card.full-width {
-  height: auto;
-}
-
-.combined-visits-card {
-  height: 380px;
-}
-.chart-filter {
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  width: 155px;
-}
-/* RESPONSIVE */
-@media (max-width: 992px) {
-  .combined-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .combined-visits-card {
-    height: auto;
-  }
-}
-
 /* ===== DASHBOARD GRID ===== */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* two columns for the bottom row */
-  grid-template-rows: auto auto; /* top + bottom */
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   width: 100%;
 }
@@ -151,6 +94,7 @@ body {
 .dashboard-grid > :first-child {
   grid-column: 1 / span 2;
 }
+
 .chart-card {
   background: white;
   border-radius: 12px;
@@ -188,6 +132,8 @@ body {
 .chart-controls {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .filter-btn {
@@ -210,6 +156,55 @@ body {
   color: white;
 }
 
+.chart-filter {
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  width: 155px;
+}
+
+/* ===== COMBINED CARD LAYOUT ===== */
+.combined-visits-card {
+  padding: 20px;
+}
+
+.combined-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  height: 100%;
+}
+
+.visits-section,
+.appointments-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.visits-section canvas {
+  flex: 1;
+}
+
+.appointments-section .appointments-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* SAME HEIGHT AS OTHER CARDS */
+.chart-card {
+  height: 380px;
+}
+
+.chart-card.full-width {
+  height: auto;
+}
+
+.combined-visits-card {
+  height: 380px;
+}
+
 /* ===== CHART HEADER STYLES ===== */
 .chart-header {
   display: flex;
@@ -230,10 +225,6 @@ body {
   gap: 10px;
 }
 
-
-
-
-
 /* ===== CHART ELEMENTS ===== */
 canvas {
   max-height: 300px;
@@ -242,16 +233,15 @@ canvas {
 }
 
 /* ===== APPOINTMENTS LIST ===== */
-
-
 .appointments-list {
-  max-height: 300px; /* set desired height */
-  overflow-y: auto;  /* enable vertical scrolling */
+  max-height: 300px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding-right: 0.5rem; /* for scrollbar spacing */
+  padding-right: 0.5rem;
 }
+
 .appointments-list {
   display: flex;
   flex-direction: column;
@@ -298,11 +288,16 @@ canvas {
   font-weight: 600;
 }
 
+/* ===== ENHANCED RESPONSIVE DESIGN ===== */
 
-/* ===== RESPONSIVE DESIGN ===== */
-
-/* Large Desktop - 3 columns when there's enough space */
-@media (min-width: 1400px) {
+/* Extra Large Desktop - Even more optimized for wide screens */
+@media (min-width: 1800px) {
+  .dashboard-container {
+    padding: 25px;
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+  
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -316,8 +311,8 @@ canvas {
   }
 }
 
-/* Extra Large Desktop - Even more optimized for wide screens */
-@media (min-width: 1800px) {
+/* Large Desktop */
+@media (min-width: 1400px) and (max-width: 1799px) {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -329,9 +324,16 @@ canvas {
   .summary-cards {
     grid-template-columns: repeat(4, 1fr);
   }
+}
 
-  .dashboard-container {
-    padding: 25px;
+/* Small Desktop / Large Tablet */
+@media (max-width: 1200px) {
+  .combined-grid {
+    grid-template-columns: 1.5fr 1fr;
+  }
+  
+  .chart-filter {
+    width: 140px;
   }
 }
 
@@ -340,9 +342,27 @@ canvas {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+  
+  .dashboard-grid > :first-child {
+    grid-column: 1;
+  }
 
   .summary-cards {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .combined-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  
+  .combined-visits-card {
+    height: auto;
+  }
+  
+  .visits-section, 
+  .appointments-section {
+    min-height: 300px;
   }
 }
 
@@ -371,18 +391,32 @@ canvas {
   }
 
   .chart-controls {
-    align-self: flex-end;
+    align-self: stretch;
+    justify-content: flex-start;
+  }
+  
+  .chart-filter {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .appointment-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: center;
   }
 }
 
 /* Mobile Breakpoint */
-@media (max-width: 480px) {
+@media (max-width: 576px) {
   .dashboard-container {
     padding: 10px;
   }
 
   .chart-card {
     padding: 12px;
+    height: auto;
+    min-height: 350px;
   }
 
   .chart-title {
@@ -390,8 +424,13 @@ canvas {
   }
 
   .chart-controls {
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 8px;
+    width: 100%;
+  }
+
+  .chart-filter {
+    width: 100%;
   }
 
   .filter-btn {
@@ -405,6 +444,14 @@ canvas {
 
   .card-value {
     font-size: 1.5rem;
+  }
+  
+  .combined-grid {
+    gap: 20px;
+  }
+  
+  .appointments-list {
+    max-height: 250px;
   }
 }
 
@@ -431,5 +478,37 @@ canvas {
   .card-icon {
     margin-right: 0;
   }
+  
+  .chart-title {
+    font-size: 0.95rem;
+  }
+  
+  .chart-title i {
+    font-size: 1rem;
+  }
 }
 
+/* Special handling for very tall screens */
+@media (min-height: 1000px) {
+  .chart-card {
+    height: 420px;
+  }
+  
+  .combined-visits-card {
+    height: 420px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .dashboard-container {
+    padding: 0;
+  }
+  
+  .summary-card,
+  .chart-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}

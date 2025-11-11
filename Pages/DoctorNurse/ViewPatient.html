@@ -89,10 +89,19 @@
     <div class="view-patient-container">
       <div class="left-container">
         <div class="patient-contacts">
-          <div style="display: flex; justify-content: space-between">
+          <div style="display: flex; align-items: center; gap: 10px">
             <h2>(Patient Name)</h2>
             <button id="edit-contacts" class="edit-btn">Edit</button>
+            <button
+            id="cancel-contact-edit-btn"
+            
+            style="display: none; margin-top: 10px"
+          >
+            ❌ Cancel
+          </button>
           </div>
+          
+
           <h3>Contact Details</h3>
           <input
             type="text"
@@ -130,6 +139,7 @@
             disabled
           />
         </div>
+
         <!--  -->
         <div class="patient-documents">
           <h3>Documents :</h3>
@@ -165,6 +175,13 @@
             <div class="header-row">
               <h2>Patient Information</h2>
               <button class="edit-btn">✏️ Edit</button>
+              <button
+            id="cancelPatientInfoBtn"
+            
+            style="display: none; margin-top: 10px"
+          >
+            ❌ Cancel
+          </button>
             </div>
 
             <div class="info-grid">
@@ -199,7 +216,14 @@
               <label
                 >School ID : <input id="schoolId" type="text" disabled
               /></label>
-              <label>Role : <input id="role" type="text" disabled /></label>
+              <label
+                >Role :
+                <select id="role" disabled required>
+                  <option value="Student">Student</option>
+                  <option value="Employee">Employee</option>
+                  <option value="Visitor">Visitor</option>
+                </select></label
+              >
               <label>
                 Department :
                 <select id="department" disabled required>
@@ -270,9 +294,8 @@
                     Humanities and Sciences
                   </option>
                   <option value="Junior Highschool">Junior Highschool</option>
-            <option value="Elementary">Elementary</option>
-            <option value="Kindergarten">Kindergarten</option>
-            <option value="Visitor">Visitor</option>
+                  <option value="Elementary">Elementary</option>
+                  <option value="Kindergarten">Kindergarten</option>
                   <option value="Visitor">Visitor</option>
                 </select>
               </label>
@@ -322,6 +345,13 @@
             <div class="header-row">
               <h2>Medical History :</h2>
               <button class="edit-btn">✏️ Edit</button>
+              <button
+            id="cancelHistoryBtn"
+            
+            style="display: none; margin-top: 10px"
+          >
+            ❌ Cancel
+          </button>
             </div>
 
             <div class="history-grid">
@@ -535,20 +565,20 @@
               ></textarea>
 
               <button type="submit" class="save-btn">Save</button>
+              <button
+                style="
+                  padding: 6px 8px;
+                  font-size: 14px;
+                  border: 1px solid black;
+                  border-radius: 4px;
+                  margin-top: 3px;
+                  width: 100%;
+                "
+                onclick="closeButtonOverlay()"
+              >
+                Cancel
+              </button>
             </form>
-            <button
-              style="
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 1px solid black;
-                border-radius: 4px;
-                margin-top: 3px;
-                width: 100%;
-              "
-              onclick="closeButtonOverlay()"
-            >
-              Cancel
-            </button>
           </div>
           <div id="consultation-overview" class="consultation-modal">
             <div class="modal-content">
@@ -629,7 +659,9 @@
               </table>
 
               <div class="modal-buttons">
-                <button style="background-color: #95a5a6;display: none;">Cancel</button>
+                <button style="background-color: #95a5a6; display: none">
+                  Cancel
+                </button>
                 <button id="editOverviewBtn">✏️ Edit</button>
                 <button onclick="closeButtonOverlay()">Close</button>
               </div>
@@ -670,13 +702,25 @@
                   <h3>Add Vitals</h3>
 
                   <label>BP</label>
-                  <input type="text" id="new-vital-bp" placeholder="e.g. 120/80" />
+                  <input
+                    type="text"
+                    id="new-vital-bp"
+                    placeholder="e.g. 120/80"
+                  />
 
                   <label>Temperature (°C)</label>
-                  <input type="text" id="new-vital-temp" placeholder="e.g. 37.0" />
+                  <input
+                    type="text"
+                    id="new-vital-temp"
+                    placeholder="e.g. 37.0"
+                  />
 
                   <label>SpO2</label>
-                  <input type="text" id="new-vital-spo2" placeholder="e.g. 98%" />
+                  <input
+                    type="text"
+                    id="new-vital-spo2"
+                    placeholder="e.g. 98%"
+                  />
 
                   <label>Pulse Rate</label>
                   <input type="text" id="new-vital-pr" placeholder="e.g. 72" />

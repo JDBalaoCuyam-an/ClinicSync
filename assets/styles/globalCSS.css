@@ -10,7 +10,7 @@
 body{
   position: relative;
   background-color: #f5f7fa;
-  padding: 75px 50px 150px 50px;
+  padding: 75px 50px 0px 50px;
 }
 /* COLOR SYSTEM */
 :root {
@@ -248,6 +248,11 @@ tr:hover {
   cursor: pointer;
   transition: background-color var(--transition-fast);
 }
+#cancel-contact-edit-btn{
+  position: absolute;
+  top: 15px;
+  right: 0;
+}
 
 .edit-btn:hover {
   background-color: #3a6d9b;
@@ -313,12 +318,141 @@ tr:hover {
   display: block;
 }
 
-#footer-container{
-  height: 150px;
+/* ==========================
+   FOOTER STYLES
+========================== */
+.footer-container {
+  background-color: var(--primary-color); /* same as your sidebar color */
+  color: #fff;
+  padding: 40px 20px 10px;
   width: 100%;
-  background-color: var(--primary-color);
-  color: white;
   position: absolute;
-  bottom: 0;
-  left: 0;
+  
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 2rem;
+}
+
+/* 🔹 LOGO + SYSTEM NAME */
+.footer-logo {
+  flex: 1 1 250px;
+  text-align: center;
+}
+
+.footer-logo-img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 10px;
+  filter: brightness(0) invert(1); /* makes logo white if it’s dark */
+}
+
+.footer-logo h3 {
+  margin: 5px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.footer-desc {
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+/* 🔹 QUICK LINKS */
+.footer-links {
+  flex: 1 1 250px;
+}
+
+.footer-links h4 {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: #fff;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links ul li {
+  margin: 6px 0;
+}
+
+.footer-links ul li a {
+  color: #e5e7eb;
+  text-decoration: none;
+  transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-links ul li a:hover {
+  color: #38bdf8;
+  transform: translateX(4px);
+}
+
+/* 🔹 BACK TO TOP BUTTON */
+.footer-backtop {
+  flex: 1 1 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.backToTop {
+  background-color: #ffffff;
+  color: var(--primary-color);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#backToTop:hover {
+  background-color: #38bdf8;
+  color: white;
+}
+
+/* 🔹 COPYRIGHT AREA */
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 30px;
+  text-align: center;
+  padding-top: 10px;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+/* 🔹 RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .footer-links h4 {
+    text-align: center;
+  }
+
+  .footer-backtop {
+    justify-content: center;
+  }
 }

@@ -117,7 +117,74 @@ function categorizeVisit(v) {
   return "visitor";
 }
 
+/* ============================
+   DYNAMIC COURSE FILTER
+============================ */
+const departmentSelect = document.getElementById("department");
+const courseSelect = document.getElementById("course");
 
+// ✅ Store all original course options
+const allCourses = Array.from(courseSelect.options);
+
+// ✅ Mapping of department → allowed courses
+const departmentCourses = {
+  BasicEd: [
+    "Kindergarten",
+    "Elementary",
+    "Junior Highschool",
+    "Accountancy and Business Management",
+    "Science, Technology, Engineering, and Mathematics",
+    "Humanities and Sciences",
+  ],
+  CABM: [
+    "Bachelor of Science in Accountancy",
+    "Bachelor of Science in Office Administration",
+    "Bachelor of Science in Hospitality Management",
+  ],
+  CTE: [
+    "Bachelor of Science in Psychology",
+    "Bachelor of Elementary Education",
+    "Bachelor of Science in Social Work",
+    "Bachelor of Secondary Education",
+    "Technical Vocational Teacher Education",
+  ],
+  CIT: ["Bachelor of Science in Information Technology"],
+  TTED: ["NC1 NC2 NC3"],
+  COT: ["Bachelor of Theology"],
+  CCJE: ["Bachelor of Science in Criminology"],
+  Visitor: ["Visitor"],
+};
+
+// ✅ Listen for department change
+departmentSelect.addEventListener("change", () => {
+  const selectedDept = departmentSelect.value;
+
+  // ✅ Keep "All Course/Strand/GenEduc" option
+  const defaultOption = allCourses.find(
+    (opt) => opt.value === "all-course-strand-genEduc"
+  );
+
+  // Clear existing options
+  courseSelect.innerHTML = "";
+  if (defaultOption) courseSelect.appendChild(defaultOption.cloneNode(true));
+
+  if (selectedDept === "all-dept" || !departmentCourses[selectedDept]) {
+    // ✅ Restore all if "All Department" or unknown
+    allCourses.forEach((opt) => {
+      if (opt.value !== "all-course-strand-genEduc")
+        courseSelect.appendChild(opt.cloneNode(true));
+    });
+  } else {
+    // ✅ Show only matching courses
+    departmentCourses[selectedDept].forEach((courseName) => {
+      const match = allCourses.find((opt) => opt.textContent.includes(courseName));
+      if (match) courseSelect.appendChild(match.cloneNode(true));
+    });
+  }
+
+  // Trigger chart re-render after filtering
+  renderVisitsChart(document.querySelectorAll(".chart-filter")[2].value);
+});
 
 /* ============================
    DATA GROUPING FOR CHART
@@ -363,6 +430,80 @@ async function loadComplaints(
     console.error("❌ Error loading complaints:", err);
   }
 }
+
+
+  //  DYNAMIC COURSE FILTER for Chief Complaints
+
+const deptComplaintSelect = document.getElementById("departmentComplaintFilter");
+const courseComplaintSelect = document.getElementById("courseComplaintFilter");
+
+// ✅ Store all original course options
+const allComplaintCourses = Array.from(courseComplaintSelect.options);
+
+// ✅ Department → allowed course mapping
+const departmentComplaintCourses = {
+  BasicEd: [
+    "Kindergarten",
+    "Elementary",
+    "Junior Highschool",
+    "Accountancy and Business Management",
+    "Science, Technology, Engineering, and Mathematics",
+    "Humanities and Sciences",
+  ],
+  CABM: [
+    "Bachelor of Science in Accountancy",
+    "Bachelor of Science in Office Administration",
+    "Bachelor of Science in Hospitality Management",
+  ],
+  CTE: [
+    "Bachelor of Science in Psychology",
+    "Bachelor of Elementary Education",
+    "Bachelor of Science in Social Work",
+    "Bachelor of Secondary Education",
+    "Technical Vocational Teacher Education",
+  ],
+  CIT: ["Bachelor of Science in Information Technology"],
+  TTED: ["NC1 NC2 NC3"],
+  COT: ["Bachelor of Theology"],
+  CCJE: ["Bachelor of Science in Criminology"],
+  Visitor: ["Visitor"],
+};
+
+// ✅ Listen for department change
+deptComplaintSelect.addEventListener("change", () => {
+  const selectedDept = deptComplaintSelect.value;
+
+  // ✅ Keep "All Course/Strand/GenEduc" option
+  const defaultOption = allComplaintCourses.find(
+    (opt) => opt.value === "all-course-strand-genEduc"
+  );
+
+  // Clear old options
+  courseComplaintSelect.innerHTML = "";
+  if (defaultOption) courseComplaintSelect.appendChild(defaultOption.cloneNode(true));
+
+  if (selectedDept === "all-dept" || !departmentComplaintCourses[selectedDept]) {
+    // ✅ Restore all courses
+    allComplaintCourses.forEach((opt) => {
+      if (opt.value !== "all-course-strand-genEduc")
+        courseComplaintSelect.appendChild(opt.cloneNode(true));
+    });
+  } else {
+    // ✅ Add only matching courses
+    departmentComplaintCourses[selectedDept].forEach((courseName) => {
+      const match = allComplaintCourses.find((opt) =>
+        opt.textContent.includes(courseName)
+      );
+      if (match) courseComplaintSelect.appendChild(match.cloneNode(true));
+    });
+  }
+
+  // ✅ Auto-reset course filter to default for cleaner filtering
+  courseComplaintSelect.value = "all-course-strand-genEduc";
+
+  // ✅ Refresh chart after filtering
+  applyFilters();
+});
 
 // 🎨 RENDER BAR CHART
 function renderComplaintsChart(labels, values) {

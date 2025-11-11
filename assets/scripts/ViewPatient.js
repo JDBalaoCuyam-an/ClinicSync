@@ -17,7 +17,7 @@ import {
 
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");
-let isEditingContacts = false;
+
 
 /* -----------------------------------------------
      🔹 LOAD PATIENT DATA
@@ -152,13 +152,29 @@ async function loadPatient() {
 /* -----------------------------------------------
      🔹 EDIT/SAVE CONTACT DETAILS
   ----------------------------------------------- */
-document.getElementById("edit-contacts").addEventListener("click", async () => {
+const editBtn = document.getElementById("edit-contacts");
+const cancelContactEditBtn = document.getElementById("cancel-contact-edit-btn");
+
+let isEditingContacts = false;
+let originalContactData = {};
+
+editBtn.addEventListener("click", async () => {
   const inputs = document.querySelectorAll(".patient-contacts input");
 
   if (!isEditingContacts) {
+    // Store original values
+    originalContactData = {
+      contact: document.getElementById("phone-number").value,
+      email: document.getElementById("email-address").value,
+      address: document.getElementById("home-address").value,
+      guardianName: document.getElementById("guardian-name").value,
+      guardianPhone: document.getElementById("guardian-phone").value,
+    };
+
     // Enable editing
     inputs.forEach((inp) => inp.removeAttribute("disabled"));
-    document.getElementById("edit-contacts").textContent = "💾 Save";
+    editBtn.textContent = "💾 Save";
+    cancelContactEditBtn.style.display = "inline-block";
     isEditingContacts = true;
   } else {
     // Save updated contact info
@@ -174,7 +190,8 @@ document.getElementById("edit-contacts").addEventListener("click", async () => {
       await updateDoc(doc(db, "patients", patientId), updatedData);
       alert("Contact details updated!");
       inputs.forEach((inp) => inp.setAttribute("disabled", "true"));
-      document.getElementById("edit-contacts").textContent = "✏️ Edit";
+      editBtn.textContent = "✏️ Edit";
+      cancelContactEditBtn.style.display = "none";
       isEditingContacts = false;
     } catch (err) {
       console.error("Error updating contact details:", err);
@@ -183,33 +200,80 @@ document.getElementById("edit-contacts").addEventListener("click", async () => {
   }
 });
 
+cancelContactEditBtn.addEventListener("click", () => {
+  // Restore original values
+  document.getElementById("phone-number").value = originalContactData.contact;
+  document.getElementById("email-address").value = originalContactData.email;
+  document.getElementById("home-address").value = originalContactData.address;
+  document.getElementById("guardian-name").value = originalContactData.guardianName;
+  document.getElementById("guardian-phone").value = originalContactData.guardianPhone;
+
+  // Disable inputs
+  document.querySelectorAll(".patient-contacts input").forEach((inp) => inp.setAttribute("disabled", "true"));
+
+  // Reset buttons
+  editBtn.textContent = "✏️ Edit";
+  cancelContactEditBtn.style.display = "none";
+  isEditingContacts = false;
+});
+
+
+
 /* -----------------------------------------------
      🔹 EDIT/SAVE MEDICAL HISTORY
   ----------------------------------------------- */
+
 const editHistoryBtn = document.querySelector(
   ".medical-history-content .edit-btn"
 );
+
+// Create Cancel button dynamically below the Edit/Save button
+let cancelHistoryBtn = document.createElement("button");
+cancelHistoryBtn.textContent = "❌ Cancel";
+cancelHistoryBtn.style.display = "none";
+cancelHistoryBtn.style.marginTop = "10px";
+editHistoryBtn.insertAdjacentElement("afterend", cancelHistoryBtn);
+
+let isEditingHistory = false;
+let originalHistoryData = {};
+
 editHistoryBtn.addEventListener("click", async () => {
   const editableFields = document.querySelectorAll(
     ".medical-history-content textarea, .medical-history-content input"
   );
 
-  if (editHistoryBtn.textContent.includes("✏️")) {
+  if (!isEditingHistory) {
+    // Store original values
+    originalHistoryData = {};
+    editableFields.forEach((el) => {
+      if (el.type === "radio") {
+        originalHistoryData[el.name] = document.querySelector(
+          `.obgyne-form input[name="${el.name}"]:checked`
+        )?.value || "";
+      } else {
+        originalHistoryData[el.name] = el.value;
+      }
+    });
+
+    // Enable editing
     editableFields.forEach((el) => el.removeAttribute("disabled"));
     editHistoryBtn.textContent = "💾 Save";
+    cancelHistoryBtn.style.display = "block";
+    isEditingHistory = true;
   } else {
+    // Gather updated values
     const [pastMedical, familyHistory, pastSurgical, supplements, allergies] =
       Array.from(
         document.querySelectorAll(".medical-history-content textarea")
       ).map((ta) => ta.value.trim());
 
-    // get immunization values
+    // Immunization
     const immunizationData = {};
     document
       .querySelectorAll(".immunization-form input")
       .forEach((input) => (immunizationData[input.name] = input.value.trim()));
 
-    // get OB-GYNE values
+    // OB-GYNE
     const obgyneData = {};
     document
       .querySelectorAll(
@@ -236,6 +300,8 @@ editHistoryBtn.addEventListener("click", async () => {
       alert("Medical History updated!");
       editableFields.forEach((el) => el.setAttribute("disabled", "true"));
       editHistoryBtn.textContent = "✏️ Edit";
+      cancelHistoryBtn.style.display = "none";
+      isEditingHistory = false;
     } catch (err) {
       console.error("Error updating medical history:", err);
       alert("Failed to update medical history.");
@@ -243,22 +309,100 @@ editHistoryBtn.addEventListener("click", async () => {
   }
 });
 
+// Cancel button handler
+cancelHistoryBtn.addEventListener("click", () => {
+  const editableFields = document.querySelectorAll(
+    ".medical-history-content textarea, .medical-history-content input"
+  );
+
+  // Restore original values
+  editableFields.forEach((el) => {
+    if (el.type === "radio") {
+      if (el.value === originalHistoryData[el.name]) {
+        el.checked = true;
+      } else {
+        el.checked = false;
+      }
+    } else {
+      el.value = originalHistoryData[el.name];
+    }
+    el.setAttribute("disabled", "true");
+  });
+
+  // Reset buttons
+  editHistoryBtn.textContent = "✏️ Edit";
+  cancelHistoryBtn.style.display = "none";
+  isEditingHistory = false;
+});
+
 /* -----------------------------------------------
-     🔹 EDIT/SAVE PATIENT INFORMATION
+     🔹 EDIT/SAVE PATIENT INFORMATION WITH CANCEL
   ----------------------------------------------- */
+
 const editPatientInfoBtn = document.querySelector(
   ".patient-info-content .edit-btn"
 );
 
-editPatientInfoBtn.addEventListener("click", async () => {
-  const infoInputs = document.querySelectorAll(
+// Create Cancel button dynamically below the Edit/Save button
+let cancelPatientInfoBtn = document.createElement("button");
+cancelPatientInfoBtn.textContent = "❌ Cancel";
+cancelPatientInfoBtn.style.display = "none";
+cancelPatientInfoBtn.style.marginTop = "10px";
+editPatientInfoBtn.insertAdjacentElement("afterend", cancelPatientInfoBtn);
+
+let isEditingPatientInfo = false;
+let originalPatientInfoData = {};
+
+// Helper: get all editable inputs & selects
+function getPatientInfoFields() {
+  return document.querySelectorAll(
     ".patient-info-content .info-grid input, .patient-info-content .info-grid select"
   );
+}
 
-  if (editPatientInfoBtn.textContent.includes("✏️")) {
-    infoInputs.forEach((input) => input.removeAttribute("disabled"));
-    editPatientInfoBtn.textContent = "💾 Save";
+// Store original values
+function storeOriginalPatientInfo(fields) {
+  originalPatientInfoData = {};
+  fields.forEach((el) => {
+    originalPatientInfoData[el.id || el.name] = el.value;
+  });
+}
+
+// Restore original values
+function restoreOriginalPatientInfo(fields) {
+  fields.forEach((el) => {
+    const key = el.id || el.name;
+    if (originalPatientInfoData[key] !== undefined) {
+      el.value = originalPatientInfoData[key];
+    }
+  });
+}
+
+// Enable editing
+function enablePatientInfoEditing(fields) {
+  fields.forEach((el) => el.removeAttribute("disabled"));
+  editPatientInfoBtn.textContent = "💾 Save";
+  cancelPatientInfoBtn.style.display = "block";
+}
+
+// Disable editing
+function disablePatientInfoEditing(fields) {
+  fields.forEach((el) => el.setAttribute("disabled", "true"));
+  editPatientInfoBtn.textContent = "✏️ Edit";
+  cancelPatientInfoBtn.style.display = "none";
+  isEditingPatientInfo = false;
+}
+
+// Edit/Save button click
+editPatientInfoBtn.addEventListener("click", async () => {
+  const fields = getPatientInfoFields();
+
+  if (!isEditingPatientInfo) {
+    storeOriginalPatientInfo(fields);
+    enablePatientInfoEditing(fields);
+    isEditingPatientInfo = true;
   } else {
+    // Collect updated data
     const updatedData = {
       lastName: document.getElementById("lastName").value,
       firstName: document.getElementById("firstName").value,
@@ -276,27 +420,134 @@ editPatientInfoBtn.addEventListener("click", async () => {
       course: document.getElementById("course").value,
       year: Number(document.getElementById("year").value),
 
-      fatherName: fatherName.value,
-      fatherAge: Number(fatherAge.value),
-      fatherOccupation: fatherOccupation.value,
-      fatherHealth: fatherHealth.value,
-      motherName: motherName.value,
-      motherAge: Number(motherAge.value),
-      motherOccupation: motherOccupation.value,
-      motherHealth: motherHealth.value,
+      fatherName: document.getElementById("fatherName")?.value,
+      fatherAge: Number(document.getElementById("fatherAge")?.value || 0),
+      fatherOccupation: document.getElementById("fatherOccupation")?.value,
+      fatherHealth: document.getElementById("fatherHealth")?.value,
+      motherName: document.getElementById("motherName")?.value,
+      motherAge: Number(document.getElementById("motherAge")?.value || 0),
+      motherOccupation: document.getElementById("motherOccupation")?.value,
+      motherHealth: document.getElementById("motherHealth")?.value,
     };
 
     try {
       await updateDoc(doc(db, "patients", patientId), updatedData);
       alert("Patient information updated!");
-      infoInputs.forEach((input) => input.setAttribute("disabled", "true"));
-      editPatientInfoBtn.textContent = "✏️ Edit";
+      disablePatientInfoEditing(fields);
     } catch (err) {
       console.error("Error updating patient information:", err);
       alert("Failed to update patient information.");
     }
   }
 });
+
+// Cancel button click
+cancelPatientInfoBtn.addEventListener("click", () => {
+  const fields = getPatientInfoFields();
+  restoreOriginalPatientInfo(fields);
+  disablePatientInfoEditing(fields);
+});
+
+
+// ======================================================
+// ✅ DYNAMIC DEPARTMENT → COURSE FOR VIEW PATIENT / FORM
+// ======================================================
+
+// Grab selects
+const roleSelectForm = document.getElementById("role");
+const deptSelectForm = document.getElementById("department");
+const courseSelectForm = document.getElementById("course");
+
+// Store original options
+const allDeptOptionsForm = Array.from(deptSelectForm.options);
+const allCourseOptionsForm = Array.from(courseSelectForm.options);
+
+// Department → allowed courses mapping
+const departmentCoursesForm = {
+  BasicEd: [
+    "Kindergarten",
+    "Elementary",
+    "Junior Highschool",
+    "Accountancy and Business Management",
+    "Science, Technology, Engineering, and Mathematics",
+    "Humanities and Sciences",
+  ],
+  CABM: [
+    "Bachelor of Science in Accountancy",
+    "Bachelor of Science in Office Administration",
+    "Bachelor of Science in Hospitality Management",
+    "Bachelor of Science in Business Administration",
+  ],
+  CTE: [
+    "Bachelor of Elementary Education",
+    "Bachelor of Science in Psychology",
+    "Bachelor of Science in Social Work",
+    "Bachelor of Secondary Education",
+    "Technical Vocational Teacher Education",
+  ],
+  CIT: ["Bachelor of Science in Information Technology"],
+  TTED: ["NC1 NC2 NC3"],
+  COT: ["Bachelor of Theology"],
+  CCJE: ["Bachelor of Science in Criminology"],
+  Visitor: ["Visitor"],
+};
+
+// Function to update Department & Course dynamically
+function updateDeptCourseForm() {
+  const selectedRole = roleSelectForm.value;
+  const selectedDept = deptSelectForm.value;
+
+  // --- VISITOR RULE ---
+  if (selectedRole === "Visitor") {
+    // Only show Visitor in Department
+    deptSelectForm.innerHTML = "";
+    const visitorDept = allDeptOptionsForm.find((opt) => opt.value === "Visitor");
+    if (visitorDept) deptSelectForm.appendChild(visitorDept.cloneNode(true));
+
+    // Only show Visitor in Course
+    courseSelectForm.innerHTML = "";
+    const visitorCourse = allCourseOptionsForm.find((opt) => opt.value === "Visitor");
+    if (visitorCourse) courseSelectForm.appendChild(visitorCourse.cloneNode(true));
+
+    return;
+  }
+
+  // Restore all departments if needed
+  if (deptSelectForm.options.length < allDeptOptionsForm.length) {
+    deptSelectForm.innerHTML = "";
+    allDeptOptionsForm.forEach((opt) => deptSelectForm.appendChild(opt.cloneNode(true)));
+  }
+
+  // --- COURSE FILTER BASED ON DEPARTMENT ---
+  courseSelectForm.innerHTML = "";
+  const defaultCourse = allCourseOptionsForm.find((opt) => opt.value === "");
+  if (defaultCourse) courseSelectForm.appendChild(defaultCourse.cloneNode(true));
+
+  if (selectedDept === "" || !departmentCoursesForm[selectedDept]) {
+    // Show all courses
+    allCourseOptionsForm.forEach((opt) => {
+      if (opt.value !== "") courseSelectForm.appendChild(opt.cloneNode(true));
+    });
+  } else {
+    // Show only department-specific courses
+    departmentCoursesForm[selectedDept].forEach((courseName) => {
+      const match = allCourseOptionsForm.find((opt) => opt.textContent.includes(courseName));
+      if (match) courseSelectForm.appendChild(match.cloneNode(true));
+    });
+  }
+
+  // Reset course to default
+  courseSelectForm.value = "";
+}
+
+// --- Event Listeners ---
+roleSelectForm.addEventListener("change", updateDeptCourseForm);
+deptSelectForm.addEventListener("change", updateDeptCourseForm);
+
+// ✅ Initial call in case Role is pre-selected
+updateDeptCourseForm();
+
+
 
 /* -----------------------------------------------
      🔹 CONSULTATION FORM SUBMIT
@@ -462,7 +713,7 @@ document
 
       // ✅ Get patient details (department + course)
       const patientRef = doc(db, "patients", patientId);
-      const patientSnap = await getDoc(patientRef);
+      // const patientSnap = await getDoc(patientRef);
 
       // let department = "";
       // let course = "";
@@ -479,8 +730,6 @@ document
       await addDoc(collection(db, "PatientVisits"), {
         patientId,
         consultationId,
-        // department,
-        // course,
         timestamp: serverTimestamp(),
       });
 
@@ -743,29 +992,28 @@ editOverviewBtn.addEventListener("click", async () => {
       ✅ ASK IF NEW VISIT
   ====================================================== */
     const isNewVisit = confirm("Is this a new visit?");
-
+    
     if (isNewVisit) {
       // ✅ Get patient details (department + course)
       const patientRef = doc(db, "patients", patientId);
-      const patientSnap = await getDoc(patientRef);
+      // const patientSnap = await getDoc(patientRef);
 
-      let department = "";
-      let course = "";
+      // let department = "";
+      // let course = "";
 
-      if (patientSnap.exists()) {
-        const pData = patientSnap.data();
-        department = pData?.department || "";
-        course = pData?.course || "";
-      } else {
-        console.warn("⚠️ Patient not found:", patientId);
-      }
+      // if (patientSnap.exists()) {
+      //   const pData = patientSnap.data();
+      //   department = pData?.department || "";
+      //   course = pData?.course || "";
+      // } else {
+      //   console.warn("⚠️ Patient not found:", patientId);
+      // }
 
       // ✅ Save new PatientVisit
       await addDoc(collection(db, "PatientVisits"), {
         patientId,
-        consultationId,
-        date: new Date().toISOString().split("T")[0], // "YYYY-MM-DD"
-        time: new Date().toTimeString().split(" ")[0].slice(0, 5), // "HH:MM"
+        consultationId : currentConsultationId,
+        timestamp: serverTimestamp(),
       });
 
       console.log("✅ PatientVisits entry added.");

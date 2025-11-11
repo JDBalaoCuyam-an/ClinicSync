@@ -7,8 +7,10 @@
     <script type="module" src="../../firebaseconfig.js"></script>
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
     <link rel="stylesheet" href="../../assets/styles/MedicalRecords.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
   </head>
   <body>
     <header class="navbar">
@@ -18,7 +20,9 @@
       </div>
       <div class="right-header">
         <div class="user-name" id="displayName"></div>
-        <div style="padding: 25px;background-color: aliceblue;border-radius: 50%;"></div>
+        <div
+          style="padding: 25px; background-color: aliceblue; border-radius: 50%"
+        ></div>
         <div class="logout-container">
           <form>
             <button type="submit" id="logout-button">
@@ -63,7 +67,7 @@
           <label>Religion : <input type="text" name="religion" /></label>
 
           <label
-            >School ID : <input type="text" name="schoolId" required
+            >School ID : <input type="text" name="schoolId"
           /></label>
           <label
             >Role :
@@ -88,28 +92,59 @@
             </select>
           </label>
 
-          <label>Course/Strand/General Education : <select name="course">
-            <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
-            <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
-            <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
-            <option value="Bachelor of Science in Office Administration">Bachelor of Science in Office Administration</option>
-            <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business Administration</option>
-            <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
-            <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
-            <option value="Bachelor of Science in Social Work">Bachelor of Science in Social Work</option>
-            <option value="Bachelor of Secondary Education">Bachelor of Secondary Education</option>
-            <option value="Technical Vocational Teacher Education">Technical Vocational Teacher Education</option>
-            <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
-            <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
-            <option value="Bachelor of Theology">Bachelor of Theology</option>
-            <option value="Accountancy and Business Management">Accountancy and Business Management (ABM)</option>
-            <option value="Science, Technology, Engineering, and Mathematics">Science, Technology, Engineering, and Mathematics (STEM)</option>
-            <option value="Humanities and Sciences">Humanities and Sciences</option>
-            <option value="Junior Highschool">Junior Highschool</option>
-            <option value="Elementary">Elementary</option>
-            <option value="Kindergarten">Kindergarten</option>
-            <option value="Visitor">Visitor</option>
-          </select></label>
+          <label
+            >Course/Strand/General Education :
+            <select name="course">
+              <option value="Bachelor of Science in Accountancy">
+                Bachelor of Science in Accountancy
+              </option>
+              <option value="Bachelor of Science in Hospitality Management">
+                Bachelor of Science in Hospitality Management
+              </option>
+              <option value="Bachelor of Science in Information Technology">
+                Bachelor of Science in Information Technology
+              </option>
+              <option value="Bachelor of Science in Office Administration">
+                Bachelor of Science in Office Administration
+              </option>
+              <option value="Bachelor of Science in Business Administration">
+                Bachelor of Science in Business Administration
+              </option>
+              <option value="Bachelor of Elementary Education">
+                Bachelor of Elementary Education
+              </option>
+              <option value="Bachelor of Science in Psychology">
+                Bachelor of Science in Psychology
+              </option>
+              <option value="Bachelor of Science in Social Work">
+                Bachelor of Science in Social Work
+              </option>
+              <option value="Bachelor of Secondary Education">
+                Bachelor of Secondary Education
+              </option>
+              <option value="Technical Vocational Teacher Education">
+                Technical Vocational Teacher Education
+              </option>
+              <option value="Bachelor of Science in Criminology">
+                Bachelor of Science in Criminology
+              </option>
+              <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+              <option value="Bachelor of Theology">Bachelor of Theology</option>
+              <option value="Accountancy and Business Management">
+                Accountancy and Business Management (ABM)
+              </option>
+              <option value="Science, Technology, Engineering, and Mathematics">
+                Science, Technology, Engineering, and Mathematics (STEM)
+              </option>
+              <option value="Humanities and Sciences">
+                Humanities and Sciences
+              </option>
+              <option value="Junior Highschool">Junior Highschool</option>
+              <option value="Elementary">Elementary</option>
+              <option value="Kindergarten">Kindergarten</option>
+              <option value="Visitor">Visitor</option>
+            </select></label
+          >
           <label>Year : <input type="number" name="year" /></label>
         </div>
 
@@ -174,20 +209,72 @@
 
         <select id="filterRole">
           <option value="all">All Patient Type</option>
-          <option value="student">Student</option>
-          <option value="employee">Employee</option>
-          <option value="visitor">Visitor</option>
+          <option value="Student">Student</option>
+          <option value="Employee">Employee</option>
+          <option value="Visitor">Visitor</option>
         </select>
 
         <select id="filterDept">
           <option value="alldept">All Department</option>
-          <option value="cabm">CABM</option>
-          <option value="ccje">CCJE</option>
-          <option value="cit">CIT</option>
-          <option value="cot">COT</option>
-          <option value="tted">TTED</option>
-          <option value="cte">CTE</option>
-          <option value="basiced">BasicEd</option>
+          <option value="CABM">CABM</option>
+          <option value="CCJE">CCJE</option>
+          <option value="CIT">CIT</option>
+          <option value="COT">COT</option>
+          <option value="TTED">TTED</option>
+          <option value="CTE">CTE</option>
+          <option value="BasicEd">BasicEd</option>
+          <option value="Visitor">Visitor</option>
+        </select>
+        <select id="filterCourse">
+          <option value="allcourse">All Course/Strand/GE</option>
+          <option value="Bachelor of Science in Accountancy">
+            Bachelor of Science in Accountancy
+          </option>
+          <option value="Bachelor of Science in Hospitality Management">
+            Bachelor of Science in Hospitality Management
+          </option>
+          <option value="Bachelor of Science in Information Technology">
+            Bachelor of Science in Information Technology
+          </option>
+          <option value="Bachelor of Science in Office Administration">
+            Bachelor of Science in Office Administration
+          </option>
+          <option value="Bachelor of Science in Business Administration">
+            Bachelor of Science in Business Administration
+          </option>
+          <option value="Bachelor of Elementary Education">
+            Bachelor of Elementary Education
+          </option>
+          <option value="Bachelor of Science in Psychology">
+            Bachelor of Science in Psychology
+          </option>
+          <option value="Bachelor of Science in Social Work">
+            Bachelor of Science in Social Work
+          </option>
+          <option value="Bachelor of Secondary Education">
+            Bachelor of Secondary Education
+          </option>
+          <option value="Technical Vocational Teacher Education">
+            Technical Vocational Teacher Education
+          </option>
+          <option value="Bachelor of Science in Criminology">
+            Bachelor of Science in Criminology
+          </option>
+          <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+          <option value="Bachelor of Theology">Bachelor of Theology</option>
+          <option value="Accountancy and Business Management">
+            Accountancy and Business Management (ABM)
+          </option>
+          <option value="Science, Technology, Engineering, and Mathematics">
+            Science, Technology, Engineering, and Mathematics (STEM)
+          </option>
+          <option value="Humanities and Sciences">
+            Humanities and Sciences
+          </option>
+          <option value="Junior Highschool">Junior Highschool</option>
+          <option value="Elementary">Elementary</option>
+          <option value="Kindergarten">Kindergarten</option>
+          <option value="Visitor">Visitor</option>
         </select>
       </div>
 
@@ -209,7 +296,7 @@
         </tbody>
       </table>
     </div>
-  <div id="footer-container"></div>
+    <div id="footer-container"></div>
   </body>
   <script src="../../assets/scripts/MedicalRecords.js" type="module"></script>
   <script src="../../assets/scripts/modal.js"></script>
