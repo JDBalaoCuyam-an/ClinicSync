@@ -4,56 +4,194 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/fi
 import {
   collection,
   doc,
+  getDoc,
   getDocs, // ✅ <-- added
   query,
   where,
-  orderBy
+  orderBy,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 
 /* ============================
-   MOCK DATA (replace later)
+   FIREBASE FETCH
 ============================ */
-const mockData = {
-  day: {
-    labels: ["8 AM", "9 AM", "10 AM", "11 AM", "12 NN", "1 PM", "2 PM"],
-    student: [4, 5, 6, 3, 2, 3, 4],
-    employee: [2, 4, 3, 2, 3, 2, 3],
-    visitor: [1, 1, 2, 1, 1, 2, 1],
-  },
-  week: {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    student: [10, 15, 17, 12, 14, 9, 8],
-    employee: [6, 7, 8, 9, 10, 6, 7],
-    visitor: [3, 2, 4, 3, 2, 5, 4],
-  },
-  month: {
-    labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-    student: [60, 50, 65, 55],
-    employee: [30, 35, 40, 25],
-    visitor: [15, 20, 18, 15],
-  },
-  year: {
-    labels: [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ],
-    // These are the Roles
-    student: [200, 250, 300, 280, 350, 270, 320, 300, 310, 330, 290, 340],
-    employee: [120, 140, 160, 150, 170, 140, 150, 160, 170, 180, 160, 200],
-    visitor: [80, 70, 90, 85, 100, 90, 95, 100, 110, 105, 90, 120],
-  },
-};
+async function fetchVisitData({ department, course, dateFilter }) {
+  const visitsRef = collection(db, "PatientVisits");
+  let q = visitsRef;
+
+  // ✅ Compute start and end (UTC-based)
+  const now = new Date();
+  let startDate = null;
+  let endDate = null;
+
+  if (dateFilter === "day") {
+    startDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    endDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+  } else if (dateFilter === "week") {
+    const day = now.getUTCDay();
+    startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - day));
+    endDate = new Date(startDate);
+    endDate.setUTCDate(startDate.getUTCDate() + 7);
+  } else if (dateFilter === "month") {
+    startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  } else if (dateFilter === "year") {
+    startDate = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+    endDate = new Date(Date.UTC(now.getUTCFullYear() + 1, 0, 1));
+  }
+
+  const startTimestamp = startDate ? Timestamp.fromDate(startDate) : null;
+  const endTimestamp = endDate ? Timestamp.fromDate(endDate) : null;
+
+  // ✅ Safe query with index handling
+  try {
+    if (startTimestamp && endTimestamp) {
+      q = query(
+        visitsRef,
+        orderBy("timestamp", "asc"),
+        where("timestamp", ">=", startTimestamp),
+        where("timestamp", "<", endTimestamp)
+      );
+    } else if (startTimestamp) {
+      q = query(visitsRef, orderBy("timestamp", "asc"), where("timestamp", ">=", startTimestamp));
+    } else {
+      q = query(visitsRef, orderBy("timestamp", "asc"));
+    }
+
+    const qSnap = await getDocs(q);
+    const visits = [];
+
+    for (const docSnap of qSnap.docs) {
+      const visit = docSnap.data();
+      if (!visit.timestamp) continue;
+
+      // Fetch patient info
+      const patientRef = doc(db, "patients", visit.patientId);
+      const patientSnap = await getDoc(patientRef);
+      const patientData = patientSnap.exists() ? patientSnap.data() : {};
+
+      visits.push({
+        ...visit,
+        role: patientData.role || "",
+        department: patientData.department || "",
+        course: patientData.course || "",
+      });
+    }
+
+    // ✅ Apply department & course filters
+    return visits.filter((v) => {
+      const deptMatch =
+        !department || department === "all-dept" || v.department === department;
+      const courseMatch =
+        !course || course === "all-course-strand-genEduc" || v.course === course;
+      return deptMatch && courseMatch;
+    });
+  } catch (error) {
+    console.error("Firestore filter failed:", error.message);
+    // fallback → fetch all
+    const allSnap = await getDocs(visitsRef);
+    const allVisits = [];
+    for (const docSnap of allSnap.docs) {
+      const visit = docSnap.data();
+      if (!visit.timestamp) continue;
+      allVisits.push(visit);
+    }
+    return allVisits;
+  }
+}
+
+/* ============================
+   CATEGORY GROUPING
+============================ */
+function categorizeVisit(v) {
+  if (v.role) {
+    const r = v.role.toLowerCase();
+    if (["student", "employee", "visitor"].includes(r)) return r;
+  }
+
+  // fallback: if no role, treat all department members as student by default
+  const knownDepartments = ["BasicEd", "CTE", "CABM", "CIT", "COT", "CCJE", "TTED"];
+  if (knownDepartments.includes(v.department)) return "student";
+
+  return "visitor";
+}
+
+
+
+/* ============================
+   DATA GROUPING FOR CHART
+============================ */
+function formatChartData(visits, dateFilter) {
+  const grouping = {};
+
+  visits.forEach((v) => {
+    // ✅ Ensure valid timestamp
+    const ts = v.timestamp?.toDate ? v.timestamp.toDate() : new Date();
+    let label = "";
+
+    // ✅ Label logic (consistent ordering and formatting)
+    if (dateFilter === "day") {
+      label = ts.getHours().toString().padStart(2, "0") + ":00";
+    } else if (dateFilter === "week") {
+      label = ts.toLocaleDateString("en-US", { weekday: "short" }); // e.g. Mon, Tue
+    } else if (dateFilter === "month") {
+      const weekNum = Math.ceil(ts.getDate() / 7);
+      label = "Week " + weekNum;
+    } else if (dateFilter === "year") {
+      label = ts.toLocaleDateString("en-US", { month: "short" }); // e.g. Jan, Feb
+    } else {
+      label = ts.toISOString().split("T")[0]; // default YYYY-MM-DD
+    }
+
+    // ✅ Initialize if label not yet seen
+    if (!grouping[label]) {
+      grouping[label] = { student: 0, employee: 0, visitor: 0 };
+    }
+
+    // ✅ Categorize visit (student / employee / visitor)
+    const cat = categorizeVisit(v);
+    if (grouping[label][cat] !== undefined) grouping[label][cat]++;
+  });
+
+  // ✅ Sort labels in chronological order
+  const sortedLabels = Object.keys(grouping).sort((a, b) => {
+    if (dateFilter === "day") {
+      // "08:00" → 8, "14:00" → 14
+      return parseInt(a) - parseInt(b);
+    } else if (dateFilter === "week") {
+      // Maintain Mon–Sun order
+      const order = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return order.indexOf(a) - order.indexOf(b);
+    } else if (dateFilter === "month") {
+      // Week 1 → Week 2 → Week 3
+      return parseInt(a.replace("Week ", "")) - parseInt(b.replace("Week ", ""));
+    } else if (dateFilter === "year") {
+      // Month order (Jan → Dec)
+      const order = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return order.indexOf(a) - order.indexOf(b);
+    } else {
+      // Default ISO date sort
+      return new Date(a) - new Date(b);
+    }
+  });
+
+  // ✅ Build chart data arrays
+  const labels = [];
+  const student = [];
+  const employee = [];
+  const visitor = [];
+
+  sortedLabels.forEach((lbl) => {
+    labels.push(lbl);
+    student.push(grouping[lbl].student);
+    employee.push(grouping[lbl].employee);
+    visitor.push(grouping[lbl].visitor);
+  });
+
+  return { labels, student, employee, visitor };
+}
+
 
 /* ============================
    CHART INITIALIZATION
@@ -61,27 +199,33 @@ const mockData = {
 let visitsChart;
 const visitsCtx = document.getElementById("visitsChart").getContext("2d");
 
-function renderVisitsChart(filter = "week") {
-  const d = mockData[filter];
+async function renderVisitsChart(dateFilter = "week") {
+  const department = document.querySelector("select[name='department']").value;
+  const course = document.querySelector("select[name='course']").value;
+
+  // ✅ Fetch from Firestore not mock
+  const visits = await fetchVisitData({ department, course, dateFilter });
+
+  const { labels, student, employee, visitor } = formatChartData(visits, dateFilter);
 
   const data = {
-    labels: d.labels,
+    labels,
     datasets: [
       {
         label: "Student",
-        data: d.student,
+        data: student,
         borderWidth: 2,
         tension: 0.3,
       },
       {
         label: "Employee",
-        data: d.employee,
+        data: employee,
         borderWidth: 2,
         tension: 0.3,
       },
       {
         label: "Visitor",
-        data: d.visitor,
+        data: visitor,
         borderWidth: 2,
         tension: 0.3,
       },
@@ -109,21 +253,19 @@ function renderVisitsChart(filter = "week") {
   });
 }
 
-/* DEFAULT */
-renderVisitsChart("week");
-  //  FILTER CONTROLS
-document.querySelectorAll(".filter-btn[data-chart='visits']").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document
-      .querySelectorAll(".filter-btn[data-chart='visits']")
-      .forEach((b) => b.classList.remove("active"));
-
-    btn.classList.add("active");
-
-    const filter = btn.dataset.filter;
-    renderVisitsChart(filter);
+/* ============================
+   FILTER TRIGGERS
+============================ */
+document.querySelectorAll(".chart-filter").forEach((sel) => {
+  sel.addEventListener("change", () => {
+    const timeframe = document.querySelectorAll(".chart-filter")[2].value;
+    renderVisitsChart(timeframe);
   });
 });
+
+/* DEFAULT LOAD */
+renderVisitsChart("week");
+
 
 /* ===========================================
 Chief Complaints Chart with Department & Course Filters

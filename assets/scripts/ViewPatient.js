@@ -449,88 +449,86 @@ document
     }
 
     try {
-  // ✅ Save Consultation Record
-  const consultRef = collection(db, "patients", patientId, "consultations");
-  const newConsultDoc = await addDoc(consultRef, consultData);
+      // ✅ Save Consultation Record
+      const consultRef = collection(db, "patients", patientId, "consultations");
+      const newConsultDoc = await addDoc(consultRef, consultData);
 
-  const consultationId = newConsultDoc.id; // ⬅️ NEW
-  console.log("✅ New Consultation ID:", consultationId);
+      const consultationId = newConsultDoc.id; // ⬅️ NEW
+      console.log("✅ New Consultation ID:", consultationId);
 
-  /* ======================================================
+      /* ======================================================
         🔹 SAVE PATIENT VISIT RECORD
   ====================================================== */
 
-  // ✅ Get patient details (department + course)
-  const patientRef = doc(db, "patients", patientId);
-  const patientSnap = await getDoc(patientRef);
+      // ✅ Get patient details (department + course)
+      const patientRef = doc(db, "patients", patientId);
+      const patientSnap = await getDoc(patientRef);
 
-  let department = "";
-  let course = "";
+      // let department = "";
+      // let course = "";
 
-  if (patientSnap.exists()) {
-    const pdata = patientSnap.data();
-    department = pdata?.department || "";
-    course = pdata?.course || "";
-  } else {
-    console.warn("⚠️ patient not found",{patientId});
-  }
+      // if (patientSnap.exists()) {
+      //   const pdata = patientSnap.data();
+      //   department = pdata?.department || "";
+      //   course = pdata?.course || "";
+      // } else {
+      //   console.warn("⚠️ patient not found", { patientId });
+      // }
 
-  // ✅ Add document in PatientVisits
-  await addDoc(collection(db, "PatientVisits"), {
-    patientId,
-    consultationId,
-    department,
-    course,
-    timestamp: serverTimestamp(),
-  });
+      // ✅ Add document in PatientVisits
+      await addDoc(collection(db, "PatientVisits"), {
+        patientId,
+        consultationId,
+        // department,
+        // course,
+        timestamp: serverTimestamp(),
+      });
 
-  console.log("✅ PatientVisits logged.");
+      console.log("✅ PatientVisits logged.");
 
-  /* ======================================================
+      /* ======================================================
         🔹 DEDUCT MEDICINE STOCK
   ====================================================== */
 
-  for (const med of medsDispensed) {
-    if (med.name && med.quantity > 0) {
-      const invRef = collection(db, "MedicineInventory");
-      const q = query(invRef, where("name", "==", med.name));
-      const snapshot = await getDocs(q);
+      for (const med of medsDispensed) {
+        if (med.name && med.quantity > 0) {
+          const invRef = collection(db, "MedicineInventory");
+          const q = query(invRef, where("name", "==", med.name));
+          const snapshot = await getDocs(q);
 
-      if (!snapshot.empty) {
-        const medDoc = snapshot.docs[0];
-        const data = medDoc.data();
+          if (!snapshot.empty) {
+            const medDoc = snapshot.docs[0];
+            const data = medDoc.data();
 
-        const currentStock = data.stock || 0;
-        const currentDispensed = data.dispensed || 0;
+            const currentStock = data.stock || 0;
+            const currentDispensed = data.dispensed || 0;
 
-        const newStock = Math.max(currentStock - med.quantity, 0);
-        const newDispensed = currentDispensed + med.quantity;
+            const newStock = Math.max(currentStock - med.quantity, 0);
+            const newDispensed = currentDispensed + med.quantity;
 
-        await updateDoc(medDoc.ref, {
-          stock: newStock,
-          dispensed: newDispensed,
-        });
+            await updateDoc(medDoc.ref, {
+              stock: newStock,
+              dispensed: newDispensed,
+            });
 
-        console.log(
-          `✅ ${med.name} stock updated: ${currentStock} → ${newStock}, dispensed: ${currentDispensed} → ${newDispensed}`
-        );
-      } else {
-        console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
+            console.log(
+              `✅ ${med.name} stock updated: ${currentStock} → ${newStock}, dispensed: ${currentDispensed} → ${newDispensed}`
+            );
+          } else {
+            console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
+          }
+        }
       }
+
+      alert("✅ Consultation Record Saved + Visit Logged + Medicine Deducted!");
+      closeButtonOverlay();
+      loadConsultations();
+      loadComplaints();
+      loadMedicineOptions();
+    } catch (err) {
+      console.error("❌ Error adding consultation:", err);
+      alert("Failed to save consultation record.");
     }
-  }
-
-  alert("✅ Consultation Record Saved + Visit Logged + Medicine Deducted!");
-  closeButtonOverlay();
-  loadConsultations();
-  loadComplaints();
-  loadMedicineOptions();
-
-} catch (err) {
-  console.error("❌ Error adding consultation:", err);
-  alert("Failed to save consultation record.");
-}
-
   });
 
 /* -----------------------------------------------
@@ -573,10 +571,8 @@ async function loadConsultations() {
       // ✅ Pass both data and ID
       tr.addEventListener("click", () =>
         showConsultationDetails(data, consultId)
-      
       );
       tableBody.appendChild(tr);
-      
     });
   } catch (err) {
     console.error("Error loading consultations:", err);
@@ -665,7 +661,9 @@ window.showConsultationDetails = async function (data, consultId) {
    🔹 EDIT, SAVE CONSULTATION DETAILS
 ------------------------------------------------ */
 const editOverviewBtn = document.getElementById("editOverviewBtn");
-const cancelBtn = document.querySelector(".modal-buttons button[style*='display: none']"); // Cancel button
+const cancelBtn = document.querySelector(
+  ".modal-buttons button[style*='display: none']"
+); // Cancel button
 const closeBtn = document.querySelector(".modal-buttons button:last-child"); // Close button
 
 let pendingMeds = [];
@@ -712,76 +710,75 @@ editOverviewBtn.addEventListener("click", async () => {
   };
 
   if (pendingMeds.length > 0) updatedData.meds = arrayUnion(...pendingMeds);
-  if (pendingVitals.length > 0) updatedData.vitals = arrayUnion(...pendingVitals);
+  if (pendingVitals.length > 0)
+    updatedData.vitals = arrayUnion(...pendingVitals);
 
   try {
-  const consultRef = doc(
-    db,
-    "patients",
-    patientId,
-    "consultations",
-    currentConsultationId
-  );
+    const consultRef = doc(
+      db,
+      "patients",
+      patientId,
+      "consultations",
+      currentConsultationId
+    );
 
-  await updateDoc(consultRef, updatedData);
+    await updateDoc(consultRef, updatedData);
 
-  if (pendingMeds.length > 0) {
-    for (let m of pendingMeds) {
-      const medRef = doc(db, "MedicineInventory", m.id);
-      const medSnap = await getDoc(medRef);
+    if (pendingMeds.length > 0) {
+      for (let m of pendingMeds) {
+        const medRef = doc(db, "MedicineInventory", m.id);
+        const medSnap = await getDoc(medRef);
 
-      if (medSnap.exists()) {
-        const data = medSnap.data();
-        const newStock = Math.max((data.stock || 0) - m.quantity, 0);
-        const newDispensed = (data.dispensed || 0) + m.quantity;
+        if (medSnap.exists()) {
+          const data = medSnap.data();
+          const newStock = Math.max((data.stock || 0) - m.quantity, 0);
+          const newDispensed = (data.dispensed || 0) + m.quantity;
 
-        await updateDoc(medRef, { stock: newStock, dispensed: newDispensed });
+          await updateDoc(medRef, { stock: newStock, dispensed: newDispensed });
+        }
       }
     }
-  }
 
-  /* ======================================================
+    /* ======================================================
       ✅ ASK IF NEW VISIT
   ====================================================== */
-  const isNewVisit = confirm("Is this a new visit?");
+    const isNewVisit = confirm("Is this a new visit?");
 
-  if (isNewVisit) {
-    // ✅ Get patient details (department + course)
-    const patientRef = doc(db, "patients", patientId);
-    const patientSnap = await getDoc(patientRef);
+    if (isNewVisit) {
+      // ✅ Get patient details (department + course)
+      const patientRef = doc(db, "patients", patientId);
+      const patientSnap = await getDoc(patientRef);
 
-    let department = "";
-    let course = "";
+      let department = "";
+      let course = "";
 
-    if (patientSnap.exists()) {
-      const pData = patientSnap.data();
-      department = pData?.department || "";
-      course = pData?.course || "";
-    } else {
-      console.warn("⚠️ Patient not found:", patientId);
+      if (patientSnap.exists()) {
+        const pData = patientSnap.data();
+        department = pData?.department || "";
+        course = pData?.course || "";
+      } else {
+        console.warn("⚠️ Patient not found:", patientId);
+      }
+
+      // ✅ Save new PatientVisit
+      await addDoc(collection(db, "PatientVisits"), {
+        patientId,
+        consultationId,
+        date: new Date().toISOString().split("T")[0], // "YYYY-MM-DD"
+        time: new Date().toTimeString().split(" ")[0].slice(0, 5), // "HH:MM"
+      });
+
+      console.log("✅ PatientVisits entry added.");
     }
 
-    // ✅ Save new PatientVisit
-    await addDoc(collection(db, "PatientVisits"), {
-      patientId,
-      consultationId: currentConsultationId,
-      department,
-      course,
-      timestamp: serverTimestamp(),
-    });
+    alert("✅ Consultation updated!");
 
-    console.log("✅ PatientVisits entry added.");
+    exitEditMode();
+    loadConsultations();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to update consultation.");
   }
-
-  alert("✅ Consultation updated!");
-
-  exitEditMode();
-  loadConsultations();
-} catch (err) {
-  console.error(err);
-  alert("Failed to update consultation.");
-}
-
 });
 
 // CANCEL BUTTON - EXIT EDIT MODE
@@ -818,7 +815,6 @@ function exitEditMode() {
   pendingMeds = [];
   pendingVitals = [];
 }
-
 
 /* -----------------------------------------------
    🔹 ADD Meds (arrayUnion)
@@ -991,7 +987,6 @@ saveMedDetailsBtn.addEventListener("click", async () => {
 window.openMedDetailsModal = openMedDetailsModal;
 window.closeMedDetailsModal = closeMedDetailsModal;
 
-
 /* ============================================================
    ADD VITALS (arrayUnion pending) — same logic as meds
 ============================================================ */
@@ -1035,11 +1030,11 @@ document.addEventListener("click", (e) => {
 ============================================================ */
 saveVitalsBtn.addEventListener("click", (e) => {
   // Fetch all inputs safely
-  const bp   = document.getElementById("new-vital-bp").value;
+  const bp = document.getElementById("new-vital-bp").value;
   const temp = document.getElementById("new-vital-temp").value;
   const spo2 = document.getElementById("new-vital-spo2").value;
-  const pr   = document.getElementById("new-vital-pr").value;
-  const lmp  = document.getElementById("new-vital-lmp").value;
+  const pr = document.getElementById("new-vital-pr").value;
+  const lmp = document.getElementById("new-vital-lmp").value;
 
   console.log("Vitals entered:", { bp, temp, spo2, pr, lmp }); // 🩺 Debug log
 
@@ -1064,7 +1059,7 @@ saveVitalsBtn.addEventListener("click", (e) => {
       minute: "2-digit",
     }),
   };
-console
+  console;
   // ✅ Temporarily store vitals (not yet in DB)
   pendingVitals.push(newVital);
   console.log("✅ Added vitals (pending):", pendingVitals);
@@ -1080,7 +1075,6 @@ cancelVitalsBtn.addEventListener("click", (e) => {
   e.preventDefault();
   closeVitalsModal();
 });
-
 
 /* -----------------------------------------------
  🔹 SAVE PHYSICAL EXAMINATION RECORD

@@ -74,13 +74,13 @@
       </a>
 
       <!-- Avg. Rating -->
-      <div class="summary-card">
+      <!-- <div class="summary-card">
         <div class="card-icon"><i class="fas fa-star"></i></div>
         <div class="card-content">
           <div class="card-value" id="avgRating">4.7</div>
           <div class="card-label">Avg. Rating</div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Main Dashboard Grid -->
@@ -91,7 +91,7 @@
             <div class="chart-header">
               <div class="chart-title"><i class="fas fa-chart-line"></i> Patient Visits</div>
               <div class="chart-controls">
-                <select class="chart-filter" name="department" required>
+                <select class="chart-filter" name="department" id="department">
                   <option value="all-dept">All Department</option>
                   <option value="CABM">CABM</option>
                   <option value="CCJE">CCJE</option>
@@ -100,8 +100,9 @@
                   <option value="TTED">TTED</option>
                   <option value="CTE">CTE</option>
                   <option value="BasicEd">BasicEd</option>
+                  <option value="Visitor">Visitor</option>
                 </select>
-                <select class="chart-filter" name="course">
+                <select class="chart-filter" name="course" id="course">
                   <option value="all-course-strand-genEduc">All Course/Strand/GenEduc</option>
                   <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
                   <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
@@ -122,8 +123,9 @@
                   <option value="Junior Highschool">Junior Highschool</option>
                   <option value="Elementary">Elementary</option>
                   <option value="Kindergarten">Kindergarten</option>
+                  <option value="Visitor">Visitor</option>
                 </select>
-                <select class="chart-filter" name="" id="">
+                <select class="chart-filter" name="time" id="time">
                   <option value="day">Today</option>
                   <option value="week" selected>Week</option>
                   <option value="month">Month</option>
