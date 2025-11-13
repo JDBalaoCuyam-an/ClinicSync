@@ -3,31 +3,45 @@ import {
   collection,
   addDoc,
   getDocs,
-  updateDoc,
+  setDoc,
+  deleteDoc,
   doc,
   query,
   orderBy,
-  serverTimestamp,
+  where
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+/* ===================================== */
+// Calendar Functionality
+/* ===================================== */
 const calendar = document.getElementById("calendar");
 const title = document.getElementById("month-year");
 const prevBtn = document.getElementById("prev-month");
 const nextBtn = document.getElementById("next-month");
 
-const modal = document.getElementById("appointment-modal");
-const selectedDateInput = document.getElementById("selected-date");
-const saveBtn = document.getElementById("save-appointment");
-const cancelBtn = document.getElementById("cancel-appointment");
-
-const upcomingList = document.getElementById("upcoming-list");
-const missedList = document.getElementById("missed-list");
-const finishedList = document.getElementById("finished-list");
-
 let currentDate = new Date();
-let selectedDate = null;
+let unavailableDays = new Set();
 
-// 🗓 Render Calendar
+// Save unavailable day
+async function saveUnavailableDay(dateString) {
+  await setDoc(doc(db, "unavailableDays", dateString), { date: dateString });
+}
+
+// Remove unavailable day
+async function removeUnavailableDay(dateString) {
+  await deleteDoc(doc(db, "unavailableDays", dateString));
+}
+
+// Load all unavailable days
+async function loadUnavailableDays() {
+  unavailableDays.clear();
+  const snapshot = await getDocs(collection(db, "unavailableDays"));
+  snapshot.forEach((docSnap) => {
+    unavailableDays.add(docSnap.id);
+  });
+  renderCalendar(currentDate);
+}
+
 function renderCalendar(date) {
   calendar.innerHTML = "";
   const year = date.getFullYear();
@@ -37,14 +51,12 @@ function renderCalendar(date) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-  title.textContent = `${date.toLocaleString("default", {
-    month: "long",
-  })} ${year}`;
+  title.textContent = `${date.toLocaleString("default", { month: "long" })} ${year}`;
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // ignore time when comparing
+  today.setHours(0, 0, 0, 0);
 
-  // Days from previous month
+  // Previous month's trailing days
   for (let i = firstDayOfMonth - 1; i >= 0; i--) {
     const day = daysInPrevMonth - i;
     const div = document.createElement("div");
@@ -53,7 +65,7 @@ function renderCalendar(date) {
     calendar.appendChild(div);
   }
 
-  // Days in current month
+  // Current month days
   for (let day = 1; day <= daysInMonth; day++) {
     const div = document.createElement("div");
     div.classList.add("calendar-day");
@@ -66,12 +78,7 @@ function renderCalendar(date) {
     const thisDate = new Date(`${year}-${formattedMonth}-${formattedDay}`);
     thisDate.setHours(0, 0, 0, 0);
 
-    // Highlight today
-    if (
-      thisDate.getDate() === today.getDate() &&
-      thisDate.getMonth() === today.getMonth() &&
-      thisDate.getFullYear() === today.getFullYear()
-    ) {
+    if (thisDate.getTime() === today.getTime()) {
       div.classList.add("today");
     }
 
@@ -79,13 +86,29 @@ function renderCalendar(date) {
     if (thisDate < today) {
       div.classList.add("past-day");
     } else {
-      div.addEventListener("click", () => openModal(dateString));
+      if (unavailableDays.has(dateString)) div.classList.add("unavailable");
+
+      div.addEventListener("click", async () => {
+        if (unavailableDays.has(dateString)) {
+          if (confirm(`This date (${dateString}) is unavailable. Make it available?`)) {
+            unavailableDays.delete(dateString);
+            div.classList.remove("unavailable");
+            await removeUnavailableDay(dateString);
+          }
+        } else {
+          if (confirm(`Mark ${dateString} as unavailable?`)) {
+            unavailableDays.add(dateString);
+            div.classList.add("unavailable");
+            await saveUnavailableDay(dateString);
+          }
+        }
+      });
     }
 
     calendar.appendChild(div);
   }
 
-  // Fill empty spaces at the end
+  // Trailing empty cells
   const totalCells = firstDayOfMonth + daysInMonth;
   const remaining = 7 - (totalCells % 7);
   if (remaining < 7) {
@@ -108,109 +131,123 @@ nextBtn.addEventListener("click", () => {
   renderCalendar(currentDate);
 });
 
-// Modal
-function openModal(date) {
-  selectedDate = date;
-  selectedDateInput.value = date;
-  modal.classList.remove("hidden");
-}
-cancelBtn.addEventListener("click", () => modal.classList.add("hidden"));
+loadUnavailableDays();
 
-// Save appointment
-saveBtn.addEventListener("click", async () => {
-  const time = document.getElementById("appointment-time").value;
-  const person = document.getElementById("appointment-person").value.trim();
-  const doctor = document.getElementById("appointment-doctor").value.trim();
-  const details = document.getElementById("appointment-details").value.trim();
+/* ===================================== */
+// Appointments Functionality (Summary Cards)
+/* ===================================== */
+const appointmentsContainer = document.getElementById("appointments-container");
 
-  if (!time || !person || !doctor || !details) {
-    alert("Please fill out all fields.");
-    return;
+async function acceptAppointment(data, docId) {
+  try {
+    // Check for duplicate patient using firstname, middlename, lastname, gender
+    const q = query(
+      collection(db, "patients"),
+      where("firstName", "==", data.patientFirstName),
+      where("middleName", "==", data.patientMiddleName || ""),
+      where("lastName", "==", data.patientLastName),
+      where("gender", "==", data.patientGender)
+    );
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      alert("Patient already exists in the database.");
+      return;
+    }
+
+    // Build patient object from pending appointment data
+    const patientData = {
+      age: data.patientAge || "",
+      birthdate: data.patientBirthdate || "",
+      civilStatus: data.patientCivilStatus || "",
+      course: data.patientCourse || "",
+      department: data.patientDepartment || "",
+      extName: data.patientExtName || "",
+      fatherAge: data.fatherAge || "",
+      fatherHealth: data.fatherHealth || "",
+      fatherName: data.fatherName || "",
+      fatherOccupation: data.fatherOccupation || "",
+      firstName: data.patientFirstName || "",
+      gender: data.patientGender || "",
+      lastName: data.patientLastName || "",
+      middleName: data.patientMiddleName || "",
+      motherAge: data.motherAge || "",
+      motherHealth: data.motherHealth || "",
+      motherName: data.motherName || "",
+      motherOccupation: data.motherOccupation || "",
+      nationality: data.patientNationality || "",
+      religion: data.patientReligion || "",
+      role: "patient",
+      schoolId: data.patientSchoolId || "",
+      year: data.patientYear || ""
+    };
+
+    // Add to patients collection
+    await addDoc(collection(db, "patients"), patientData);
+
+    // Remove from PendingAppointments
+    await deleteDoc(doc(db, "PendingAppointments", docId));
+
+    alert("Patient successfully added!");
+    loadAppointments();
+
+  } catch (error) {
+    console.error("Error accepting appointment:", error);
+    alert("Failed to accept appointment.");
   }
+}
+
+async function rejectAppointment(docId) {
+  if (confirm("Are you sure you want to reject this appointment?")) {
+    await deleteDoc(doc(db, "PendingAppointments", docId));
+    loadAppointments();
+  }
+}
+
+// Load pending appointments
+async function loadAppointments() {
+  appointmentsContainer.innerHTML = "";
 
   try {
-    await addDoc(collection(db, "schedules"), {
-      date: selectedDate,
-      time,
-      person,
-      doctor,
-      details,
-      status: "upcoming",
-      createdAt: serverTimestamp(),
-    });
-    alert("Appointment Saved!");
-    modal.classList.add("hidden");
-    loadAppointments();
-  } catch (error) {
-    console.error("Error adding appointment:", error);
-  }
-});
+    const q = query(collection(db, "PendingAppointments"), orderBy("appointmentDate", "asc"));
+    const querySnapshot = await getDocs(q);
 
-// Load appointments
-async function loadAppointments() {
-  upcomingList.innerHTML = "";
-  missedList.innerHTML = "";
-  finishedList.innerHTML = "";
-
-  const q = query(collection(db, "schedules"), orderBy("date"));
-  const snapshot = await getDocs(q);
-  const now = new Date();
-
-  let upcomingCount = 0,
-    missedCount = 0,
-    finishedCount = 0;
-
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <div>
-        <strong>${data.person}</strong> (${data.doctor})<br>
-        ${data.date} - ${data.time}<br>
-        ${data.details}
-      </div>
-    `;
-
-    const appointmentDate = new Date(`${data.date}T${data.time}`);
-    if (data.status === "finished") {
-      finishedList.appendChild(li);
-      finishedCount++;
-    } else if (appointmentDate < now) {
-      missedList.appendChild(li);
-      missedCount++;
-    } else {
-      li.classList.add("upcoming-highlight");
-      const doneBtn = document.createElement("button");
-      doneBtn.textContent = "✅ Done";
-      doneBtn.addEventListener("click", () => markFinished(docSnap.id));
-      li.appendChild(doneBtn);
-      upcomingList.appendChild(li);
-      upcomingCount++;
+    if (querySnapshot.empty) {
+      appointmentsContainer.innerHTML = "<p>No upcoming appointments.</p>";
+      return;
     }
-  });
 
-  // 🧮 Update Counts
-  document.getElementById("upcoming-count").textContent = upcomingCount;
-  document.getElementById("missed-count").textContent = missedCount;
-  document.getElementById("finished-count").textContent = finishedCount;
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const card = document.createElement("div");
+      card.classList.add("appointment-card");
+
+      let formattedDate = "N/A";
+      if (data.appointmentDate) {
+        const [year, month, day] = data.appointmentDate.split("-");
+        formattedDate = new Date(year, month - 1, day).toLocaleDateString();
+      }
+
+      card.innerHTML = `
+        <h3>${data.patientFirstName || ""} ${data.patientMiddleName || ""} ${data.patientLastName || ""}</h3>
+        <p><strong>Patient Type:</strong> ${data.patientType || "N/A"}</p>
+        <p><strong>Reason:</strong> ${data.appointmentReason || "N/A"}</p>
+        <p><strong>Scheduled At:</strong> ${formattedDate}</p>
+        <p><strong>Time:</strong> ${data.appointmentTime || "N/A"}</p>
+        <button class="accept-btn">Accept</button>
+        <button class="reject-btn">Reject</button>
+      `;
+
+      card.querySelector(".accept-btn").addEventListener("click", () => acceptAppointment(data, docSnap.id));
+      card.querySelector(".reject-btn").addEventListener("click", () => rejectAppointment(docSnap.id));
+
+      appointmentsContainer.appendChild(card);
+    });
+  } catch (error) {
+    console.error("Error loading appointments:", error);
+    appointmentsContainer.innerHTML = "<p>Failed to load appointments.</p>";
+  }
 }
 
-// 🔽 Collapsible Category Headers
-document.querySelectorAll(".category-header").forEach((header) => {
-  header.addEventListener("click", () => {
-    const targetList = document.getElementById(header.dataset.target);
-    targetList.classList.toggle("collapsed");
-  });
-});
-
-async function markFinished(id) {
-  const ref = doc(db, "schedules", id);
-  await updateDoc(ref, { status: "finished" });
-  loadAppointments();
-}
-
-// Auto-refresh
-setInterval(loadAppointments, 30000);
-
-renderCalendar(currentDate);
+// Initial load
 loadAppointments();

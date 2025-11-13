@@ -7,12 +7,14 @@
     <script type="module" src="../../firebaseconfig.js"></script>
     <link rel="stylesheet" href="../../assets/styles/Schedules.css" />
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
   </head>
   <body>
-   <!-- NavBar -->
+    <!-- NavBar -->
     <header class="navbar">
       <div class="left-header">
         <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
@@ -20,7 +22,9 @@
       </div>
       <div class="right-header">
         <div class="user-name" id="displayName"></div>
-        <div style="padding: 25px;background-color: aliceblue;border-radius: 50%;"></div>
+        <div
+          style="padding: 25px; background-color: aliceblue; border-radius: 50%"
+        ></div>
         <div class="logout-container">
           <form>
             <button type="submit" id="logout-button">
@@ -45,64 +49,36 @@
             <button id="next-month">▶</button>
           </div>
           <div class="calendar-weekdays">
-            <div>Sun</div><div>Mon</div><div>Tue</div>
-            <div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
           </div>
           <div id="calendar" class="calendar-grid"></div>
         </div>
-
-      <!-- Appointments -->
-        <div class="appointments-section">
-            <h2>Appointments</h2>
-            <div class="appointments-list">
-              <div class="appointment-category">
-                <h3 class="category-header" data-target="upcoming-list">
-                  Upcoming (<span id="upcoming-count">0</span>)
-                </h3>
-                <ul id="upcoming-list" class="scrollable-list"></ul>
-              </div>
-
-              <div class="appointment-category">
-                <h3 class="category-header" data-target="missed-list">
-                  Missed (<span id="missed-count">0</span>)
-                </h3>
-                <ul id="missed-list" class="scrollable-list"></ul>
-              </div>
-
-              <div class="appointment-category">
-                <h3 class="category-header" data-target="finished-list">
-                  Finished (<span id="finished-count">0</span>)
-                </h3>
-                <ul id="finished-list" class="scrollable-list"></ul>
-              </div>
-            </div>
-        </div>
-
-
-      <!-- Modal -->
-      <div id="appointment-modal" class="modal hidden">
-        <div class="modal-content">
-          <h3>New Appointment</h3>
-          <label>Date:</label>
-          <input type="text" id="selected-date" readonly />
-          <label>Time:</label>
-          <input type="time" id="appointment-time" />
-          <label>With (Patient Name):</label>
-          <input type="text" id="appointment-person" />
-          <label>Doctor/Staff:</label>
-          <input type="text" id="appointment-doctor" />
-          <label>Details:</label>
-          <textarea id="appointment-details"></textarea>
-          <div class="modal-actions">
-            <button id="save-appointment">Save</button>
-            <button id="cancel-appointment">Cancel</button>
-          </div>
+      </div>
+      <!-- Appointments Section -->
+      <div class="appointments-section">
+        <h2>Upcoming Appointments</h2>
+        <div id="appointments-container" class="appointments-grid">
+          <!-- Appointment cards will be injected here via JS -->
         </div>
       </div>
     </div>
-</div>
-  <div id="footer-container"></div>
+    <div id="appointment-modal" class="modal hidden">
+      <div class="modal-content">
+        <span id="close-modal" class="close">&times;</span>
+        <h2>Appointment Decision</h2>
+        <p id="modal-patient-name"></p>
+        <button id="accept-btn">Accept</button>
+        <button id="reject-btn">Reject</button>
+      </div>
+    </div>
+    <div id="footer-container"></div>
   </body>
-    <script src="../../assets/scripts/modal.js"></script>
-    <script src="../../assets/scripts/Schedules.js" type="module"></script>
+  <script src="../../assets/scripts/modal.js"></script>
+  <script src="../../assets/scripts/Schedules.js" type="module"></script>
 </html>

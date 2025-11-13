@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointment Scheduler</title>
+    <link rel="stylesheet" href="../../assets/styles/Schedules.css" />
+    <link rel="stylesheet" href="appointment.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <!-- ✅ NavBar -->
+    <header class="navbar">
+      <div class="left-header">
+        <h1>ClinicSync</h1>
+      </div>
+    </header>
+
+    <!-- ✅ Main Calendar -->
+    <div class="schedules-container">
+      <div class="calendar-and-appointments">
+        <div class="calendar-section">
+          <div class="calendar-header">
+            <button id="prev-month">◀</button>
+            <h2 id="month-year"></h2>
+            <button id="next-month">▶</button>
+          </div>
+
+          <div class="calendar-weekdays">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+          </div>
+
+          <div id="calendar" class="calendar-grid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="add-new-appointment" id="add-new-appointment-form">
+      <span class="close-button" onclick="closeAppointmentForm()">&times;</span>
+      <form id="patient-form">
+        <h2>Add New Patient</h2>
+
+        <div class="info-grid">
+          <label
+            >Last Name: <input type="text" name="patientLastName" required
+          /></label>
+          <label
+            >First Name: <input type="text" name="patientFirstName" required
+          /></label>
+          <label
+            >Middle Name: <input type="text" name="patientMiddleName" required
+          /></label>
+          <label>Ext. Name: <input type="text" name="patientExtName" /></label>
+          <label>
+            Gender:
+            <select name="patientGender" required>
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </label>
+          <label
+            >Birthdate: <input type="date" name="patientBirthdate" required
+          /></label>
+          <label>Age: <input type="number" name="patientAge" required /></label>
+          <label
+            >Civil Status: <input type="text" name="patientCivilStatus"
+          /></label>
+          <label
+            >Nationality: <input type="text" name="patientNationality"
+          /></label>
+          <label>Religion: <input type="text" name="patientReligion" /></label>
+          <label>
+            Patient Type:
+            <select name="patientType" required>
+              <option value="Student">Student</option>
+              <option value="Employee">Employee</option>
+              <option value="Visitor">Visitor</option>
+            </select>
+          </label>
+          <br>
+          <label>School ID(if Visitor, Can Leave Blank): <input type="text" name="patientSchoolId" /></label>
+          <label>
+            Department:
+            <select name="patientDepartment" required>
+              <option value="">Select Department</option>
+              <option value="CABM">CABM</option>
+              <option value="CCJE">CCJE</option>
+              <option value="CIT">CIT</option>
+              <option value="COT">COT</option>
+              <option value="TTED">TTED</option>
+              <option value="CTE">CTE</option>
+              <option value="BasicEd">BasicEd</option>
+              <option value="Visitor">Visitor</option>
+            </select>
+          </label>
+          <label>
+            Course/Strand/GE:
+            <select name="patientCourse">
+              <option value="">Select Course/Strand/GE</option>
+              <option value="BSA">Bachelor of Science in Accountancy</option>
+              <option value="BSHM">
+                Bachelor of Science in Hospitality Management
+              </option>
+              <option value="BSIT">
+                Bachelor of Science in Information Technology
+              </option>
+              <option value="BSOA">
+                Bachelor of Science in Office Administration
+              </option>
+              <option value="BSBA">
+                Bachelor of Science in Business Administration
+              </option>
+              <option value="BEED">Bachelor of Elementary Education</option>
+              <option value="BSPsy">Bachelor of Science in Psychology</option>
+              <option value="BSSW">Bachelor of Science in Social Work</option>
+              <option value="BSEd">Bachelor of Secondary Education</option>
+              <option value="TVTE">
+                Technical Vocational Teacher Education
+              </option>
+              <option value="BSCrim">Bachelor of Science in Criminology</option>
+              <option value="NC123">NC1 NC2 NC3</option>
+              <option value="BTh">Bachelor of Theology</option>
+              <option value="ABM">Accountancy and Business Management</option>
+              <option value="STEM">
+                Science, Technology, Engineering, and Mathematics
+              </option>
+              <option value="HumSc">Humanities and Sciences</option>
+              <option value="JHS">Junior Highschool</option>
+              <option value="Elem">Elementary</option>
+              <option value="Kinder">Kindergarten</option>
+              <option value="Visitor">Visitor</option>
+            </select>
+          </label>
+          <label
+            >Year level(if Visitor, Can Leave Blank): <input type="number" name="patientYear" min="1" max="12"
+          /></label>
+        </div>
+        <hr />
+        <h3>Parent’s Information</h3>
+        <div class="info-grid">
+          <label>Father’s Name: <input type="text" name="fatherName" /></label>
+          <label>Age: <input type="number" name="fatherAge" /></label>
+          <label
+            >Occupation: <input type="text" name="fatherOccupation"
+          /></label>
+          <label
+            >Health Status: <input type="text" name="fatherHealth"
+          /></label>
+
+          <label>Mother’s Name: <input type="text" name="motherName" /></label>
+          <label>Age: <input type="number" name="motherAge" /></label>
+          <label
+            >Occupation: <input type="text" name="motherOccupation"
+          /></label>
+          <label
+            >Health Status: <input type="text" name="motherHealth"
+          /></label>
+        </div>
+        <hr>
+        <label
+            >Brief Reason for Appointment: <input type="text" name="appointmentReason" required
+          /></label>
+          
+
+        <div class="form-buttons">
+          <button type="submit" class="save-btn">Add Patient</button>
+          <button type="button" class="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <!-- ✅ JavaScript -->
+  </body>
+  <script type="module" src="appointment.js"></script>
+</html>

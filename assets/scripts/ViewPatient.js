@@ -13,14 +13,15 @@ import {
   query,
   where,
   arrayUnion,
+  orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");
 
-
 /* -----------------------------------------------
-     🔹 LOAD PATIENT DATA
+     🔹 LOAD PATIENT DATA (with medicalHistory subcollection)
   ----------------------------------------------- */
 async function loadPatient() {
   if (!patientId) return;
@@ -36,19 +37,19 @@ async function loadPatient() {
 
     const data = patientSnap.data();
 
-    // 🧾 Header Name
+    /* 🧾 Header Name */
     document.querySelector(".patient-contacts h2").textContent = `${
-      data.lastName + "," || ""
+      data.lastName ? data.lastName + "," : ""
     } ${data.firstName || ""}`.trim();
 
-    // 🧩 Contact Details
+    /* 🧩 Contact Details */
     document.getElementById("phone-number").value = data.contact || "";
     document.getElementById("email-address").value = data.email || "";
     document.getElementById("home-address").value = data.address || "";
     document.getElementById("guardian-name").value = data.guardianName || "";
     document.getElementById("guardian-phone").value = data.guardianPhone || "";
 
-    // 🧩 Basic Info
+    /* 🧩 Basic Info */
     const infoFields = {
       lastName: data.lastName || "",
       firstName: data.firstName || "",
@@ -64,17 +65,17 @@ async function loadPatient() {
       role: data.role || "",
     };
 
-    // ✅ Set <input> fields only
     Object.keys(infoFields).forEach((key) => {
       const input = document.getElementById(key);
       if (input) input.value = infoFields[key];
     });
 
-    // ✅ Set <select> fields properly
+    /* 🧩 Select fields */
     document.getElementById("department").value = data.department || "";
     document.getElementById("course").value = data.course || "";
     document.getElementById("year").value = data.year || "";
-    // 🧩 Parent Info
+
+    /* 🧩 Parent Info */
     const parentFields = {
       fatherName: data.fatherName || "",
       fatherAge: data.fatherAge || "",
@@ -85,69 +86,79 @@ async function loadPatient() {
       motherOccupation: data.motherOccupation || "",
       motherHealth: data.motherHealth || "",
     };
+
     const parentInputs = document.querySelectorAll("#parent-info-grid input");
     Object.values(parentFields).forEach((val, i) => {
       if (parentInputs[i]) parentInputs[i].value = val;
     });
 
-    // 🧩 Medical History + Additional Info
-    const medFields = {
-      pastMedicalHistory: data.pastMedicalHistory || "",
-      familyHistory: data.familyHistory || "",
-      pastSurgicalHistory: data.pastSurgicalHistory || "",
-      supplements: data.supplements || "",
-      allergies: data.allergies || "",
-    };
+    /* 🩺 LOAD MEDICAL HISTORY SUBCOLLECTION */
+    const historyRef = collection(db, "patients", patientId, "medicalHistory");
+    const historySnap = await getDocs(query(historyRef, orderBy("updatedAt", "desc"), limit(1)));
 
-    // set textareas (first 5)
-    const medTextareas = document.querySelectorAll(
-      ".medical-history-content textarea"
-    );
-    Object.values(medFields).forEach((val, i) => {
-      if (medTextareas[i]) medTextareas[i].value = val;
-    });
+    if (!historySnap.empty) {
+      const latestHistory = historySnap.docs[0].data();
 
-    // set immunization fields
-    const immunizationFields = [
-      "bcg",
-      "dpt",
-      "opv",
-      "hepb",
-      "mmr",
-      "measles",
-      "others",
-    ];
-    immunizationFields.forEach((key) => {
-      const input = document.querySelector(
-        `.immunization-form input[name='${key}']`
+      // 🧩 Textareas (Past Medical, Family, Surgical, Supplements, Allergies)
+      const medTextareas = document.querySelectorAll(
+        ".medical-history-content textarea"
       );
-      if (input) input.value = data[key] || "";
-    });
+      const medFields = [
+        latestHistory.pastMedicalHistory || "",
+        latestHistory.familyHistory || "",
+        latestHistory.pastSurgicalHistory || "",
+        latestHistory.supplements || "",
+        latestHistory.allergies || "",
+      ];
+      medTextareas.forEach((ta, i) => (ta.value = medFields[i]));
 
-    // set OB-GYNE fields
-    const obgyneFields = [
-      "menarcheAge",
-      "durationDays",
-      "napkinsPerDay",
-      "interval",
-      "lastMenstrual",
-    ];
-    obgyneFields.forEach((key) => {
-      const input = document.querySelector(`.obgyne-form input[name='${key}']`);
-      if (input) input.value = data[key] || "";
-    });
+      // 🧩 Immunization Fields
+      const immunizationFields = [
+        "bcg",
+        "dpt",
+        "opv",
+        "hepb",
+        "mmr",
+        "measles",
+        "others",
+      ];
+      immunizationFields.forEach((key) => {
+        const input = document.querySelector(
+          `.immunization-form input[name='${key}']`
+        );
+        if (input) input.value = latestHistory[key] || "";
+      });
 
-    // set Dysmenorrhea radio
-    if (data.dysmenorrhea) {
-      const radio = document.querySelector(
-        `.obgyne-form input[type='radio'][value='${data.dysmenorrhea}']`
-      );
-      if (radio) radio.checked = true;
+      // 🧩 OB-GYNE Fields
+      const obgyneFields = [
+        "menarcheAge",
+        "durationDays",
+        "napkinsPerDay",
+        "interval",
+        "lastMenstrual",
+      ];
+      obgyneFields.forEach((key) => {
+        const input = document.querySelector(
+          `.obgyne-form input[name='${key}']`
+        );
+        if (input) input.value = latestHistory[key] || "";
+      });
+
+      // 🧩 Dysmenorrhea
+      if (latestHistory.dysmenorrhea) {
+        const radio = document.querySelector(
+          `.obgyne-form input[type='radio'][value='${latestHistory.dysmenorrhea}']`
+        );
+        if (radio) radio.checked = true;
+      }
+    } else {
+      console.log("No medical history found for this patient.");
     }
   } catch (err) {
     console.error("Error fetching patient:", err);
   }
 }
+
 
 /* -----------------------------------------------
      🔹 EDIT/SAVE CONTACT DETAILS
@@ -220,7 +231,7 @@ cancelContactEditBtn.addEventListener("click", () => {
 
 
 /* -----------------------------------------------
-     🔹 EDIT/SAVE MEDICAL HISTORY
+     🔹 EDIT/SAVE MEDICAL HISTORY (Update or Create)
   ----------------------------------------------- */
 
 const editHistoryBtn = document.querySelector(
@@ -236,6 +247,7 @@ editHistoryBtn.insertAdjacentElement("afterend", cancelHistoryBtn);
 
 let isEditingHistory = false;
 let originalHistoryData = {};
+let currentHistoryId = null; // 🆔 keep track of the latest doc
 
 editHistoryBtn.addEventListener("click", async () => {
   const editableFields = document.querySelectorAll(
@@ -260,6 +272,18 @@ editHistoryBtn.addEventListener("click", async () => {
     editHistoryBtn.textContent = "💾 Save";
     cancelHistoryBtn.style.display = "block";
     isEditingHistory = true;
+
+    // 🩺 Get latest medicalHistory document ID for updating later
+    const historyRef = collection(db, "patients", patientId, "medicalHistory");
+    const historySnap = await getDocs(
+      query(historyRef, orderBy("updatedAt", "desc"), limit(1))
+    );
+    if (!historySnap.empty) {
+      currentHistoryId = historySnap.docs[0].id;
+    } else {
+      currentHistoryId = null; // none yet
+    }
+
   } else {
     // Gather updated values
     const [pastMedical, familyHistory, pastSurgical, supplements, allergies] =
@@ -285,26 +309,40 @@ editHistoryBtn.addEventListener("click", async () => {
       document.querySelector(".obgyne-form input[type='radio']:checked")
         ?.value || "";
 
-    try {
-      await updateDoc(doc(db, "patients", patientId), {
-        pastMedicalHistory: pastMedical,
-        familyHistory,
-        pastSurgicalHistory: pastSurgical,
-        supplements,
-        allergies,
-        ...immunizationData,
-        ...obgyneData,
-        dysmenorrhea,
-      });
+    const historyData = {
+      pastMedicalHistory: pastMedical,
+      familyHistory,
+      pastSurgicalHistory: pastSurgical,
+      supplements,
+      allergies,
+      ...immunizationData,
+      ...obgyneData,
+      dysmenorrhea,
+      updatedAt: new Date(),
+    };
 
-      alert("Medical History updated!");
+    try {
+      const historyRef = collection(db, "patients", patientId, "medicalHistory");
+
+      if (currentHistoryId) {
+        // ✅ Update existing document
+        const historyDocRef = doc(historyRef, currentHistoryId);
+        await updateDoc(historyDocRef, historyData);
+        console.log("Existing medical history updated.");
+      } else {
+        // 🆕 No record yet — create one
+        await addDoc(historyRef, historyData);
+        console.log("New medical history created.");
+      }
+
+      alert("Medical History saved successfully!");
       editableFields.forEach((el) => el.setAttribute("disabled", "true"));
       editHistoryBtn.textContent = "✏️ Edit";
       cancelHistoryBtn.style.display = "none";
       isEditingHistory = false;
     } catch (err) {
-      console.error("Error updating medical history:", err);
-      alert("Failed to update medical history.");
+      console.error("Error saving medical history:", err);
+      alert("Failed to save medical history.");
     }
   }
 });
@@ -318,11 +356,7 @@ cancelHistoryBtn.addEventListener("click", () => {
   // Restore original values
   editableFields.forEach((el) => {
     if (el.type === "radio") {
-      if (el.value === originalHistoryData[el.name]) {
-        el.checked = true;
-      } else {
-        el.checked = false;
-      }
+      el.checked = el.value === originalHistoryData[el.name];
     } else {
       el.value = originalHistoryData[el.name];
     }
@@ -335,14 +369,13 @@ cancelHistoryBtn.addEventListener("click", () => {
   isEditingHistory = false;
 });
 
+
 /* -----------------------------------------------
      🔹 EDIT/SAVE PATIENT INFORMATION WITH CANCEL
   ----------------------------------------------- */
-
 const editPatientInfoBtn = document.querySelector(
   ".patient-info-content .edit-btn"
 );
-
 // Create Cancel button dynamically below the Edit/Save button
 let cancelPatientInfoBtn = document.createElement("button");
 cancelPatientInfoBtn.textContent = "❌ Cancel";
@@ -982,22 +1015,7 @@ editOverviewBtn.addEventListener("click", async () => {
   ====================================================== */
     const isNewVisit = confirm("Is this a new visit?");
     
-    if (isNewVisit) {
-      // ✅ Get patient details (department + course)
-      const patientRef = doc(db, "patients", patientId);
-      // const patientSnap = await getDoc(patientRef);
-
-      // let department = "";
-      // let course = "";
-
-      // if (patientSnap.exists()) {
-      //   const pData = patientSnap.data();
-      //   department = pData?.department || "";
-      //   course = pData?.course || "";
-      // } else {
-      //   console.warn("⚠️ Patient not found:", patientId);
-      // }
-
+    if (isNewVisit) {  
       // ✅ Save new PatientVisit
       await addDoc(collection(db, "PatientVisits"), {
         patientId,
