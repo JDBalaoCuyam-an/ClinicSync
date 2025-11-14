@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emergency Referrals</title>
+
+    <script type="module" src="../../firebaseconfig.js"></script>
+    <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
+    <link rel="stylesheet" href="../../assets/styles/EmergencyReferrals.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+
+  <body>
+    <!-- NavBar -->
+    <header class="navbar">
+      <div class="left-header">
+        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+        <h1>ClinicSync</h1>
+      </div>
+      <div class="right-header">
+        <div class="user-name" id="displayName"></div>
+        <div class="logout-container">
+          <form>
+            <button type="submit" id="logout-button">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <div id="sidebar-container"></div>
+    <div id="overlay" class="overlay"></div>
+
+    <!-- PAGE CONTENT -->
+    <main class="content">
+        <!-- CHART -->
+      <div class="chart-section">
+        <h3 style="text-align:center; margin-top: 20px;">Referral Frequency</h3>
+        <select id="chartFilter" class="chart-filter">
+          <option value="all">All Time</option>
+          <option value="day">Today</option>
+          <option value="week">Weekly</option>
+          <option value="month">Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+        <canvas id="referralChart" style="height:300px;"></canvas>
+      </div>
+
+      <div class="header-section">
+        <h2 style="text-align: center;">Emergency Referrals</h2>
+        <button id="addReferralBtn" class="add-btn">
+          <i class="fa-solid fa-plus"></i> Add Referral
+        </button>
+      </div>
+
+      <!-- REFERRALS TABLE -->
+      <table class="referral-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Department</th>
+            <th>Year</th>
+            <th>Chief Complaint</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="referralsList"></tbody>
+      </table>
+
+      
+
+    </main>
+
+    <!-- ADD / EDIT MODAL -->
+    <div id="referralModal" class="modal">
+      <div class="modal-content">
+        <h3 id="modalTitle">Add Emergency Referral</h3>
+        <form id="referralForm">
+          <input type="hidden" id="referralId" />
+
+          <label>Date</label>
+          <input type="date" id="referralDate" required />
+
+          <label>Time</label>
+          <input type="time" id="referralTime" required />
+
+          <label>Name</label>
+          <input type="text" id="referralName" required />
+
+          <label>Age</label>
+          <input type="number" id="referralAge" required />
+
+          <label>Gender</label>
+          <select id="referralGender" required>
+            <option value="">Select</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+
+          <label>Department</label>
+          <input type="text" id="referralDept" required />
+
+          <label>Year</label>
+          <input type="text" id="referralYear" required />
+
+          <label>Address</label>
+          <textarea id="referralAddress" required></textarea>
+
+          <label>Chief Complaint</label>
+          <textarea id="referralComplaint" required></textarea>
+
+          <label>Remarks</label>
+          <textarea id="referralRemarks"></textarea>
+
+          <div class="modal-buttons">
+            <button type="submit" class="save-btn">Save</button>
+            <button type="button" class="cancel-btn" onclick="closeReferralModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script type="module" src="../../assets/scripts/EmergencyReferrals.js"></script>
+    <script src="../../assets/scripts/modal.js"></script>
+  </body>
+</html>

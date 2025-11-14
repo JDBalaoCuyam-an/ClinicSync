@@ -201,10 +201,22 @@ body{
 
 /* TABLES - Consistent styling */
 table {
-  width: 100%;
+ width: 100%;
   border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 20px;
 }
-
+th {
+  background: #4a86c5;
+  color: white;
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
 table,
 th,
 td {
@@ -225,7 +237,9 @@ th {
 tr:nth-child(even) {
   background: var(--primary-lighter);
 }
-
+tr {
+  transition: all 0.2s ease;
+}
 tr {
   cursor: pointer;
   transition: background-color var(--transition-normal);
@@ -322,15 +336,14 @@ tr:hover {
    FOOTER STYLES
 ========================== */
 .footer-container {
-  background-color: var(--primary-color); /* same as your sidebar color */
+  background-color: var(--primary-color); 
   color: #fff;
   padding: 40px 20px 10px;
   width: 100%;
-  position: absolute;
-  
   font-family: 'Poppins', sans-serif;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
+
 
 .footer-content {
   display: flex;

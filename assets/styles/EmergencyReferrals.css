@@ -1,0 +1,175 @@
+/* =============================== */
+/* Emergency Referrals Page Styles */
+/* =============================== */
+
+/* PAGE WRAPPER */
+.content {
+padding: 20px;
+  height: 100vh;
+}
+
+
+.header-section h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+
+.add-btn {
+  background: #2b7cff;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.add-btn i {
+  font-size: 14px;
+}
+
+.add-btn:hover {
+  background: #1e63d6;
+}
+
+/* =============================== */
+/* MODAL */
+/* =============================== */
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 500;
+}
+
+.modal-content {
+  width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-content h3 {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+/* FORM STYLES */
+#referralForm label {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+#referralForm input,
+#referralForm select,
+#referralForm textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid #d3d3d3;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+#referralForm input:focus,
+#referralForm select:focus,
+#referralForm textarea:focus {
+  border-color: #2b7cff;
+  outline: none;
+}
+
+#referralForm textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+/* MODAL BUTTONS */
+.modal-buttons {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.save-btn {
+  background: #2b7cff;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.save-btn:hover {
+  background: #1e63d6;
+}
+
+.cancel-btn {
+  background: #ddd;
+  color: #333;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: #c8c8c8;
+}
+
+/* =============================== */
+/* MOBILE RESPONSIVENESS */
+/* =============================== */
+
+@media (max-width: 600px) {
+  .modal-content {
+    width: 90%;
+  }
+}
+
+.chart-section {
+    width: 100%;
+    max-width: 1200px; /* optional */
+    margin: 40px auto 50px auto;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#referralChart {
+    width: 100% !important;
+    height: auto !important; /* Let Chart.js handle height */
+    max-height: 400px;       /* optional max height */
+}
