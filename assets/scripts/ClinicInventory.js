@@ -31,6 +31,11 @@ function isOlderThan(dateString, days) {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;                // Prevent double clicks
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = "Saving...";      // Optional loading text
+
   const now = new Date();
   const currentDate = now.toISOString().split("T")[0];
   const currentTime = now.toLocaleTimeString([], {
@@ -42,10 +47,7 @@ form.addEventListener("submit", async (e) => {
     itemName: document.getElementById("item-name").value,
     quantity: parseInt(document.getElementById("quantity").value),
     borrowerName: document.getElementById("borrower-name").value,
-
-    // ✅ use current logged-in user as personnel
     personnel: currentUserName || "Unknown User",
-
     dateBorrowed: `${currentDate} ${currentTime}`,
     status: "Borrowed",
     dateReturned: "",
@@ -60,6 +62,10 @@ form.addEventListener("submit", async (e) => {
     loadBorrowers();
   } catch (error) {
     console.error("Error adding borrower:", error);
+    alert("⚠️ Failed to add borrower. Check console.");
+  } finally {
+    submitBtn.disabled = false;             // Re-enable button
+    submitBtn.textContent = originalText;   // Restore original text
   }
 });
 

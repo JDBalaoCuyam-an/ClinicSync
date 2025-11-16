@@ -211,6 +211,10 @@ roleSelect.addEventListener("change", updateMedicalCourseList);
 patientForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const submitButton = patientForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true; // disable button
+  submitButton.textContent = "Saving..."; // optional loading text
+
   const formData = new FormData(patientForm);
   const newPatient = Object.fromEntries(formData.entries());
 
@@ -223,8 +227,12 @@ patientForm.addEventListener("submit", async (e) => {
   } catch (error) {
     console.error("Error adding patient:", error);
     alert("Failed to add patient. Check console.");
+  } finally {
+    submitButton.disabled = false; // re-enable button
+    submitButton.textContent = "Add Patient"; // restore original text
   }
 });
+
 // ======================================================
 // ✅ DYNAMIC DEPARTMENT → COURSE FOR NEW PATIENT FORM
 // ======================================================

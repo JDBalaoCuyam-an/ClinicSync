@@ -1010,22 +1010,6 @@ editOverviewBtn.addEventListener("click", async () => {
       }
     }
 
-    /* ======================================================
-      ✅ ASK IF NEW VISIT
-  ====================================================== */
-    const isNewVisit = confirm("Is this a new visit?");
-    
-    if (isNewVisit) {  
-      // ✅ Save new PatientVisit
-      await addDoc(collection(db, "PatientVisits"), {
-        patientId,
-        consultationId : currentConsultationId,
-        timestamp: serverTimestamp(),
-      });
-
-      console.log("✅ PatientVisits entry added.");
-    }
-
     alert("✅ Consultation updated!");
 
     exitEditMode();

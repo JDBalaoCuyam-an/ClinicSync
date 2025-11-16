@@ -86,7 +86,7 @@ if (register) {
       document.getElementById("ext_name").value = "";
       document.getElementById("contact_number").value = "";
 
-      console.log("✅ Admin session restored & form cleared!");
+      document.querySelector(".newUserModal").style.display = "none";
     } catch (error) {
       console.error("Error creating account:", error);
       alert("❌ Failed: " + error.message);
@@ -94,38 +94,55 @@ if (register) {
   });
 }
 
-// ✅ Login Functionality
+// ✅ Login Functionality with Loading State
 const login = document.getElementById("login-button");
 if (login) {
-  login.addEventListener("click", function (event) {
+  login.addEventListener("click", async function (event) {
     event.preventDefault();
 
     const email = document.getElementById("login-email").value;
     const password = document.getElementById("login-password").value;
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
-        const user = userCredential.user;
+    // Disable button & show loading text
+    login.disabled = true;
+    const originalText = login.textContent;
+    login.textContent = "Logging in... ⏳";
 
-        const userDocRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(userDocRef);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          alert("✅ Logged in as " + user.email);
-          window.location.href =
-            userData.user_type === "admin"
-              ? "Pages/Admin/AdminHome.html"
-              : "Pages/DoctorNurse/DoctorNurseDashboard.html";
-        } else {
-          alert("❌ No user data found!");
+      const userDocRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userDocRef);
+
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+
+        // Reactivate if disabled
+        if (userData.disabled === true) {
+          await setDoc(userDocRef, { disabled: false, disabledAt: null }, { merge: true });
         }
-      })
-      .catch((error) => {
-        alert("❌ Login error: " + error.message);
-      });
+
+        // Update last login timestamp
+        await setDoc(userDocRef, { lastLogin: new Date() }, { merge: true });
+
+        alert("✅ Logged in as " + user.email);
+
+        // Redirect based on role
+        window.location.href = userData.user_type === "admin"
+          ? "Pages/Admin/AdminHome.html"
+          : "Pages/DoctorNurse/DoctorNurseDashboard.html";
+      }
+    } catch (error) {
+      alert("❌ Login error: " + error.message);
+    } finally {
+      // Restore button state
+      login.disabled = false;
+      login.textContent = originalText;
+    }
   });
 }
+
 
 // ✅ Logout with confirmation
 const logoutButton = document.getElementById("logout-button");
@@ -139,7 +156,7 @@ if (logoutButton) {
     signOut(auth)
       .then(() => {
         alert("Logged out!");
-        window.location.href = "../../Login.html";
+        window.location.href = "../../index.html";
       })
       .catch((error) => {
         console.error("Error logging out:", error);
@@ -148,12 +165,11 @@ if (logoutButton) {
   });
 }
 
-
 // ✅ Prevent access without login
-if (!window.location.pathname.includes("Login.html")) {
+if (!window.location.pathname.includes("index.html")) {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      window.location.href = "../../Login.html";
+      window.location.href = "../../index.html";
     } else {
       console.log("User is logged in:", user.email);
     }
@@ -174,7 +190,8 @@ onAuthStateChanged(auth, async (user) => {
     if (userData.exists()) {
       const data = userData.data();
 
-      const fullName = `${data.lastName}, ${data.firstName} ${data.extName}`.trim();
+      const fullName =
+        `${data.lastName}, ${data.firstName} ${data.extName}`.trim();
 
       nameDisplay.textContent = fullName;
       currentUserName = fullName; // ✅ <-- JUST THIS LINE ADDED

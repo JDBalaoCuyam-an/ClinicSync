@@ -53,6 +53,12 @@ window.closeReferralModal = () => {
 // Submit form
 referralForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  const submitBtn = referralForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;                // Prevent double click
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = selectedReferralId ? "Updating..." : "Saving...";
+
   const data = {
     date: document.getElementById("referralDate").value,
     time: document.getElementById("referralTime").value,
@@ -80,8 +86,13 @@ referralForm.addEventListener("submit", async (e) => {
     loadReferrals();
   } catch (error) {
     console.error(error);
+    alert("⚠️ Failed to save referral. Check console.");
+  } finally {
+    submitBtn.disabled = false;          // Re-enable button
+    submitBtn.textContent = originalText; // Restore text
   }
 });
+
 
 // Edit function
 window.editReferral = async (id) => {

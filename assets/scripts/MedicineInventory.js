@@ -25,6 +25,11 @@ let editId = null;
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const saveBtn = form.querySelector('button[type="submit"]');
+  saveBtn.disabled = true;            // Disable button to prevent double click
+  const originalText = saveBtn.textContent;
+  saveBtn.textContent = editMode ? "Updating..." : "Saving..."; // Loading text
+
   const name = document.getElementById("medicine-name").value.trim();
   const stock = parseInt(document.getElementById("stock-quantity").value);
   const expiry = document.getElementById("expiry-date").value;
@@ -35,6 +40,8 @@ form.addEventListener("submit", async (e) => {
 
   if (!name || isNaN(stock) || !expiry) {
     alert("⚠️ Please fill in all required fields!");
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
     return;
   }
 
@@ -74,8 +81,13 @@ form.addEventListener("submit", async (e) => {
     loadMedicines();
   } catch (error) {
     console.error("Error saving medicine:", error);
+    alert("⚠️ Failed to save medicine. Check console.");
+  } finally {
+    saveBtn.disabled = false;       // Re-enable button
+    saveBtn.textContent = originalText; // Restore original text
   }
 });
+
 
 /* ============================================================
    ✅ LOAD MEDICINES
@@ -96,9 +108,19 @@ function renderMedicines() {
   const searchValue = searchBar.value.toLowerCase();
   tableBody.innerHTML = "";
 
-  const filtered = medicines.filter((med) =>
+  // 🔹 Filter medicines by search
+  let filtered = medicines.filter((med) =>
     med.name.toLowerCase().includes(searchValue)
   );
+
+  // 🔹 Sort alphabetically by name
+  filtered.sort((a, b) => {
+    const nameA = (a.name || "").toLowerCase();
+    const nameB = (b.name || "").toLowerCase();
+    if (nameA < nameB) return -1;
+    if (nameA > nameB) return 1;
+    return 0;
+  });
 
   filtered.forEach((med) => {
     const row = document.createElement("tr");
@@ -123,7 +145,7 @@ function renderMedicines() {
       </td>
     `;
 
-    // ✅ Row click opens dispense (except edit button)
+    // Row click opens dispense (except edit button)
     row.addEventListener("click", (e) => {
       if (e.target.classList.contains("update-btn")) return;
 
@@ -139,14 +161,14 @@ function renderMedicines() {
     tableBody.appendChild(row);
   });
 
-  // ✅ Edit button listener
+  // Edit button listener
   document.querySelectorAll(".update-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-id");
       const med = medicines.find((m) => m.id === id);
       if (!med) return;
 
-      // 🧾 Fill form fields
+      // Fill form fields
       document.getElementById("medicine-name").value = med.name || "";
       document.getElementById("stock-quantity").value = med.stock || 0;
       document.getElementById("per-pack").value = med.perPack || 0;
@@ -154,20 +176,21 @@ function renderMedicines() {
         med.datePurchased || new Date().toISOString().split("T")[0];
       document.getElementById("expiry-date").value = med.expiry || "";
 
-      // 🟢 Switch to Edit mode
+      // Switch to Edit mode
       editMode = true;
       editId = id;
 
-      // 🔹 Change modal title & button
+      // Change modal title & button
       modalTitle.textContent = "Edit Medicine";
       saveBtn.textContent = "Update";
 
-      // 🧩 Show modal
+      // Show modal
       modal.style.display = "block";
       overlay.classList.add("show");
     });
   });
 }
+
 
 /* ============================================================
    ✅ SEARCH FILTER
