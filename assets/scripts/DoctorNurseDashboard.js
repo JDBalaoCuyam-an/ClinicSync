@@ -12,134 +12,86 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-// ✅ Function to count today's visits
-async function getTodayVisitCount() {
-  try {
-    const visitsRef = collection(db, "PatientVisits");
-
-    // Get start and end of current day (LOCAL time)
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-
-    // Convert to Firestore Timestamps
-    const startTimestamp = Timestamp.fromDate(startOfDay);
-    const endTimestamp = Timestamp.fromDate(endOfDay);
-
-    // Query Firestore
-    const q = query(
-      visitsRef,
-      where("timestamp", ">=", startTimestamp),
-      where("timestamp", "<", endTimestamp),
-      orderBy("timestamp", "asc")
-    );
-
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.size; // ✅ returns how many visits today
-  } catch (error) {
-    console.error("Error fetching today's visits:", error);
-    return 0;
-  }
-}
-
-// ✅ Update the card UI
-async function updateTodayVisitsCard() {
-  const count = await getTodayVisitCount();
-  document.getElementById("todayVisits").textContent = count;
-}
-
-// ✅ Auto-run when the page loads
-document.addEventListener("DOMContentLoaded", updateTodayVisitsCard);
-/* ============================
-   FIREBASE FETCH
-============================ */
+/* ======================================================
+   OPTIMIZED & FIXED FETCH VISIT DATA FUNCTION
+====================================================== */
 async function fetchVisitData({ department, course, dateFilter }) {
-  const visitsRef = collection(db, "PatientVisits");
-  let q = visitsRef;
-
-  // ✅ Compute start and end (UTC-based)
   const now = new Date();
-  let startDate = null;
-  let endDate = null;
+  const patientsRef = collection(db, "patients");
+  const patientSnap = await getDocs(patientsRef);
 
-  if (dateFilter === "day") {
-    startDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-    endDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 1));
-  } else if (dateFilter === "week") {
-    const day = now.getUTCDay();
-    startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - day));
-    endDate = new Date(startDate);
-    endDate.setUTCDate(startDate.getUTCDate() + 7);
-  } else if (dateFilter === "month") {
-    startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-  } else if (dateFilter === "year") {
-    startDate = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
-    endDate = new Date(Date.UTC(now.getUTCFullYear() + 1, 0, 1));
-  }
+  let earliestDate = null;
+  const results = [];
 
-  const startTimestamp = startDate ? Timestamp.fromDate(startDate) : null;
-  const endTimestamp = endDate ? Timestamp.fromDate(endDate) : null;
+  // Fetch consultations in parallel
+  const promises = patientSnap.docs.map(async (patientDoc) => {
+    const patientData = patientDoc.data();
+    const consultationsRef = collection(db, "patients", patientDoc.id, "consultations");
+    const consultSnap = await getDocs(consultationsRef);
 
-  // ✅ Safe query with index handling
-  try {
-    if (startTimestamp && endTimestamp) {
-      q = query(
-        visitsRef,
-        orderBy("timestamp", "asc"),
-        where("timestamp", ">=", startTimestamp),
-        where("timestamp", "<", endTimestamp)
-      );
-    } else if (startTimestamp) {
-      q = query(visitsRef, orderBy("timestamp", "asc"), where("timestamp", ">=", startTimestamp));
-    } else {
-      q = query(visitsRef, orderBy("timestamp", "asc"));
-    }
+    consultSnap.forEach((consultDoc) => {
+      const c = consultDoc.data();
+      if (!c.date || !c.time) return;
 
-    const qSnap = await getDocs(q);
-    const visits = [];
+      const [year, month, day] = c.date.split("-").map(Number);
+      const [hours, minutes] = c.time.split(":").map(Number);
+      const visitDate = new Date(year, month - 1, day, hours, minutes, 0);
+      if (isNaN(visitDate)) return;
 
-    for (const docSnap of qSnap.docs) {
-      const visit = docSnap.data();
-      if (!visit.timestamp) continue;
+      if (!earliestDate || visitDate < earliestDate) earliestDate = visitDate;
 
-      // Fetch patient info
-      const patientRef = doc(db, "patients", visit.patientId);
-      const patientSnap = await getDoc(patientRef);
-      const patientData = patientSnap.exists() ? patientSnap.data() : {};
-
-      visits.push({
-        ...visit,
+      results.push({
+        ...c,
+        patientId: patientDoc.id,
         role: patientData.role || "",
         department: patientData.department || "",
         course: patientData.course || "",
+        year: patientData.year || "",
+        visitDate
       });
-    }
-
-    // ✅ Apply department & course filters
-    return visits.filter((v) => {
-      const deptMatch =
-        !department || department === "all-dept" || v.department === department;
-      const courseMatch =
-        !course || course === "all-course-strand-genEduc" || v.course === course;
-      return deptMatch && courseMatch;
     });
-  } catch (error) {
-    console.error("Firestore filter failed:", error.message);
-    // fallback → fetch all
-    const allSnap = await getDocs(visitsRef);
-    const allVisits = [];
-    for (const docSnap of allSnap.docs) {
-      const visit = docSnap.data();
-      if (!visit.timestamp) continue;
-      allVisits.push(visit);
-    }
-    return allVisits;
+  });
+
+  await Promise.all(promises);
+
+  // --------------------------
+  // DATE RANGE LOGIC
+  // --------------------------
+  let startDate, endDate;
+  const setDate = (y, m, d, h = 0, min = 0, s = 0) => new Date(y, m, d, h, min, s);
+
+  if (dateFilter === "day") {
+    startDate = setDate(now.getFullYear(), now.getMonth(), now.getDate());
+    endDate = setDate(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  } else if (dateFilter === "week") {
+    const day = now.getDay(); // 0=Sun
+    startDate = new Date(now);
+    startDate.setDate(now.getDate() - day);
+    startDate.setHours(0, 0, 0, 0);
+    endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 7);
+  } else if (dateFilter === "month") {
+    startDate = setDate(now.getFullYear(), now.getMonth(), 1);
+    endDate = setDate(now.getFullYear(), now.getMonth() + 1, 1);
+  } else if (dateFilter === "year") {
+    startDate = earliestDate || setDate(now.getFullYear(), 0, 1);
+    startDate.setHours(0,0,0,0);
+    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   }
+
+  // Apply DATE filter
+  const dateFiltered = results.filter(v => v.visitDate >= startDate && v.visitDate < endDate);
+
+  // Apply DEPARTMENT + COURSE filter
+  return dateFiltered.filter(v => {
+    const deptMatch = !department || department === "all-dept" || v.department === department;
+    const courseMatch = !course || course === "all-course-strand-genEduc" || v.course === course;
+    return deptMatch && courseMatch;
+  });
 }
 
 /* ============================
-   CATEGORY GROUPING
+   VISIT CATEGORY LOGIC
 ============================ */
 function categorizeVisit(v) {
   if (v.role) {
@@ -147,7 +99,6 @@ function categorizeVisit(v) {
     if (["student", "employee", "visitor"].includes(r)) return r;
   }
 
-  // fallback: if no role, treat all department members as student by default
   const knownDepartments = ["BasicEd", "CTE", "CABM", "CIT", "COT", "CCJE", "TTED"];
   if (knownDepartments.includes(v.department)) return "student";
 
@@ -155,139 +106,71 @@ function categorizeVisit(v) {
 }
 
 /* ============================
-   DYNAMIC COURSE FILTER
-============================ */
-const departmentSelect = document.getElementById("department");
-const courseSelect = document.getElementById("course");
-
-// ✅ Store all original course options
-const allCourses = Array.from(courseSelect.options);
-
-// ✅ Mapping of department → allowed courses
-const departmentCourses = {
-  BasicEd: [
-    "Kindergarten",
-    "Elementary",
-    "Junior Highschool",
-    "Accountancy and Business Management",
-    "Science, Technology, Engineering, and Mathematics",
-    "Humanities and Sciences",
-  ],
-  CABM: [
-    "Bachelor of Science in Accountancy",
-    "Bachelor of Science in Office Administration",
-    "Bachelor of Science in Hospitality Management",
-  ],
-  CTE: [
-    "Bachelor of Science in Psychology",
-    "Bachelor of Elementary Education",
-    "Bachelor of Science in Social Work",
-    "Bachelor of Secondary Education",
-    "Technical Vocational Teacher Education",
-  ],
-  CIT: ["Bachelor of Science in Information Technology"],
-  TTED: ["NC1 NC2 NC3"],
-  COT: ["Bachelor of Theology"],
-  CCJE: ["Bachelor of Science in Criminology"],
-  Visitor: ["Visitor"],
-};
-
-// ✅ Listen for department change
-departmentSelect.addEventListener("change", () => {
-  const selectedDept = departmentSelect.value;
-
-  // ✅ Keep "All Course/Strand/GenEduc" option
-  const defaultOption = allCourses.find(
-    (opt) => opt.value === "all-course-strand-genEduc"
-  );
-
-  // Clear existing options
-  courseSelect.innerHTML = "";
-  if (defaultOption) courseSelect.appendChild(defaultOption.cloneNode(true));
-
-  if (selectedDept === "all-dept" || !departmentCourses[selectedDept]) {
-    // ✅ Restore all if "All Department" or unknown
-    allCourses.forEach((opt) => {
-      if (opt.value !== "all-course-strand-genEduc")
-        courseSelect.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    // ✅ Show only matching courses
-    departmentCourses[selectedDept].forEach((courseName) => {
-      const match = allCourses.find((opt) => opt.textContent.includes(courseName));
-      if (match) courseSelect.appendChild(match.cloneNode(true));
-    });
-  }
-
-  // Trigger chart re-render after filtering
-  renderVisitsChart(document.querySelectorAll(".chart-filter")[2].value);
-});
-
-/* ============================
    DATA GROUPING FOR CHART
 ============================ */
+function formatChartLabel(ts, dateFilter) {
+  const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  if (!(ts instanceof Date)) ts = new Date(ts);
+
+  switch (dateFilter) {
+    case "day":
+      return ts.getHours().toString().padStart(2, "0") + ":00";
+    case "week":
+      return weekdays[ts.getDay()];
+    case "month":
+      return ts.getDate().toString();
+    case "year":
+      return months[ts.getMonth()];
+    default:
+      return ts.toISOString().split("T")[0];
+  }
+}
+
+/* ============================
+   FINAL FIXED CHART GROUPING
+============================ */
 function formatChartData(visits, dateFilter) {
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const weekdays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   const grouping = {};
 
-  visits.forEach((v) => {
-    // ✅ Ensure valid timestamp
-    const ts = v.timestamp?.toDate ? v.timestamp.toDate() : new Date();
-    let label = "";
+  let labels = [];
 
-    // ✅ Label logic (consistent ordering and formatting)
-    if (dateFilter === "day") {
-      label = ts.getHours().toString().padStart(2, "0") + ":00";
-    } else if (dateFilter === "week") {
-      label = ts.toLocaleDateString("en-US", { weekday: "short" }); // e.g. Mon, Tue
-    } else if (dateFilter === "month") {
-      const weekNum = Math.ceil(ts.getDate() / 7);
-      label = "Week " + weekNum;
-    } else if (dateFilter === "year") {
-      label = ts.toLocaleDateString("en-US", { month: "short" }); // e.g. Jan, Feb
-    } else {
-      label = ts.toISOString().split("T")[0]; // default YYYY-MM-DD
-    }
+  if (dateFilter === "week") labels = [...weekdays];
+  else if (dateFilter === "month") labels = months; // months as labels for month view
+  else if (dateFilter === "day") labels = Array.from({length:24}, (_,i)=>i.toString().padStart(2,"0")+":00");
+  else if (dateFilter === "year") {
+    // Dynamic year range
+    const years = visits.map(v => v.visitDate.getFullYear());
+    const minYear = Math.min(...years);
+    const maxYear = new Date().getFullYear();
+    for(let y = minYear; y <= maxYear; y++) labels.push(y.toString());
+  }
 
-    // ✅ Initialize if label not yet seen
-    if (!grouping[label]) {
-      grouping[label] = { student: 0, employee: 0, visitor: 0 };
-    }
+  // Pre-populate grouping with zeros
+  labels.forEach(lbl => {
+    grouping[lbl] = { student: 0, employee: 0, visitor: 0 };
+  });
 
-    // ✅ Categorize visit (student / employee / visitor)
+  // Count visits
+  visits.forEach(v => {
+    let ts = v.visitDate instanceof Date ? v.visitDate : new Date(v.visitDate);
+    if (isNaN(ts)) return;
+
+    let label;
+    if (dateFilter === "day") label = ts.getHours().toString().padStart(2,"0")+":00";
+    else if (dateFilter === "week") label = weekdays[(ts.getDay()+6)%7]; // Mon=0
+    else if (dateFilter === "month") label = months[ts.getMonth()];
+    else if (dateFilter === "year") label = ts.getFullYear().toString();
+
     const cat = categorizeVisit(v);
-    if (grouping[label][cat] !== undefined) grouping[label][cat]++;
+    grouping[label][cat]++;
   });
 
-  // ✅ Sort labels in chronological order
-  const sortedLabels = Object.keys(grouping).sort((a, b) => {
-    if (dateFilter === "day") {
-      // "08:00" → 8, "14:00" → 14
-      return parseInt(a) - parseInt(b);
-    } else if (dateFilter === "week") {
-      // Maintain Mon–Sun order
-      const order = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      return order.indexOf(a) - order.indexOf(b);
-    } else if (dateFilter === "month") {
-      // Week 1 → Week 2 → Week 3
-      return parseInt(a.replace("Week ", "")) - parseInt(b.replace("Week ", ""));
-    } else if (dateFilter === "year") {
-      // Month order (Jan → Dec)
-      const order = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      return order.indexOf(a) - order.indexOf(b);
-    } else {
-      // Default ISO date sort
-      return new Date(a) - new Date(b);
-    }
-  });
-
-  // ✅ Build chart data arrays
-  const labels = [];
-  const student = [];
-  const employee = [];
-  const visitor = [];
-
-  sortedLabels.forEach((lbl) => {
-    labels.push(lbl);
+  const student=[], employee=[], visitor=[];
+  labels.forEach(lbl => {
     student.push(grouping[lbl].student);
     employee.push(grouping[lbl].employee);
     visitor.push(grouping[lbl].visitor);
@@ -307,54 +190,27 @@ async function renderVisitsChart(dateFilter = "week") {
   const department = document.querySelector("select[name='department']").value;
   const course = document.querySelector("select[name='course']").value;
 
-  // ✅ Fetch from Firestore not mock
   const visits = await fetchVisitData({ department, course, dateFilter });
-
   const { labels, student, employee, visitor } = formatChartData(visits, dateFilter);
 
   const data = {
     labels,
     datasets: [
-      {
-        label: "Student",
-        data: student,
-        borderWidth: 2,
-        tension: 0.3,
-      },
-      {
-        label: "Employee",
-        data: employee,
-        borderWidth: 2,
-        tension: 0.3,
-      },
-      {
-        label: "Visitor",
-        data: visitor,
-        borderWidth: 2,
-        tension: 0.3,
-      },
+      { label: "Student", data: student, borderWidth: 2, tension: 0.3 },
+      { label: "Employee", data: employee, borderWidth: 2, tension: 0.3 },
+      { label: "Visitor", data: visitor, borderWidth: 2, tension: 0.3 },
     ],
   };
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    scales: {
-      y: { beginAtZero: true },
-    },
-    interaction: {
-      mode: "index",
-      intersect: false,
-    },
+    scales: { y: { beginAtZero: true } },
+    interaction: { mode: "index", intersect: false },
   };
 
   if (visitsChart) visitsChart.destroy();
-
-  visitsChart = new Chart(visitsCtx, {
-    type: "line",
-    data,
-    options,
-  });
+  visitsChart = new Chart(visitsCtx, { type: "line", data, options });
 }
 
 /* ============================

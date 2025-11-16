@@ -35,46 +35,7 @@
     <div id="sidebar-container"></div>
     <div id="overlay" class="overlay"></div>
 
-    <!-- Appointment Modal -->
-    <div
-      id="appointment-modal"
-      class="modal"
-      style="
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1001;
-        width: 70%;
-      "
-    >
-      <div class="appointment-modal-content">
-        <h2>New Appointment</h2>
-        <form id="appointment-form">
-          <label>
-            Doctor:
-            <input type="text" id="appt-doctor" required />
-          </label>
-          <label>
-            Date:
-            <input type="date" id="appt-date" required />
-          </label>
-          <label>
-            Time:
-            <input type="time" id="appt-time" required />
-          </label>
-          <label>
-            Purpose / Details:
-            <input type="text" id="appt-purpose" required />
-          </label>
-          <div class="modal-actions">
-            <button type="submit">Save Appointment</button>
-            <button type="button" id="close-appointment">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    
 
     <div style="display: flex; justify-content: space-between">
       <button
@@ -83,7 +44,7 @@
       >
         Back
       </button>
-      <button id="make-appointment">Make Appointment</button>
+      <!-- <button id="make-appointment">Make Appointment</button> -->
     </div>
 
     <div class="view-patient-container">

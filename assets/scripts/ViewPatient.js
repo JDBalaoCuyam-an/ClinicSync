@@ -14,7 +14,7 @@ import {
   where,
   arrayUnion,
   orderBy,
-  limit
+  limit,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -94,7 +94,9 @@ async function loadPatient() {
 
     /* 🩺 LOAD MEDICAL HISTORY SUBCOLLECTION */
     const historyRef = collection(db, "patients", patientId, "medicalHistory");
-    const historySnap = await getDocs(query(historyRef, orderBy("updatedAt", "desc"), limit(1)));
+    const historySnap = await getDocs(
+      query(historyRef, orderBy("updatedAt", "desc"), limit(1))
+    );
 
     if (!historySnap.empty) {
       const latestHistory = historySnap.docs[0].data();
@@ -159,7 +161,6 @@ async function loadPatient() {
   }
 }
 
-
 /* -----------------------------------------------
      🔹 EDIT/SAVE CONTACT DETAILS
   ----------------------------------------------- */
@@ -216,19 +217,21 @@ cancelContactEditBtn.addEventListener("click", () => {
   document.getElementById("phone-number").value = originalContactData.contact;
   document.getElementById("email-address").value = originalContactData.email;
   document.getElementById("home-address").value = originalContactData.address;
-  document.getElementById("guardian-name").value = originalContactData.guardianName;
-  document.getElementById("guardian-phone").value = originalContactData.guardianPhone;
+  document.getElementById("guardian-name").value =
+    originalContactData.guardianName;
+  document.getElementById("guardian-phone").value =
+    originalContactData.guardianPhone;
 
   // Disable inputs
-  document.querySelectorAll(".patient-contacts input").forEach((inp) => inp.setAttribute("disabled", "true"));
+  document
+    .querySelectorAll(".patient-contacts input")
+    .forEach((inp) => inp.setAttribute("disabled", "true"));
 
   // Reset buttons
   editBtn.textContent = "✏️ Edit";
   cancelContactEditBtn.style.display = "none";
   isEditingContacts = false;
 });
-
-
 
 /* -----------------------------------------------
      🔹 EDIT/SAVE MEDICAL HISTORY (Update or Create)
@@ -259,9 +262,10 @@ editHistoryBtn.addEventListener("click", async () => {
     originalHistoryData = {};
     editableFields.forEach((el) => {
       if (el.type === "radio") {
-        originalHistoryData[el.name] = document.querySelector(
-          `.obgyne-form input[name="${el.name}"]:checked`
-        )?.value || "";
+        originalHistoryData[el.name] =
+          document.querySelector(
+            `.obgyne-form input[name="${el.name}"]:checked`
+          )?.value || "";
       } else {
         originalHistoryData[el.name] = el.value;
       }
@@ -283,7 +287,6 @@ editHistoryBtn.addEventListener("click", async () => {
     } else {
       currentHistoryId = null; // none yet
     }
-
   } else {
     // Gather updated values
     const [pastMedical, familyHistory, pastSurgical, supplements, allergies] =
@@ -322,7 +325,12 @@ editHistoryBtn.addEventListener("click", async () => {
     };
 
     try {
-      const historyRef = collection(db, "patients", patientId, "medicalHistory");
+      const historyRef = collection(
+        db,
+        "patients",
+        patientId,
+        "medicalHistory"
+      );
 
       if (currentHistoryId) {
         // ✅ Update existing document
@@ -368,7 +376,6 @@ cancelHistoryBtn.addEventListener("click", () => {
   cancelHistoryBtn.style.display = "none";
   isEditingHistory = false;
 });
-
 
 /* -----------------------------------------------
      🔹 EDIT/SAVE PATIENT INFORMATION WITH CANCEL
@@ -481,7 +488,6 @@ cancelPatientInfoBtn.addEventListener("click", () => {
   disablePatientInfoEditing(fields);
 });
 
-
 // ======================================================
 // ✅ DYNAMIC DEPARTMENT → COURSE FOR VIEW PATIENT / FORM
 // ======================================================
@@ -534,13 +540,18 @@ function updateDeptCourseForm() {
   if (selectedRole === "Visitor") {
     // Only show Visitor in Department
     deptSelectForm.innerHTML = "";
-    const visitorDept = allDeptOptionsForm.find((opt) => opt.value === "Visitor");
+    const visitorDept = allDeptOptionsForm.find(
+      (opt) => opt.value === "Visitor"
+    );
     if (visitorDept) deptSelectForm.appendChild(visitorDept.cloneNode(true));
 
     // Only show Visitor in Course
     courseSelectForm.innerHTML = "";
-    const visitorCourse = allCourseOptionsForm.find((opt) => opt.value === "Visitor");
-    if (visitorCourse) courseSelectForm.appendChild(visitorCourse.cloneNode(true));
+    const visitorCourse = allCourseOptionsForm.find(
+      (opt) => opt.value === "Visitor"
+    );
+    if (visitorCourse)
+      courseSelectForm.appendChild(visitorCourse.cloneNode(true));
 
     return;
   }
@@ -548,13 +559,16 @@ function updateDeptCourseForm() {
   // Restore all departments if needed
   if (deptSelectForm.options.length < allDeptOptionsForm.length) {
     deptSelectForm.innerHTML = "";
-    allDeptOptionsForm.forEach((opt) => deptSelectForm.appendChild(opt.cloneNode(true)));
+    allDeptOptionsForm.forEach((opt) =>
+      deptSelectForm.appendChild(opt.cloneNode(true))
+    );
   }
 
   // --- COURSE FILTER BASED ON DEPARTMENT ---
   courseSelectForm.innerHTML = "";
   const defaultCourse = allCourseOptionsForm.find((opt) => opt.value === "");
-  if (defaultCourse) courseSelectForm.appendChild(defaultCourse.cloneNode(true));
+  if (defaultCourse)
+    courseSelectForm.appendChild(defaultCourse.cloneNode(true));
 
   if (selectedDept === "" || !departmentCoursesForm[selectedDept]) {
     // Show all courses
@@ -564,7 +578,9 @@ function updateDeptCourseForm() {
   } else {
     // Show only department-specific courses
     departmentCoursesForm[selectedDept].forEach((courseName) => {
-      const match = allCourseOptionsForm.find((opt) => opt.textContent.includes(courseName));
+      const match = allCourseOptionsForm.find((opt) =>
+        opt.textContent.includes(courseName)
+      );
       if (match) courseSelectForm.appendChild(match.cloneNode(true));
     });
   }
@@ -579,8 +595,6 @@ deptSelectForm.addEventListener("change", updateDeptCourseForm);
 
 // ✅ Initial call in case Role is pre-selected
 updateDeptCourseForm();
-
-
 
 /* -----------------------------------------------
      🔹 CONSULTATION FORM SUBMIT
@@ -669,6 +683,13 @@ document
   .addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const submitBtn = document
+      .getElementById("consultation-form")
+      .querySelector('button[type="submit"]');
+    submitBtn.disabled = true; // prevent double click
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = "Saving..."; // optional loading text
+
     const now = new Date();
     const medDate = now.toISOString().split("T")[0];
     const medTime = now.toLocaleTimeString([], {
@@ -717,50 +738,44 @@ document
       createdAt: new Date(),
     };
 
-    // ✅ Save new complaint if not existing
-    const complaintValue = consultData.complaint;
-    if (complaintValue !== "") {
-      const complaintsRef = collection(db, "complaints");
-      const q = query(complaintsRef, where("name", "==", complaintValue));
-      const snapshot = await getDocs(q);
-      if (snapshot.empty) {
-        await addDoc(complaintsRef, {
-          name: complaintValue,
-          createdAt: new Date(),
-        });
-        console.log("✅ New complaint saved:", complaintValue);
-      }
-    }
-
     try {
+      // ✅ Save new complaint if not existing
+      const complaintValue = consultData.complaint;
+      if (complaintValue !== "") {
+        const complaintsRef = collection(db, "complaints");
+        const q = query(complaintsRef, where("name", "==", complaintValue));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          await addDoc(complaintsRef, {
+            name: complaintValue,
+            createdAt: new Date(),
+          });
+          console.log("✅ New complaint saved:", complaintValue);
+        }
+      }
+
       // ✅ Save Consultation Record
       const consultRef = collection(db, "patients", patientId, "consultations");
       const newConsultDoc = await addDoc(consultRef, consultData);
-
-      const consultationId = newConsultDoc.id; // ⬅️ NEW
+      const consultationId = newConsultDoc.id;
       console.log("✅ New Consultation ID:", consultationId);
 
-      /* ======================================================
-        🔹 SAVE PATIENT VISIT RECORD
-  ====================================================== */
+      // ✅ Save Patient Visit
       const patientRef = doc(db, "patients", patientId);
-      
       await addDoc(collection(db, "PatientVisits"), {
         patientId,
         consultationId,
         timestamp: serverTimestamp(),
       });
-
       console.log("✅ PatientVisits logged.");
-      await addDoc(collection(db, "complaintRecords"),{
+
+      await addDoc(collection(db, "complaintRecords"), {
         patientId,
         complaint: consultData.complaint,
         timestamp: serverTimestamp(),
       });
-      /* ======================================================
-        🔹 DEDUCT MEDICINE STOCK
-  ====================================================== */
 
+      // ✅ Deduct medicine stock
       for (const med of medsDispensed) {
         if (med.name && med.quantity > 0) {
           const invRef = collection(db, "MedicineInventory");
@@ -770,12 +785,8 @@ document
           if (!snapshot.empty) {
             const medDoc = snapshot.docs[0];
             const data = medDoc.data();
-
-            const currentStock = data.stock || 0;
-            const currentDispensed = data.dispensed || 0;
-
-            const newStock = Math.max(currentStock - med.quantity, 0);
-            const newDispensed = currentDispensed + med.quantity;
+            const newStock = Math.max((data.stock || 0) - med.quantity, 0);
+            const newDispensed = (data.dispensed || 0) + med.quantity;
 
             await updateDoc(medDoc.ref, {
               stock: newStock,
@@ -783,7 +794,11 @@ document
             });
 
             console.log(
-              `✅ ${med.name} stock updated: ${currentStock} → ${newStock}, dispensed: ${currentDispensed} → ${newDispensed}`
+              `✅ ${med.name} stock updated: ${
+                data.stock || 0
+              } → ${newStock}, dispensed: ${
+                data.dispensed || 0
+              } → ${newDispensed}`
             );
           } else {
             console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
@@ -799,6 +814,9 @@ document
     } catch (err) {
       console.error("❌ Error adding consultation:", err);
       alert("Failed to save consultation record.");
+    } finally {
+      submitBtn.disabled = false; // Re-enable button
+      submitBtn.textContent = originalText; // Restore original text
     }
   });
 
@@ -937,8 +955,6 @@ const cancelBtn = document.querySelector(
 ); // Cancel button
 const closeBtn = document.querySelector(".modal-buttons button:last-child"); // Close button
 
-let pendingMeds = [];
-let pendingVitals = [];
 let global_medsInventory = [];
 
 // ENTER EDIT / SAVE MODE
@@ -958,10 +974,6 @@ editOverviewBtn.addEventListener("click", async () => {
     // Show Cancel button
     cancelBtn.style.display = "inline-block";
 
-    // Reset pending arrays
-    pendingMeds = [];
-    pendingVitals = [];
-
     // Change Edit button text to Save
     editOverviewBtn.textContent = "💾 Save";
     return;
@@ -980,10 +992,6 @@ editOverviewBtn.addEventListener("click", async () => {
     updatedAt: new Date(),
   };
 
-  if (pendingMeds.length > 0) updatedData.meds = arrayUnion(...pendingMeds);
-  if (pendingVitals.length > 0)
-    updatedData.vitals = arrayUnion(...pendingVitals);
-
   try {
     const consultRef = doc(
       db,
@@ -994,21 +1002,6 @@ editOverviewBtn.addEventListener("click", async () => {
     );
 
     await updateDoc(consultRef, updatedData);
-
-    if (pendingMeds.length > 0) {
-      for (let m of pendingMeds) {
-        const medRef = doc(db, "MedicineInventory", m.id);
-        const medSnap = await getDoc(medRef);
-
-        if (medSnap.exists()) {
-          const data = medSnap.data();
-          const newStock = Math.max((data.stock || 0) - m.quantity, 0);
-          const newDispensed = (data.dispensed || 0) + m.quantity;
-
-          await updateDoc(medRef, { stock: newStock, dispensed: newDispensed });
-        }
-      }
-    }
 
     alert("✅ Consultation updated!");
 
@@ -1049,10 +1042,6 @@ function exitEditMode() {
 
   // Reset Edit button text
   editOverviewBtn.textContent = "✏️ Edit";
-
-  // Clear pending arrays
-  pendingMeds = [];
-  pendingVitals = [];
 }
 
 /* -----------------------------------------------
@@ -1173,56 +1162,108 @@ nextBtn.addEventListener("click", async () => {
 });
 
 /* ============================================================
-   SAVE MED DETAILS → PENDING ONLY
+   SAVE MED DETAILS
 ============================================================ */
+let isSavingMeds = false; // 🚫 Prevent double submissions
+
 saveMedDetailsBtn.addEventListener("click", async () => {
-  const qtyInputs = medDetailsContainer.querySelectorAll(".qty-input");
-  const typeInputs = medDetailsContainer.querySelectorAll(".type-input");
-  const remarksInputs = medDetailsContainer.querySelectorAll(".remarks-input");
+  if (isSavingMeds) return; // ⛔ Ignore double-click
+  isSavingMeds = true;
+  saveMedDetailsBtn.disabled = true; // lock button
 
-  let medsToAdd = [];
-  const now = new Date();
+  try {
+    const qtyInputs = medDetailsContainer.querySelectorAll(".qty-input");
+    const typeInputs = medDetailsContainer.querySelectorAll(".type-input");
+    const remarksInputs = medDetailsContainer.querySelectorAll(".remarks-input");
 
-  qtyInputs.forEach((input) => {
-    const id = input.dataset.id;
-    const med = global_medsInventory.find((m) => m.id === id);
-    if (!med) return;
+    let medsToAdd = [];
+    const now = new Date();
 
-    const qty = Number(input.value);
-    if (isNaN(qty) || qty <= 0) return;
+    qtyInputs.forEach((input) => {
+      const id = input.dataset.id;
+      const med = global_medsInventory.find((m) => m.id === id);
+      if (!med) return;
 
-    const typeEl = Array.from(typeInputs).find((t) => t.dataset.id === id);
-    const type = typeEl ? typeEl.value : "";
-    if (type === "") return;
+      const qty = Number(input.value);
+      if (isNaN(qty) || qty <= 0) return;
 
-    const remarksEl = Array.from(remarksInputs).find(
-      (r) => r.dataset.id === id
-    );
-    const remarks = remarksEl ? remarksEl.value : "";
+      const typeEl = Array.from(typeInputs).find((t) => t.dataset.id === id);
+      const type = typeEl ? typeEl.value : "";
+      if (type === "") return;
 
-    medsToAdd.push({
-      id,
-      name: med.name,
-      quantity: qty,
-      type,
-      remarks,
-      NurseOnDuty: currentUserName,
-      date: now.toISOString().split("T")[0],
-      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      const remarksEl = Array.from(remarksInputs).find(
+        (r) => r.dataset.id === id
+      );
+      const remarks = remarksEl ? remarksEl.value : "";
+
+      medsToAdd.push({
+        id,
+        name: med.name,
+        quantity: qty,
+        type,
+        remarks,
+        NurseOnDuty: currentUserName,
+        date: now.toISOString().split("T")[0],
+        time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      });
     });
-  });
 
-  if (medsToAdd.length === 0) {
-    alert("Please enter at least one valid medicine with type and quantity");
-    return;
+    if (medsToAdd.length === 0) {
+      alert("Please enter valid medicine info");
+      return;
+    }
+
+    const consultRef = doc(
+      db,
+      "patients",
+      patientId,
+      "consultations",
+      currentConsultationId
+    );
+
+    // 🔥 Save to Firestore
+    await updateDoc(consultRef, {
+      meds: arrayUnion(...medsToAdd),
+    });
+
+    // 🔥 Update inventory immediately
+    for (let m of medsToAdd) {
+      const medRef = doc(db, "MedicineInventory", m.id);
+      const medSnap = await getDoc(medRef);
+
+      if (medSnap.exists()) {
+        const data = medSnap.data();
+        const newStock = Math.max((data.stock || 0) - m.quantity, 0);
+        const newDispensed = (data.dispensed || 0) + m.quantity;
+
+        await updateDoc(medRef, { stock: newStock, dispensed: newDispensed });
+      }
+    }
+
+    alert("✅ Medication saved!");
+
+    closeMedDetailsModal();
+
+    // 🔥 Refresh table
+    await loadConsultations();
+
+    // 🔥 Reload updated consultation details
+    const updatedSnap = await getDoc(consultRef);
+    if (updatedSnap.exists()) {
+      showConsultationDetails(updatedSnap.data(), currentConsultationId);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Failed to save medication.");
+  } finally {
+    // 🔓 Always unlock button
+    isSavingMeds = false;
+    saveMedDetailsBtn.disabled = false;
   }
-
-  // ✅ Store temporarily — not DB yet
-  pendingMeds.push(...medsToAdd);
-
-  alert("✅ Medication(s) added! (Pending Save)");
-  closeMedDetailsModal();
 });
+
+
 window.openMedDetailsModal = openMedDetailsModal;
 window.closeMedDetailsModal = closeMedDetailsModal;
 
@@ -1267,44 +1308,70 @@ document.addEventListener("click", (e) => {
 /* ============================================================
    SAVE VITALS → PENDING ONLY
 ============================================================ */
-saveVitalsBtn.addEventListener("click", (e) => {
-  // Fetch all inputs safely
-  const bp = document.getElementById("new-vital-bp").value;
-  const temp = document.getElementById("new-vital-temp").value;
-  const spo2 = document.getElementById("new-vital-spo2").value;
-  const pr = document.getElementById("new-vital-pr").value;
-  const lmp = document.getElementById("new-vital-lmp").value;
+let isSavingVitals = false; // 🚫 Prevent double-click submissions
 
-  console.log("Vitals entered:", { bp, temp, spo2, pr, lmp }); // 🩺 Debug log
+saveVitalsBtn.addEventListener("click", async () => {
+  if (isSavingVitals) return; // ⛔ STOP if already saving
+  isSavingVitals = true;
+  saveVitalsBtn.disabled = true; // disable button during save
 
-  // Validate: at least one value should be filled
-  // const hasAny = bp || temp || spo2 || pr || lmp;
-  // if (!hasAny) {
-  //   alert("Please enter at least one vital sign.");
-  //   return;
-  // }
+  try {
+    const bp = document.getElementById("new-vital-bp").value;
+    const temp = document.getElementById("new-vital-temp").value;
+    const spo2 = document.getElementById("new-vital-spo2").value;
+    const pr = document.getElementById("new-vital-pr").value;
+    const lmp = document.getElementById("new-vital-lmp").value;
 
-  const now = new Date();
-  const newVital = {
-    bp,
-    temp,
-    spo2,
-    pr,
-    lmp,
-    takenBy: currentUserName || "Unknown",
-    recordedDate: now.toISOString().split("T")[0],
-    recordedTime: now.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  };
-  console;
-  // ✅ Temporarily store vitals (not yet in DB)
-  pendingVitals.push(newVital);
-  console.log("✅ Added vitals (pending):", pendingVitals);
+    const now = new Date();
+    const newVital = {
+      bp,
+      temp,
+      spo2,
+      pr,
+      lmp,
+      takenBy: currentUserName,
+      recordedDate: now.toISOString().split("T")[0],
+      recordedTime: now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
 
-  alert("✅ Vitals added! (Pending Save)");
-  closeVitalsModal();
+    const consultRef = doc(
+      db,
+      "patients",
+      patientId,
+      "consultations",
+      currentConsultationId
+    );
+
+    // 🔥 Add directly to Firestore
+    await updateDoc(consultRef, {
+      vitals: arrayUnion(newVital),
+    });
+
+    alert("✅ Vitals saved!");
+
+    closeVitalsModal();
+
+    // 🔥 Refresh table
+    await loadConsultations();
+
+    // 🔥 Reload updated consultation info in modal
+    const updatedSnap = await getDoc(consultRef);
+
+    if (updatedSnap.exists()) {
+      showConsultationDetails(updatedSnap.data(), currentConsultationId);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Failed to save vitals.");
+  } finally {
+    // 🔓 Re-enable button after operation completes
+    isSavingVitals = false;
+    saveVitalsBtn.disabled = false;
+  }
 });
 
 /* ============================================================
@@ -1566,70 +1633,7 @@ editExamBtn.addEventListener("click", async () => {
   }
 });
 
-// Schedule/Appointment
-const appointmentModal = document.getElementById("appointment-modal");
-const makeAppointmentBtn = document.getElementById("make-appointment");
-const closeAppointmentBtn = document.getElementById("close-appointment");
-const appointmentForm = document.getElementById("appointment-form");
 
-// 🔹 Open Modal
-makeAppointmentBtn.addEventListener("click", () => {
-  appointmentModal.style.display = "flex";
-});
-
-// 🔹 Close Modal
-closeAppointmentBtn.addEventListener("click", () => {
-  appointmentModal.style.display = "none";
-});
-
-// 🔹 Save Appointment (with Full Name)
-appointmentForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const selectedDate = document.getElementById("appt-date").value;
-  const time = document.getElementById("appt-time").value;
-  const doctor = document.getElementById("appt-doctor").value.trim();
-  const details = document.getElementById("appt-purpose").value.trim();
-
-  if (!selectedDate || !time || !doctor || !details) {
-    alert("Please fill out all fields.");
-    return;
-  }
-
-  try {
-    // 🧠 Fetch patient document to get full name
-    const patientRef = doc(db, "patients", patientId);
-    const patientSnap = await getDoc(patientRef);
-
-    if (!patientSnap.exists()) {
-      alert("Patient record not found!");
-      return;
-    }
-
-    const patientData = patientSnap.data();
-    const fullName = `${patientData.lastName || ""}, ${
-      patientData.firstName || ""
-    }`.trim();
-
-    // 💾 Save appointment with full name as "person"
-    await addDoc(collection(db, "schedules"), {
-      date: selectedDate,
-      time,
-      person: fullName,
-      doctor,
-      details,
-      status: "upcoming",
-      createdAt: serverTimestamp(),
-    });
-
-    alert("✅ Appointment Saved!");
-    appointmentModal.style.display = "none";
-    appointmentForm.reset();
-  } catch (error) {
-    console.error("Error adding appointment:", error);
-    alert("❌ Failed to save appointment. Try again.");
-  }
-});
 /* -----------------------------------------------
      🔹 INITIAL LOAD
   ----------------------------------------------- */
