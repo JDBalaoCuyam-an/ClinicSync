@@ -9,13 +9,13 @@ import {
   query,
   where,
   orderBy,
-  Timestamp
+  Timestamp,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 /* ======================================================
    OPTIMIZED & FIXED FETCH VISIT DATA FUNCTION
 ====================================================== */
-async function fetchVisitData({ department, course, dateFilter }) {
+async function fetchVisitData({ department, course, yearLevel, dateFilter }) {
   const now = new Date();
   const patientsRef = collection(db, "patients");
   const patientSnap = await getDocs(patientsRef);
@@ -26,7 +26,12 @@ async function fetchVisitData({ department, course, dateFilter }) {
   // Fetch consultations in parallel
   const promises = patientSnap.docs.map(async (patientDoc) => {
     const patientData = patientDoc.data();
-    const consultationsRef = collection(db, "patients", patientDoc.id, "consultations");
+    const consultationsRef = collection(
+      db,
+      "patients",
+      patientDoc.id,
+      "consultations"
+    );
     const consultSnap = await getDocs(consultationsRef);
 
     consultSnap.forEach((consultDoc) => {
@@ -46,8 +51,8 @@ async function fetchVisitData({ department, course, dateFilter }) {
         role: patientData.role || "",
         department: patientData.department || "",
         course: patientData.course || "",
-        year: patientData.year || "",
-        visitDate
+        year: patientData.year || "", //this is the year level of the student
+        visitDate,
       });
     });
   });
@@ -58,7 +63,8 @@ async function fetchVisitData({ department, course, dateFilter }) {
   // DATE RANGE LOGIC
   // --------------------------
   let startDate, endDate;
-  const setDate = (y, m, d, h = 0, min = 0, s = 0) => new Date(y, m, d, h, min, s);
+  const setDate = (y, m, d, h = 0, min = 0, s = 0) =>
+    new Date(y, m, d, h, min, s);
 
   if (dateFilter === "day") {
     startDate = setDate(now.getFullYear(), now.getMonth(), now.getDate());
@@ -75,19 +81,30 @@ async function fetchVisitData({ department, course, dateFilter }) {
     endDate = setDate(now.getFullYear(), now.getMonth() + 1, 1);
   } else if (dateFilter === "year") {
     startDate = earliestDate || setDate(now.getFullYear(), 0, 1);
-    startDate.setHours(0,0,0,0);
+    startDate.setHours(0, 0, 0, 0);
     endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   }
 
   // Apply DATE filter
-  const dateFiltered = results.filter(v => v.visitDate >= startDate && v.visitDate < endDate);
+  const dateFiltered = results.filter(
+    (v) => v.visitDate >= startDate && v.visitDate < endDate
+  );
 
   // Apply DEPARTMENT + COURSE filter
-  return dateFiltered.filter(v => {
-    const deptMatch = !department || department === "all-dept" || v.department === department;
-    const courseMatch = !course || course === "all-course-strand-genEduc" || v.course === course;
-    return deptMatch && courseMatch;
-  });
+ return dateFiltered.filter((v) => {
+  const deptMatch =
+    !department || department === "all-dept" || v.department === department;
+
+  const courseMatch =
+    !course || course === "all-course-strand-genEduc" || v.course === course;
+
+  const yearMatch =
+    !yearLevel || yearLevel === "all-year" || v.year == yearLevel;
+
+  return deptMatch && courseMatch && yearMatch;
+});
+
+
 }
 
 /* ============================
@@ -99,7 +116,15 @@ function categorizeVisit(v) {
     if (["student", "employee", "visitor"].includes(r)) return r;
   }
 
-  const knownDepartments = ["BasicEd", "CTE", "CABM", "CIT", "COT", "CCJE", "TTED"];
+  const knownDepartments = [
+    "BasicEd",
+    "CTE",
+    "CABM",
+    "CIT",
+    "COT",
+    "CCJE",
+    "TTED",
+  ];
   if (knownDepartments.includes(v.department)) return "student";
 
   return "visitor";
@@ -109,8 +134,21 @@ function categorizeVisit(v) {
    DATA GROUPING FOR CHART
 ============================ */
 function formatChartLabel(ts, dateFilter) {
-  const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
 
   if (!(ts instanceof Date)) ts = new Date(ts);
 
@@ -132,36 +170,56 @@ function formatChartLabel(ts, dateFilter) {
    FINAL FIXED CHART GROUPING
 ============================ */
 function formatChartData(visits, dateFilter) {
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const weekdays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const grouping = {};
 
   let labels = [];
 
   if (dateFilter === "week") labels = [...weekdays];
-  else if (dateFilter === "month") labels = months; // months as labels for month view
-  else if (dateFilter === "day") labels = Array.from({length:24}, (_,i)=>i.toString().padStart(2,"0")+":00");
+  else if (dateFilter === "month")
+    labels = months; // months as labels for month view
+  else if (dateFilter === "day")
+    labels = Array.from(
+      { length: 24 },
+      (_, i) => i.toString().padStart(2, "0") + ":00"
+    );
   else if (dateFilter === "year") {
     // Dynamic year range
-    const years = visits.map(v => v.visitDate.getFullYear());
+    const years = visits.map((v) => v.visitDate.getFullYear());
     const minYear = Math.min(...years);
     const maxYear = new Date().getFullYear();
-    for(let y = minYear; y <= maxYear; y++) labels.push(y.toString());
+    for (let y = minYear; y <= maxYear; y++) labels.push(y.toString());
   }
 
   // Pre-populate grouping with zeros
-  labels.forEach(lbl => {
+  labels.forEach((lbl) => {
     grouping[lbl] = { student: 0, employee: 0, visitor: 0 };
   });
 
   // Count visits
-  visits.forEach(v => {
+  visits.forEach((v) => {
     let ts = v.visitDate instanceof Date ? v.visitDate : new Date(v.visitDate);
     if (isNaN(ts)) return;
 
     let label;
-    if (dateFilter === "day") label = ts.getHours().toString().padStart(2,"0")+":00";
-    else if (dateFilter === "week") label = weekdays[(ts.getDay()+6)%7]; // Mon=0
+    if (dateFilter === "day")
+      label = ts.getHours().toString().padStart(2, "0") + ":00";
+    else if (dateFilter === "week")
+      label = weekdays[(ts.getDay() + 6) % 7]; // Mon=0
     else if (dateFilter === "month") label = months[ts.getMonth()];
     else if (dateFilter === "year") label = ts.getFullYear().toString();
 
@@ -169,8 +227,10 @@ function formatChartData(visits, dateFilter) {
     grouping[label][cat]++;
   });
 
-  const student=[], employee=[], visitor=[];
-  labels.forEach(lbl => {
+  const student = [],
+    employee = [],
+    visitor = [];
+  labels.forEach((lbl) => {
     student.push(grouping[lbl].student);
     employee.push(grouping[lbl].employee);
     visitor.push(grouping[lbl].visitor);
@@ -178,7 +238,6 @@ function formatChartData(visits, dateFilter) {
 
   return { labels, student, employee, visitor };
 }
-
 
 /* ============================
    CHART INITIALIZATION
@@ -189,9 +248,21 @@ const visitsCtx = document.getElementById("visitsChart").getContext("2d");
 async function renderVisitsChart(dateFilter = "week") {
   const department = document.querySelector("select[name='department']").value;
   const course = document.querySelector("select[name='course']").value;
+const yearLevel = document.querySelector("select[name='yearLevel']").value;
 
-  const visits = await fetchVisitData({ department, course, dateFilter });
-  const { labels, student, employee, visitor } = formatChartData(visits, dateFilter);
+
+ const visits = await fetchVisitData({
+  department,
+  course,
+  yearLevel,
+  dateFilter
+});
+
+  const { labels, student, employee, visitor } = formatChartData(
+    visits,
+    dateFilter
+  );
+
 
   const data = {
     labels,
@@ -218,27 +289,30 @@ async function renderVisitsChart(dateFilter = "week") {
 ============================ */
 document.querySelectorAll(".chart-filter").forEach((sel) => {
   sel.addEventListener("change", () => {
-    const timeframe = document.querySelectorAll(".chart-filter")[2].value;
+    const timeframe = document.querySelector("select[name='time']").value;
     renderVisitsChart(timeframe);
   });
 });
 
+
 /* DEFAULT LOAD */
 renderVisitsChart("week");
 
-
 /* ===========================================
-Chief Complaints Chart with Department & Course Filters
+Optimized Chief Complaints Chart + Filters
 =========================================== */
 let complaintsChart;
-const complaintsCtx = document.getElementById("complaintsChart").getContext("2d");
+const complaintsCtx = document
+  .getElementById("complaintsChart")
+  .getContext("2d");
 
-// === SELECT ELEMENTS ===
 const deptFilter = document.getElementById("departmentComplaintFilter");
 const courseFilter = document.getElementById("courseComplaintFilter");
 const dateFilter = document.getElementById("complaintChartFilter");
 
-// 🕒 GET START + END DATE RANGE
+/* ===============================
+   DATE RANGE
+=============================== */
 function getDateRange(filter) {
   const now = new Date();
   let start = new Date();
@@ -256,15 +330,35 @@ function getDateRange(filter) {
     case "year":
       start.setFullYear(now.getFullYear() - 1);
       break;
-    case "all":
+    default:
       start = new Date("1970-01-01");
-      break;
   }
 
   return { start, end: now };
 }
 
-// 📊 LOAD CHIEF COMPLAINTS
+/* ===============================
+   PRELOAD PATIENTS (1-time only)
+=============================== */
+let patientCache = null;
+
+async function loadAllPatientsOnce() {
+  if (patientCache) return patientCache;
+
+  const snap = await getDocs(collection(db, "patients"));
+
+  const map = {};
+  snap.forEach((doc) => {
+    map[doc.id] = doc.data();
+  });
+
+  patientCache = map;
+  return map;
+}
+
+/* ===============================
+   LOAD + FILTER COMPLAINTS
+=============================== */
 async function loadComplaints(
   timeFilter = "week",
   departmentFilter = "all-dept",
@@ -273,26 +367,22 @@ async function loadComplaints(
   try {
     const { start, end } = getDateRange(timeFilter);
 
-    // ✅ Directly read all consultation documents
-    const consultRef = collection(db, "complaintRecords");
-    const consultSnap = await getDocs(consultRef);
+    // Load all patients into memory (cached)
+    const patients = await loadAllPatientsOnce();
+
+    // Load all complaintRecords (only patientId + consultationId)
+    const complaintSnap = await getDocs(collection(db, "complaintRecords"));
 
     const complaintCounts = {};
 
-    for (const docSnap of consultSnap.docs) {
-      const data = docSnap.data();
-      const complaint = (data.complaint || "").trim();
-      const recordDate = data.timestamp?.toDate?.() ?? null;
-if (!recordDate || recordDate < start || recordDate > end) continue;
+    for (const rec of complaintSnap.docs) {
+      const { patientId, consultationId } = rec.data();
+      if (!patientId || !consultationId) continue;
 
-
-      // Filter only consultations within date range
-      if (!recordDate || recordDate < start || recordDate > end) continue;
-
-      // 🔍 Fetch patient info to apply department/course filters
-      const patientRef = doc(db, "patients", data.patientId);
-      const patientSnap = await getDoc(patientRef);
-      const patient = patientSnap.exists() ? patientSnap.data() : {};
+      /* ==========================
+         1️⃣ Load patient (cached)
+      ===========================*/
+      const patient = patients[patientId] || {};
 
       // Department filter
       if (
@@ -301,107 +391,71 @@ if (!recordDate || recordDate < start || recordDate > end) continue;
       )
         continue;
 
-      // Course/Strand filter
+      // Course filter
       if (
         courseFilterValue !== "all-course-strand-genEduc" &&
         patient.course !== courseFilterValue
       )
         continue;
 
-      // ✅ Count complaints
-      if (complaint) {
-        complaintCounts[complaint] = (complaintCounts[complaint] || 0) + 1;
-      }
+      /* ==========================
+         2️⃣ Load consultation document
+      ===========================*/
+      const consultRef = doc(
+        db,
+        "patients",
+        patientId,
+        "consultations",
+        consultationId
+      );
+      const consultSnap = await getDoc(consultRef);
+      if (!consultSnap.exists()) continue;
+
+      const consultData = consultSnap.data();
+
+      const complaint = (consultData.complaint || "").trim();
+      if (!complaint) continue;
+
+      /* ==========================
+         3️⃣ Convert "date" and "time"
+             into a real JS Date object
+      ===========================*/
+      const dateStr = consultData.date; // "2025-11-12"
+      const timeStr = consultData.time; // "08:38"
+
+      if (!dateStr || !timeStr) continue;
+
+      // Build valid date-time string
+      const recordDate = new Date(`${dateStr}T${timeStr}:00`);
+
+      if (isNaN(recordDate)) continue; // invalid date
+
+      // Date filtering
+      if (recordDate < start || recordDate > end) continue;
+
+      /* ==========================
+         4️⃣ Count the complaint
+      ===========================*/
+      complaintCounts[complaint] = (complaintCounts[complaint] || 0) + 1;
+      console.log("---- NEW RECORD ----");
+      console.log("patientId:", patientId);
+      console.log("consultationId:", consultationId);
+      console.log("patient found:", !!patients[patientId]);
     }
 
-    const labels = Object.keys(complaintCounts);
-    const values = Object.values(complaintCounts);
-
-    renderComplaintsChart(labels, values);
-
-    if (labels.length === 0) {
-      console.warn("No complaints found within the selected date range.");
-    }
+    // Render chart
+    renderComplaintsChart(
+      Object.keys(complaintCounts),
+      Object.values(complaintCounts)
+    );
   } catch (err) {
     console.error("❌ Error loading complaints:", err);
   }
 }
 
-
-  //  DYNAMIC COURSE FILTER for Chief Complaints
-
-const deptComplaintSelect = document.getElementById("departmentComplaintFilter");
-const courseComplaintSelect = document.getElementById("courseComplaintFilter");
-
-// ✅ Store all original course options
-const allComplaintCourses = Array.from(courseComplaintSelect.options);
-
-// ✅ Department → allowed course mapping
-const departmentComplaintCourses = {
-  BasicEd: [
-    "Kindergarten",
-    "Elementary",
-    "Junior Highschool",
-    "Accountancy and Business Management",
-    "Science, Technology, Engineering, and Mathematics",
-    "Humanities and Sciences",
-  ],
-  CABM: [
-    "Bachelor of Science in Accountancy",
-    "Bachelor of Science in Office Administration",
-    "Bachelor of Science in Hospitality Management",
-  ],
-  CTE: [
-    "Bachelor of Science in Psychology",
-    "Bachelor of Elementary Education",
-    "Bachelor of Science in Social Work",
-    "Bachelor of Secondary Education",
-    "Technical Vocational Teacher Education",
-  ],
-  CIT: ["Bachelor of Science in Information Technology"],
-  TTED: ["NC1 NC2 NC3"],
-  COT: ["Bachelor of Theology"],
-  CCJE: ["Bachelor of Science in Criminology"],
-  Visitor: ["Visitor"],
-};
-
-// ✅ Listen for department change
-deptComplaintSelect.addEventListener("change", () => {
-  const selectedDept = deptComplaintSelect.value;
-
-  // ✅ Keep "All Course/Strand/GenEduc" option
-  const defaultOption = allComplaintCourses.find(
-    (opt) => opt.value === "all-course-strand-genEduc"
-  );
-
-  // Clear old options
-  courseComplaintSelect.innerHTML = "";
-  if (defaultOption) courseComplaintSelect.appendChild(defaultOption.cloneNode(true));
-
-  if (selectedDept === "all-dept" || !departmentComplaintCourses[selectedDept]) {
-    // ✅ Restore all courses
-    allComplaintCourses.forEach((opt) => {
-      if (opt.value !== "all-course-strand-genEduc")
-        courseComplaintSelect.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    // ✅ Add only matching courses
-    departmentComplaintCourses[selectedDept].forEach((courseName) => {
-      const match = allComplaintCourses.find((opt) =>
-        opt.textContent.includes(courseName)
-      );
-      if (match) courseComplaintSelect.appendChild(match.cloneNode(true));
-    });
-  }
-
-  // ✅ Auto-reset course filter to default for cleaner filtering
-  courseComplaintSelect.value = "all-course-strand-genEduc";
-
-  // ✅ Refresh chart after filtering
-  applyFilters();
-});
-
-// 🎨 RENDER BAR CHART
+/* ===============================
+   RENDER BAR CHART
+=============================== */
 function renderComplaintsChart(labels, values) {
   if (complaintsChart) complaintsChart.destroy();
 
@@ -422,35 +476,31 @@ function renderComplaintsChart(labels, values) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: "Count" } },
-        x: { title: { display: true, text: "Complaint" } },
+        y: { beginAtZero: true },
+        x: {},
       },
       plugins: {
-        title: {
-          display: true,
-          text: "Most Common Chief Complaints",
-          font: { size: 16 },
-        },
         legend: { display: false },
+        title: { display: true, text: "Most Common Chief Complaints" },
       },
     },
   });
 }
 
-// 🔄 FILTER CHANGE HANDLERS
+/* ===============================
+   FILTER HANDLERS
+=============================== */
 function applyFilters() {
-  const timeFilter = dateFilter.value;
-  const departmentFilter = deptFilter.value;
-  const courseFilterValue = courseFilter.value;
-
-  loadComplaints(timeFilter, departmentFilter, courseFilterValue);
+  loadComplaints(dateFilter.value, deptFilter.value, courseFilter.value);
 }
 
 deptFilter.addEventListener("change", applyFilters);
 courseFilter.addEventListener("change", applyFilters);
 dateFilter.addEventListener("change", applyFilters);
 
-/* ✅ Default Load */
+/* ===============================
+   DEFAULT LOAD
+=============================== */
 loadComplaints("week");
 
 /* ===========================================
@@ -496,12 +546,13 @@ async function renderStockChart(filterType = "expiry") {
 
     labels = withDays.map((m) => m.name);
     data = withDays.map((m) => m.daysRemaining);
-    colors = data.map((days) =>
-      days <= 30
-        ? "rgba(255, 99, 132, 0.7)" // Red
-        : days <= 90
-        ? "rgba(255, 206, 86, 0.7)" // Yellow
-        : "rgba(75, 192, 192, 0.7)" // Green
+    colors = data.map(
+      (days) =>
+        days <= 30
+          ? "rgba(255, 99, 132, 0.7)" // Red
+          : days <= 90
+          ? "rgba(255, 206, 86, 0.7)" // Yellow
+          : "rgba(75, 192, 192, 0.7)" // Green
     );
     chartTitle = "Top 10 Medicines Closest to Expiration";
   } else if (filterType === "stock") {
@@ -513,12 +564,13 @@ async function renderStockChart(filterType = "expiry") {
 
     labels = lowStock.map((m) => m.name);
     data = lowStock.map((m) => m.stock);
-    colors = data.map((qty) =>
-      qty <= 20
-        ? "rgba(255, 99, 132, 0.7)" // Red
-        : qty <= 50
-        ? "rgba(255, 206, 86, 0.7)" // Yellow
-        : "rgba(75, 192, 192, 0.7)" // Green
+    colors = data.map(
+      (qty) =>
+        qty <= 20
+          ? "rgba(255, 99, 132, 0.7)" // Red
+          : qty <= 50
+          ? "rgba(255, 206, 86, 0.7)" // Yellow
+          : "rgba(75, 192, 192, 0.7)" // Green
     );
     chartTitle = "Top 10 Medicines About to Run Out of Stock";
   }
@@ -568,10 +620,7 @@ async function renderStockChart(filterType = "expiry") {
           beginAtZero: true,
           title: {
             display: true,
-            text:
-              filterType === "expiry"
-                ? "Days Remaining"
-                : "Stock Quantity",
+            text: filterType === "expiry" ? "Days Remaining" : "Stock Quantity",
           },
         },
         y: {
@@ -583,12 +632,10 @@ async function renderStockChart(filterType = "expiry") {
 }
 
 // 🔘 Handle filter change
-document
-  .getElementById("medChartFilter")
-  .addEventListener("change", (e) => {
-    currentFilter = e.target.value;
-    renderStockChart(currentFilter);
-  });
+document.getElementById("medChartFilter").addEventListener("change", (e) => {
+  currentFilter = e.target.value;
+  renderStockChart(currentFilter);
+});
 
 // 🚀 Initial chart render
 renderStockChart(currentFilter);
@@ -612,7 +659,12 @@ function formatDate(date) {
 // Display current date/time
 function displayCurrentDate() {
   const now = new Date();
-  const options = { weekday: "long", month: "short", day: "numeric", year: "numeric" };
+  const options = {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  };
   currentDateTimeSpan.textContent = now.toLocaleDateString(undefined, options);
 }
 
@@ -640,10 +692,10 @@ function renderAppointments() {
   appointmentsList.innerHTML = "";
 
   // Filter appointments for today, upcoming status, and not in the past
-  const todaysAppointments = appointments.filter(appt => {
+  const todaysAppointments = appointments.filter((appt) => {
     if (appt.date !== todayStr) return false;
     if (appt.status !== "upcoming") return false; // Only show upcoming appointments
-    
+
     if (!appt.time) return true; // If no time, assume it's still valid
 
     const [hours, minutes] = appt.time.split(":").map(Number);
@@ -657,7 +709,7 @@ function renderAppointments() {
     return;
   }
 
-  todaysAppointments.forEach(appt => {
+  todaysAppointments.forEach((appt) => {
     const apptDiv = document.createElement("div");
     apptDiv.className = "appointment-item onclick window href";
     apptDiv.innerHTML = `
@@ -665,17 +717,19 @@ function renderAppointments() {
         <div class="patient-name">${appt.person || "-"}</div>
         <div class="appointment-time">⏰${appt.date} ${appt.time || "-"}</div>
         <div class="doctor-name">👨‍⚕️ ${appt.doctor || "-"}</div>
-        <div class="appointment-details">🗒️ ${appt.details || "No details provided"}</div>
+        <div class="appointment-details">🗒️ ${
+          appt.details || "No details provided"
+        }</div>
       </div>
     `;
-     // ✅ Make the whole div clickable
-  apptDiv.addEventListener("click", () => {
-    // Example: redirect to an appointment details page
-    window.location.href = `Schedules.html`;
-  });
+    // ✅ Make the whole div clickable
+    apptDiv.addEventListener("click", () => {
+      // Example: redirect to an appointment details page
+      window.location.href = `Schedules.html`;
+    });
 
-  // Optional: make it look clickable with CSS
-  apptDiv.style.cursor = "pointer";
+    // Optional: make it look clickable with CSS
+    apptDiv.style.cursor = "pointer";
     appointmentsList.appendChild(apptDiv);
   });
 }

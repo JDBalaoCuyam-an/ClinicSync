@@ -9,10 +9,10 @@ function addMedicineOverlay() {
   document.getElementById("overlay").classList.add("show");
 }
 
-function dispenseMedicineOverlay() {
-  document.getElementById("dispense-medicine").classList.add("show");
-  document.getElementById("overlay").classList.add("show");
-}
+// function dispenseMedicineOverlay() {
+//   document.getElementById("dispense-medicine").classList.add("show");
+//   document.getElementById("overlay").classList.add("show");
+// }
 function addBorrowerOverlay() {
   document.getElementById("add-borrower").classList.add("show");
   document.getElementById("overlay").classList.add("show");
@@ -33,7 +33,7 @@ function addPhysicalExamOverlay() {
 // Close Button Function and Background Click Blocker
 function closeButtonOverlay() {
   const addMedicine = document.getElementById("add-medicine");
-  const dispenseMedicine = document.getElementById("dispense-medicine");
+  // const dispenseMedicine = document.getElementById("dispense-medicine");
   const addBorrower = document.getElementById("add-borrower");
   const addPatient = document.getElementById("add-new-patient");
   const addConsultationRecord = document.getElementById(
@@ -53,9 +53,9 @@ function closeButtonOverlay() {
   if (addMedicine && addMedicine.classList.contains("show")) {
     addMedicine.classList.remove("show");
   }
-  if (dispenseMedicine && dispenseMedicine.classList.contains("show")) {
-    dispenseMedicine.classList.remove("show");
-  }
+  // if (dispenseMedicine && dispenseMedicine.classList.contains("show")) {
+  //   dispenseMedicine.classList.remove("show");
+  // }
   if (addBorrower && addBorrower.classList.contains("show")) {
     addBorrower.classList.remove("show");
   }

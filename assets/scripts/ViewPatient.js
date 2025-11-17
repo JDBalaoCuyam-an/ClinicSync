@@ -765,14 +765,13 @@ document
       await addDoc(collection(db, "PatientVisits"), {
         patientId,
         consultationId,
-        timestamp: serverTimestamp(),
       });
       console.log("✅ PatientVisits logged.");
 
       await addDoc(collection(db, "complaintRecords"), {
         patientId,
         complaint: consultData.complaint,
-        timestamp: serverTimestamp(),
+        consultationId: consultationId,
       });
 
       // ✅ Deduct medicine stock

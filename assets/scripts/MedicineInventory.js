@@ -146,17 +146,17 @@ function renderMedicines() {
     `;
 
     // Row click opens dispense (except edit button)
-    row.addEventListener("click", (e) => {
-      if (e.target.classList.contains("update-btn")) return;
+    // row.addEventListener("click", (e) => {
+    //   if (e.target.classList.contains("update-btn")) return;
 
-      const popup = document.getElementById("dispense-medicine");
-      const overlay = document.getElementById("overlay");
+    //   const popup = document.getElementById("dispense-medicine");
+    //   const overlay = document.getElementById("overlay");
 
-      popup.classList.add("show");
-      overlay.classList.add("show");
-      document.getElementById("dispense-medicine-name").innerText = med.name;
-      popup.setAttribute("data-id", med.id);
-    });
+    //   popup.classList.add("show");
+    //   overlay.classList.add("show");
+    //   document.getElementById("dispense-medicine-name").innerText = med.name;
+    //   popup.setAttribute("data-id", med.id);
+    // });
 
     tableBody.appendChild(row);
   });
@@ -200,49 +200,49 @@ searchBar.addEventListener("input", renderMedicines);
 /* ============================================================
    ✅ DISPENSE MEDICINE
 ============================================================ */
-const dispenseForm = document.getElementById("dispense-medicine-form");
-dispenseForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+// const dispenseForm = document.getElementById("dispense-medicine-form");
+// dispenseForm.addEventListener("submit", async (e) => {
+//   e.preventDefault();
 
-  const popup = document.getElementById("dispense-medicine");
-  const medicineId = popup.getAttribute("data-id");
-  const qtyToGive = parseInt(
-    document.getElementById("medicine-quantity").value
-  );
+//   const popup = document.getElementById("dispense-medicine");
+//   const medicineId = popup.getAttribute("data-id");
+//   const qtyToGive = parseInt(
+//     document.getElementById("medicine-quantity").value
+//   );
 
-  if (!medicineId || isNaN(qtyToGive) || qtyToGive <= 0) {
-    alert("⚠️ Invalid quantity!");
-    return;
-  }
+//   if (!medicineId || isNaN(qtyToGive) || qtyToGive <= 0) {
+//     alert("⚠️ Invalid quantity!");
+//     return;
+//   }
 
-  const med = medicines.find((m) => m.id === medicineId);
-  if (!med) {
-    alert("⚠️ Medicine not found");
-    return;
-  }
+//   const med = medicines.find((m) => m.id === medicineId);
+//   if (!med) {
+//     alert("⚠️ Medicine not found");
+//     return;
+//   }
 
-  if (qtyToGive > med.stock) {
-    alert("⚠️ Not enough stock!");
-    return;
-  }
+//   if (qtyToGive > med.stock) {
+//     alert("⚠️ Not enough stock!");
+//     return;
+//   }
 
-  try {
-    const newStock = med.stock - qtyToGive;
-    const newDispensed = (med.dispensed || 0) + qtyToGive;
+//   try {
+//     const newStock = med.stock - qtyToGive;
+//     const newDispensed = (med.dispensed || 0) + qtyToGive;
 
-    await updateDoc(doc(db, "MedicineInventory", medicineId), {
-      stock: newStock,
-      dispensed: newDispensed,
-    });
+//     await updateDoc(doc(db, "MedicineInventory", medicineId), {
+//       stock: newStock,
+//       dispensed: newDispensed,
+//     });
 
-    alert(`✅ Dispensed ${qtyToGive} of ${med.name}`);
-    dispenseForm.reset();
-    closeButtonOverlay();
-    loadMedicines();
-  } catch (error) {
-    console.error("Error dispensing:", error);
-  }
-});
+//     alert(`✅ Dispensed ${qtyToGive} of ${med.name}`);
+//     dispenseForm.reset();
+//     closeButtonOverlay();
+//     loadMedicines();
+//   } catch (error) {
+//     console.error("Error dispensing:", error);
+//   }
+// });
 
 /* ============================================================
    ✅ RESET MODAL STATE WHEN CLOSED
