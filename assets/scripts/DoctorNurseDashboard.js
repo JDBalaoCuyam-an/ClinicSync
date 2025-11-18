@@ -91,20 +91,18 @@ async function fetchVisitData({ department, course, yearLevel, dateFilter }) {
   );
 
   // Apply DEPARTMENT + COURSE filter
- return dateFiltered.filter((v) => {
-  const deptMatch =
-    !department || department === "all-dept" || v.department === department;
+  return dateFiltered.filter((v) => {
+    const deptMatch =
+      !department || department === "all-dept" || v.department === department;
 
-  const courseMatch =
-    !course || course === "all-course-strand-genEduc" || v.course === course;
+    const courseMatch =
+      !course || course === "all-course-strand-genEduc" || v.course === course;
 
-  const yearMatch =
-    !yearLevel || yearLevel === "all-year" || v.year == yearLevel;
+    const yearMatch =
+      !yearLevel || yearLevel === "all-year" || v.year == yearLevel;
 
-  return deptMatch && courseMatch && yearMatch;
-});
-
-
+    return deptMatch && courseMatch && yearMatch;
+  });
 }
 
 /* ============================
@@ -248,21 +246,19 @@ const visitsCtx = document.getElementById("visitsChart").getContext("2d");
 async function renderVisitsChart(dateFilter = "week") {
   const department = document.querySelector("select[name='department']").value;
   const course = document.querySelector("select[name='course']").value;
-const yearLevel = document.querySelector("select[name='yearLevel']").value;
+  const yearLevel = document.querySelector("select[name='yearLevel']").value;
 
-
- const visits = await fetchVisitData({
-  department,
-  course,
-  yearLevel,
-  dateFilter
-});
+  const visits = await fetchVisitData({
+    department,
+    course,
+    yearLevel,
+    dateFilter,
+  });
 
   const { labels, student, employee, visitor } = formatChartData(
     visits,
     dateFilter
   );
-
 
   const data = {
     labels,
@@ -294,7 +290,6 @@ document.querySelectorAll(".chart-filter").forEach((sel) => {
   });
 });
 
-
 /* DEFAULT LOAD */
 renderVisitsChart("week");
 
@@ -308,7 +303,10 @@ const complaintsCtx = document
 
 const deptFilter = document.getElementById("departmentComplaintFilter");
 const courseFilter = document.getElementById("courseComplaintFilter");
-const dateFilter = document.getElementById("complaintChartFilter");
+const startDateFilter = document.getElementById("startDateFilter");
+const endDateFilter = document.getElementById("endDateFilter");
+
+const yearLevelFilter = document.getElementById("yearLevelComplaintFilter");
 
 /* ===============================
    DATE RANGE
@@ -360,17 +358,30 @@ async function loadAllPatientsOnce() {
    LOAD + FILTER COMPLAINTS
 =============================== */
 async function loadComplaints(
-  timeFilter = "week",
   departmentFilter = "all-dept",
-  courseFilterValue = "all-course-strand-genEduc"
+  courseFilterValue = "all-course-strand-genEduc",
+  yearLevelValue = "all-yearLevel"
 ) {
   try {
-    const { start, end } = getDateRange(timeFilter);
+    // ==============================
+    // 1️⃣ Read FROM–TO Date Filters
+    // ==============================
+    const start = startDateFilter.value
+      ? new Date(startDateFilter.value + "T00:00:00")
+      : new Date("1970-01-01");
 
-    // Load all patients into memory (cached)
+    const end = endDateFilter.value
+      ? new Date(endDateFilter.value + "T23:59:59")
+      : new Date();
+
+    // ==============================
+    // 2️⃣ Load all patients (cached)
+    // ==============================
     const patients = await loadAllPatientsOnce();
 
-    // Load all complaintRecords (only patientId + consultationId)
+    // ==============================
+    // 3️⃣ Load complaints collection
+    // ==============================
     const complaintSnap = await getDocs(collection(db, "complaintRecords"));
 
     const complaintCounts = {};
@@ -379,9 +390,6 @@ async function loadComplaints(
       const { patientId, consultationId } = rec.data();
       if (!patientId || !consultationId) continue;
 
-      /* ==========================
-         1️⃣ Load patient (cached)
-      ===========================*/
       const patient = patients[patientId] || {};
 
       // Department filter
@@ -398,9 +406,16 @@ async function loadComplaints(
       )
         continue;
 
-      /* ==========================
-         2️⃣ Load consultation document
-      ===========================*/
+      // Year Level filter
+      if (
+        yearLevelValue !== "all-yearLevel" &&
+        String(patient.year) !== String(yearLevelValue)
+      )
+        continue;
+
+      // ==============================
+      // 4️⃣ Load consultation document
+      // ==============================
       const consultRef = doc(
         db,
         "patients",
@@ -413,37 +428,27 @@ async function loadComplaints(
 
       const consultData = consultSnap.data();
 
+      const dateStr = consultData.date;
+      const timeStr = consultData.time;
+      if (!dateStr || !timeStr) continue;
+
+      const recordDate = new Date(`${dateStr}T${timeStr}:00`);
+      if (isNaN(recordDate)) continue;
+
+      // ==============================
+      // 5️⃣ Date Range Filter (From – To)
+      // ==============================
+      if (recordDate < start || recordDate > end) continue;
+
+      // ==============================
+      // 6️⃣ Count complaint
+      // ==============================
       const complaint = (consultData.complaint || "").trim();
       if (!complaint) continue;
 
-      /* ==========================
-         3️⃣ Convert "date" and "time"
-             into a real JS Date object
-      ===========================*/
-      const dateStr = consultData.date; // "2025-11-12"
-      const timeStr = consultData.time; // "08:38"
-
-      if (!dateStr || !timeStr) continue;
-
-      // Build valid date-time string
-      const recordDate = new Date(`${dateStr}T${timeStr}:00`);
-
-      if (isNaN(recordDate)) continue; // invalid date
-
-      // Date filtering
-      if (recordDate < start || recordDate > end) continue;
-
-      /* ==========================
-         4️⃣ Count the complaint
-      ===========================*/
       complaintCounts[complaint] = (complaintCounts[complaint] || 0) + 1;
-      console.log("---- NEW RECORD ----");
-      console.log("patientId:", patientId);
-      console.log("consultationId:", consultationId);
-      console.log("patient found:", !!patients[patientId]);
     }
 
-    // Render chart
     renderComplaintsChart(
       Object.keys(complaintCounts),
       Object.values(complaintCounts)
@@ -452,6 +457,7 @@ async function loadComplaints(
     console.error("❌ Error loading complaints:", err);
   }
 }
+
 
 /* ===============================
    RENDER BAR CHART
@@ -491,17 +497,39 @@ function renderComplaintsChart(labels, values) {
    FILTER HANDLERS
 =============================== */
 function applyFilters() {
-  loadComplaints(dateFilter.value, deptFilter.value, courseFilter.value);
+  loadComplaints(
+    deptFilter.value,
+    courseFilter.value,
+    yearLevelFilter.value
+  );
 }
+
 
 deptFilter.addEventListener("change", applyFilters);
 courseFilter.addEventListener("change", applyFilters);
-dateFilter.addEventListener("change", applyFilters);
+startDateFilter.addEventListener("change", applyFilters);
+endDateFilter.addEventListener("change", applyFilters);
+yearLevelFilter.addEventListener("change", applyFilters);
 
 /* ===============================
    DEFAULT LOAD
 =============================== */
-loadComplaints("week");
+function setDefaultCurrentMonth() {
+  const now = new Date();
+
+  // 1st day of the month
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
+
+  // Today
+  const today = now.toISOString().split("T")[0];
+
+  startDateFilter.value = firstDay;
+  endDateFilter.value = today;
+}
+setDefaultCurrentMonth();
+loadComplaints("all-dept", "all-course-strand-genEduc", "all-yearLevel");
 
 /* ===========================================
    Medicine Chart

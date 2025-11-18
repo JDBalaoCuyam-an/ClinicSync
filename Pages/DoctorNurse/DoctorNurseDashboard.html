@@ -193,7 +193,7 @@
         <div class="chart-header">
           <div class="chart-title"><i class="fas fa-head-side-cough"></i> Chief Complaints</div>
           <div class="chart-controls">
-            <select class="chart-filter" id="departmentComplaintFilter" required>
+            <select class="chart-filter" id="departmentComplaintFilter">
                   <option value="all-dept">All Department</option>
                   <option value="CABM">CABM</option>
                   <option value="CCJE">CCJE</option>
@@ -227,13 +227,34 @@
                   <option value="Kindergarten">Kindergarten</option>
                   <option value="Visitor">Visitor</option>
               </select>
-            <select class="chart-filter" id="complaintChartFilter" class="chart-filter">
+              <select class="chart-filter" id="yearLevelComplaintFilter">
+                <option value="all-yearLevel">All Year Levels</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+                <option value="5">5th Year</option>
+                <option value="6">6th Year</option>
+                <option value="7">7th Year</option>
+                <option value="8">8th Year</option>
+                <option value="9">9th Year</option>
+                <option value="10">10th Year</option>
+                <option value="11">11th Year</option>
+                <option value="12">12th Year</option>
+            </select>
+            <!-- <select class="chart-filter" id="complaintChartFilter" class="chart-filter">
               <option value="day">Today</option>
               <option value="week" selected>Week</option>
               <option value="month">Month</option>
               <option value="year">Year</option>
               <option value="all">All Time</option>
-            </select>
+            </select> -->
+            <label>From</label>
+<input type="date" id="startDateFilter">
+
+<label>To</label>
+<input type="date" id="endDateFilter">
+
           </div>
         </div>
         <canvas id="complaintsChart"></canvas>
