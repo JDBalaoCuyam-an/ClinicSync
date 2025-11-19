@@ -1705,70 +1705,123 @@ const supabaseClient = window.supabase.createClient(
 
 const uploadBtn = document.getElementById("upload-btn");
 const fileInput = document.getElementById("file-input");
-const documentsList = document.getElementById("documents-list");
 
+// Category Modal Elements
+const categoryModal = document.querySelector(".upload-select-category");
+const categorySelect = document.getElementById("document-category");
+const confirmBtn = document.getElementById("confirm-upload-btn");
+const cancelFileUploadBtn = document.getElementById("cancel-upload-btn");
+
+let selectedFile = null;
+
+// Open file picker
 uploadBtn.addEventListener("click", () => fileInput.click());
 
-fileInput.addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file || !patientId) return;
+// When file is chosen, show category selector modal
+fileInput.addEventListener("change", (e) => {
+  selectedFile = e.target.files[0];
+  if (!selectedFile) return;
 
-  const fileName = `${Date.now()}_${file.name}`;
-  const filePath = `${patientId}/${fileName}`; // ✅ folder = patientId
-
-  // ✅ Upload file inside that patient’s folder
-  const { data, error } = await supabaseClient.storage
-    .from("patient-documents")
-    .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-
-  if (error) {
-    console.error("Upload failed:", error);
-    alert("❌ Upload failed: " + error.message);
-    return;
-  }
-
-  // ✅ Get public URL for this file
-  const { data: publicData } = supabaseClient.storage
-    .from("patient-documents")
-    .getPublicUrl(filePath);
-
-  const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-  const listItem = document.createElement("li");
-  listItem.innerHTML = `<a href="${publicData.publicUrl}" target="_blank">${file.name}</a> (${fileSizeMB} MB)`;
-  documentsList.appendChild(listItem);
-
-  alert("✅ Upload successful!");
+  categoryModal.style.display = "block"; // show modal
 });
 
-// ✅ Load only this patient's files
+// Confirm category and start upload
+confirmBtn.addEventListener("click", async () => {
+  if (!selectedFile || !patientId) return;
+
+  // Disable the button to prevent double submission
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = "Uploading...";
+
+  const folder = categorySelect.value;
+  const fileName = `${Date.now()}_${selectedFile.name}`;
+  const filePath = `${patientId}/${folder}/${fileName}`;
+
+  try {
+    const { error } = await supabaseClient.storage
+      .from("patient-documents")
+      .upload(filePath, selectedFile);
+
+    if (error) {
+      alert("Upload failed: " + error.message);
+      return;
+    }
+
+    alert("File Uploaded Successfully!");
+    await loadDocumentsFiles(); // refresh list after upload
+  } finally {
+    // Re-enable button and reset
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = "Confirm";
+    categoryModal.style.display = "none"; // hide modal
+    fileInput.value = ""; // reset file input
+    selectedFile = null;
+  }
+});
+
+
+// Cancel button resets everything
+cancelFileUploadBtn.addEventListener("click", () => {
+  selectedFile = null;
+  fileInput.value = "";
+  categoryModal.style.display = "none";
+});
+
+// Load categorized files
 async function loadDocumentsFiles() {
   if (!patientId) return;
 
-  const { data, error } = await supabaseClient.storage
-    .from("patient-documents")
-    .list(patientId + "/", { limit: 100 }); // only inside this folder
+  const categories = ["Laboratory", "Radiology", "Others"];
+  const listIds = {
+    Laboratory: "lab-list",
+    Radiology: "rad-list",
+    Others: "others-list",
+  };
 
-  if (error) {
-    console.error("Error loading files:", error);
-    return;
-  }
+  for (const cat of categories) {
+    const ul = document.getElementById(listIds[cat]);
+    ul.innerHTML = "";
 
-  documentsList.innerHTML = "";
-  for (const item of data) {
-    const { data: publicData } = supabaseClient.storage
+    // Get the button inside the same category section
+    const button = ul.closest(".category-section").querySelector(".category-toggle");
+
+    const { data, error } = await supabaseClient.storage
       .from("patient-documents")
-      .getPublicUrl(`${patientId}/${item.name}`);
+      .list(`${patientId}/${cat}/`, { limit: 100 });
 
-    const listItem = document.createElement("li");
-    listItem.innerHTML = `<a href="${publicData.publicUrl}" target="_blank">${item.name}</a>`;
-    documentsList.appendChild(listItem);
+    if (error || !data) {
+      button.textContent = `${cat} (0) ▼`; // still show 0
+      continue;
+    }
+
+    // Update file count on the button
+    const count = data.length;
+    button.textContent = `${cat} (${count}) ▼`;
+
+    for (const item of data) {
+      const { data: publicUrlObj } = supabaseClient.storage
+        .from("patient-documents")
+        .getPublicUrl(`${patientId}/${cat}/${item.name}`);
+
+      const li = document.createElement("li");
+      li.innerHTML = `<a href="${publicUrlObj.publicUrl}" target="_blank">${item.name}</a>`;
+      ul.appendChild(li);
+    }
   }
 }
 
+
+
 loadDocumentsFiles();
+
+// Dropdown toggles
+document.querySelectorAll(".category-toggle").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const list = btn.nextElementSibling;
+    list.style.display = list.style.display === "none" ? "block" : "none";
+  });
+});
+
 loadPatient();
 await loadConsultations();
 await loadPhysicalExaminations();

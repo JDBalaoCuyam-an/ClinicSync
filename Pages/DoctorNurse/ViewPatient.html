@@ -35,8 +35,6 @@
     <div id="sidebar-container"></div>
     <div id="overlay" class="overlay"></div>
 
-    
-
     <div style="display: flex; justify-content: space-between">
       <button
         id="back-to-lists"
@@ -54,14 +52,12 @@
             <h2>(Patient Name)</h2>
             <button id="edit-contacts" class="edit-btn">Edit</button>
             <button
-            id="cancel-contact-edit-btn"
-            
-            style="display: none; margin-top: 10px"
-          >
-            ❌ Cancel
-          </button>
+              id="cancel-contact-edit-btn"
+              style="display: none; margin-top: 10px"
+            >
+              ❌ Cancel
+            </button>
           </div>
-          
 
           <h3>Contact Details</h3>
           <input
@@ -101,12 +97,41 @@
           />
         </div>
 
-        <!--  -->
+        <!-- Document Files -->
         <div class="patient-documents">
           <h3>Documents :</h3>
+
           <button class="upload-btn" id="upload-btn">Upload Files</button>
           <input type="file" id="file-input" style="display: none" />
-          <ul class="documents-list" id="documents-list"></ul>
+
+          <div class="category-section">
+            <button class="category-toggle">Laboratory ▼</button>
+            <ul class="documents-list" id="lab-list" style="display: none"></ul>
+          </div>
+
+          <div class="category-section">
+            <button class="category-toggle">Radiology ▼</button>
+            <ul class="documents-list" id="rad-list" style="display: none"></ul>
+          </div>
+
+          <div class="category-section">
+            <button class="category-toggle">Others ▼</button>
+            <ul
+              class="documents-list"
+              id="others-list"
+              style="display: none"
+            ></ul>
+          </div>
+        </div>
+        <div class="upload-select-category">
+          <h3>Select Document Category:</h3>
+          <select id="document-category">
+            <option value="Laboratory">Laboratory</option>
+            <option value="Radiology">Radiology</option>
+            <option value="Others">Others</option>
+          </select>
+          <button id="confirm-upload-btn" >Upload</button>
+          <button id="cancel-upload-btn">Cancel</button>
         </div>
       </div>
       <!-- Patient Records -->
@@ -137,12 +162,11 @@
               <h2>Patient Information</h2>
               <button class="edit-btn">✏️ Edit</button>
               <button
-            id="cancelPatientInfoBtn"
-            
-            style="display: none; margin-top: 10px"
-          >
-            ❌ Cancel
-          </button>
+                id="cancelPatientInfoBtn"
+                style="display: none; margin-top: 10px"
+              >
+                ❌ Cancel
+              </button>
             </div>
 
             <div class="info-grid">
@@ -261,7 +285,9 @@
                 </select>
               </label>
 
-              <label>Year Level : <input id="year" type="number" disabled /></label>
+              <label
+                >Year Level : <input id="year" type="number" disabled
+              /></label>
             </div>
 
             <br />
@@ -307,12 +333,11 @@
               <h2>Medical History :</h2>
               <button class="edit-btn">✏️ Edit</button>
               <button
-            id="cancelHistoryBtn"
-            
-            style="display: none; margin-top: 10px"
-          >
-            ❌ Cancel
-          </button>
+                id="cancelHistoryBtn"
+                style="display: none; margin-top: 10px"
+              >
+                ❌ Cancel
+              </button>
             </div>
 
             <div class="history-grid">
