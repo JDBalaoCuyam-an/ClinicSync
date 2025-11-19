@@ -1443,6 +1443,31 @@ document
       alert("Failed to save Physical Examination.");
     }
   });
+// ===== AUTO COMPUTE BMI ON TYPING =====
+const weightInput = document.getElementById("exam-weight");
+const heightInput = document.getElementById("exam-height");
+const bmiInput = document.getElementById("exam-bmi");
+
+// Auto compute BMI when weight or height changes
+function computeBMI() {
+  const weight = parseFloat(weightInput.value);
+  const heightCm = parseFloat(heightInput.value);
+
+  if (!weight || !heightCm) {
+    bmiInput.value = "";
+    return;
+  }
+
+  const heightM = heightCm / 100; // Convert cm → meters
+  const bmi = weight / (heightM * heightM);
+
+  if (!isNaN(bmi)) {
+    bmiInput.value = bmi.toFixed(1); // 1 decimal place
+  }
+}
+
+weightInput.addEventListener("input", computeBMI);
+heightInput.addEventListener("input", computeBMI);
 
 /* -----------------------------------------------
  🔹 LOAD PHYSICAL EXAMINATION RECORDS
@@ -1459,6 +1484,14 @@ async function loadPhysicalExaminations() {
       "physicalExaminations"
     );
     const snapshot = await getDocs(examRef);
+function getBMICategory(bmi) {
+  if (!bmi || isNaN(bmi)) return "-";
+
+  if (bmi < 18.5) return "Underweight";
+  if (bmi < 25) return "Healthy";
+  if (bmi < 30) return "Overweight";
+  return "Obesity";
+}
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -1471,7 +1504,8 @@ async function loadPhysicalExaminations() {
     <td>${data.weight || "-"}</td>
     <td>${data.height || "-"}</td>
     <td>${data.bmi || "-"}</td>
-    <td>${data.findings?.others || "Normal physical findings"}</td>
+    <!-- // <td>${data.findings?.others || "Normal physical findings"}</td> --> 
+    <td>${getBMICategory(data.bmi)}</td>
   `;
 
       // 👇 Add click event to show overview
@@ -1566,7 +1600,7 @@ editExamBtn.addEventListener("click", async () => {
 
   // ✏️ Enable edit mode
   if (editExamBtn.textContent.includes("✏️")) {
-    inputs.forEach((input) => input.removeAttribute("disabled"));
+    inputs.forEach((el) => el.removeAttribute("disabled"));
     editExamBtn.textContent = "💾 Save";
     return;
   }
@@ -1577,31 +1611,55 @@ editExamBtn.addEventListener("click", async () => {
     return;
   }
 
-  // 🧠 Build updated data from modal fields
-  const updatedExam = {
-    date: document.getElementById("ovr-exam-date").value,
-    bp: document.getElementById("ovr-exam-bp").value,
-    pr: document.getElementById("ovr-exam-pr").value,
-    weight: Number(document.getElementById("ovr-exam-weight").value),
-    height: Number(document.getElementById("ovr-exam-height").value),
-    bmi: Number(document.getElementById("ovr-exam-bmi").value),
-    visualAcuity: {
-      os: document.getElementById("ovr-exam-os").value,
-      od: document.getElementById("ovr-exam-od").value,
-      glasses: document.getElementById("ovr-exam-glasses").value === "true", // dropdown fix
-    },
-    findings: Object.fromEntries(
-      document
-        .getElementById("ovr-exam-findings")
-        .value.split("\n")
+  // --- FIX DATE FORMAT ---
+  let dateValue = document.getElementById("ovr-exam-date").value || "";
+
+  // Convert MM-DD-YYYY → YYYY-MM-DD if needed
+  if (dateValue.includes("-")) {
+    const parts = dateValue.split("-");
+    if (parts[0].length === 2) {
+      const [mm, dd, yyyy] = parts;
+      dateValue = `${yyyy}-${mm}-${dd}`;
+    }
+  }
+
+  // --- FIX FINDINGS PARSE SAFELY ---
+  const findingsText =
+    document.getElementById("ovr-exam-findings").value.trim();
+
+  let findingsObj = {};
+
+  if (findingsText !== "") {
+    findingsObj = Object.fromEntries(
+      findingsText
+        .split("\n")
         .map((line) => {
+          if (!line.includes(":")) return null; // skip invalid rows
           const [key, ...rest] = line.split(":");
           return [key.trim().toLowerCase(), rest.join(":").trim()];
         })
-        .filter(([key, val]) => key && val)
-    ),
-    labPresent: document.getElementById("ovr-exam-lab").value,
-    recommendations: document.getElementById("ovr-exam-recommendations").value,
+        .filter((row) => row && row[0] && row[1])
+    );
+  }
+
+  // --- BUILD FINAL OBJECT ---
+  const updatedExam = {
+    date: dateValue,
+    bp: document.getElementById("ovr-exam-bp").value || "",
+    pr: document.getElementById("ovr-exam-pr").value || "",
+    weight: Number(document.getElementById("ovr-exam-weight").value || 0),
+    height: Number(document.getElementById("ovr-exam-height").value || 0),
+    bmi: Number(document.getElementById("ovr-exam-bmi").value || 0),
+    visualAcuity: {
+      os: document.getElementById("ovr-exam-os").value || "",
+      od: document.getElementById("ovr-exam-od").value || "",
+      glasses:
+        document.getElementById("ovr-exam-glasses").value === "true",
+    },
+    findings: findingsObj,
+    labPresent: document.getElementById("ovr-exam-lab").value || "",
+    recommendations:
+      document.getElementById("ovr-exam-recommendations").value || "",
     updatedAt: new Date(),
   };
 
@@ -1618,11 +1676,10 @@ editExamBtn.addEventListener("click", async () => {
 
     alert("✅ Physical examination updated successfully!");
 
-    // 🔒 Disable all fields again
-    inputs.forEach((input) => input.setAttribute("disabled", "true"));
+    // 🔒 Disable again
+    inputs.forEach((el) => el.setAttribute("disabled", "true"));
     editExamBtn.textContent = "✏️ Edit";
 
-    // 🔄 Reload updated table data if available
     if (typeof loadPhysicalExaminations === "function") {
       loadPhysicalExaminations();
     }
@@ -1631,6 +1688,7 @@ editExamBtn.addEventListener("click", async () => {
     alert("Failed to update physical examination record.");
   }
 });
+
 
 
 /* -----------------------------------------------
@@ -1686,7 +1744,7 @@ fileInput.addEventListener("change", async (e) => {
 });
 
 // ✅ Load only this patient's files
-async function loadDocuments() {
+async function loadDocumentsFiles() {
   if (!patientId) return;
 
   const { data, error } = await supabaseClient.storage
@@ -1710,7 +1768,7 @@ async function loadDocuments() {
   }
 }
 
-loadDocuments();
+loadDocumentsFiles();
 loadPatient();
 await loadConsultations();
 await loadPhysicalExaminations();
