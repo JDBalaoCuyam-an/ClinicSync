@@ -128,41 +128,6 @@ function categorizeVisit(v) {
   return "visitor";
 }
 
-/* ============================
-   DATA GROUPING FOR CHART
-============================ */
-function formatChartLabel(ts, dateFilter) {
-  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  if (!(ts instanceof Date)) ts = new Date(ts);
-
-  switch (dateFilter) {
-    case "day":
-      return ts.getHours().toString().padStart(2, "0") + ":00";
-    case "week":
-      return weekdays[ts.getDay()];
-    case "month":
-      return ts.getDate().toString();
-    case "year":
-      return months[ts.getMonth()];
-    default:
-      return ts.toISOString().split("T")[0];
-  }
-}
 
 /* ============================
    FINAL FIXED CHART GROUPING
@@ -270,11 +235,31 @@ async function renderVisitsChart(dateFilter = "week") {
   };
 
   const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: { y: { beginAtZero: true } },
-    interaction: { mode: "index", intersect: false },
-  };
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: { y: { beginAtZero: true } },
+  interaction: { mode: "index", intersect: false },
+
+  plugins: {
+    tooltip: {
+      callbacks: {
+        label: function (context) {
+          const dataset = context.dataset.data;
+          const total =
+            context.chart.data.datasets.reduce((sum, ds) => {
+              return sum + (ds.data[context.dataIndex] || 0);
+            }, 0);
+
+          const value = context.raw;
+          const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+
+          return `${context.dataset.label}: ${value} (${percent}%)`;
+        },
+      },
+    },
+  },
+};
+
 
   if (visitsChart) visitsChart.destroy();
   visitsChart = new Chart(visitsCtx, { type: "line", data, options });
@@ -294,7 +279,7 @@ document.querySelectorAll(".chart-filter").forEach((sel) => {
 renderVisitsChart("week");
 
 /* ===========================================
-Optimized Chief Complaints Chart + Filters
+Chief Complaints Chart
 =========================================== */
 let complaintsChart;
 const complaintsCtx = document
@@ -307,33 +292,6 @@ const startDateFilter = document.getElementById("startDateFilter");
 const endDateFilter = document.getElementById("endDateFilter");
 
 const yearLevelFilter = document.getElementById("yearLevelComplaintFilter");
-
-/* ===============================
-   DATE RANGE
-=============================== */
-function getDateRange(filter) {
-  const now = new Date();
-  let start = new Date();
-
-  switch (filter) {
-    case "day":
-      start.setDate(now.getDate() - 1);
-      break;
-    case "week":
-      start.setDate(now.getDate() - 7);
-      break;
-    case "month":
-      start.setMonth(now.getMonth() - 1);
-      break;
-    case "year":
-      start.setFullYear(now.getFullYear() - 1);
-      break;
-    default:
-      start = new Date("1970-01-01");
-  }
-
-  return { start, end: now };
-}
 
 /* ===============================
    PRELOAD PATIENTS (1-time only)
@@ -465,13 +423,15 @@ async function loadComplaints(
 function renderComplaintsChart(labels, values) {
   if (complaintsChart) complaintsChart.destroy();
 
+  const total = values.reduce((a, b) => a + b, 0);
+
   complaintsChart = new Chart(complaintsCtx, {
     type: "bar",
     data: {
       labels,
       datasets: [
         {
-          label: "Number of Complaints",
+          label: "No. of Complaints",
           data: values,
           backgroundColor: "rgba(54, 162, 235, 0.7)",
           borderRadius: 6,
@@ -481,17 +441,33 @@ function renderComplaintsChart(labels, values) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: "Chief Complaints" },
+
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const value = context.raw;
+              const percent =
+                total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+
+              return `Count: ${value} (${percent}%)`;
+            },
+          },
+        },
+      },
+
       scales: {
         y: { beginAtZero: true },
         x: {},
       },
-      plugins: {
-        legend: { display: false },
-        title: { display: true, text: "Most Common Chief Complaints" },
-      },
     },
   });
 }
+
+
 
 /* ===============================
    FILTER HANDLERS

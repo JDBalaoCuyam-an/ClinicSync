@@ -193,9 +193,7 @@ body {
 }
 
 /* SAME HEIGHT AS OTHER CARDS */
-.chart-card {
-  height: 380px;
-}
+
 
 .chart-card.full-width {
   height: auto;

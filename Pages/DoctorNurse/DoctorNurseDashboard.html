@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
   <link rel="stylesheet" href="../../assets/styles/DoctorNurseDashboard.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
 </head>
 
 <style>
@@ -74,14 +75,6 @@
         </div>
       </a>
 
-      <!-- Avg. Rating -->
-      <!-- <div class="summary-card">
-        <div class="card-icon"><i class="fas fa-star"></i></div>
-        <div class="card-content">
-          <div class="card-value" id="avgRating">4.7</div>
-          <div class="card-label">Avg. Rating</div>
-        </div>
-      </div> -->
     </div>
 
     <!-- Main Dashboard Grid -->
@@ -242,36 +235,12 @@
                 <option value="11">11th Year</option>
                 <option value="12">12th Year</option>
             </select>
-            <!-- <select class="chart-filter" id="complaintChartFilter" class="chart-filter">
-              <option value="day">Today</option>
-              <option value="week" selected>Week</option>
-              <option value="month">Month</option>
-              <option value="year">Year</option>
-              <option value="all">All Time</option>
-            </select> -->
-            <label>From</label>
-<input type="date" id="startDateFilter">
-
-<label>To</label>
-<input type="date" id="endDateFilter">
-
+            <label>From <input type="date" id="startDateFilter" class="chart-filter"></label>
+            <label>To <input type="date" id="endDateFilter" class="chart-filter"></label>
           </div>
         </div>
         <canvas id="complaintsChart"></canvas>
       </div>
-
-      <!-- Patient Ratings -->
-      <!-- <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title"><i class="fas fa-star"></i> Patient Ratings</div>
-          <div class="chart-controls">
-            <button class="filter-btn active" data-chart="ratings" data-filter="week">Week</button>
-            <button class="filter-btn" data-chart="ratings" data-filter="month">Month</button>
-            <button class="filter-btn" data-chart="ratings" data-filter="year">Year</button>
-          </div>
-        </div>
-        <canvas id="ratingsChart"></canvas>
-      </div> -->
     </div>
   </div>
   </div>
