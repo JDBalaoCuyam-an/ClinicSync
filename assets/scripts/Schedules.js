@@ -209,7 +209,12 @@ async function loadAppointments() {
   appointmentsContainer.innerHTML = "";
 
   try {
-    const q = query(collection(db, "PendingAppointments"), orderBy("appointmentDate", "asc"));
+    const q = query(
+  collection(db, "PendingAppointments"),
+  orderBy("appointmentDate", "asc")
+);
+
+
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
@@ -217,15 +222,40 @@ async function loadAppointments() {
       return;
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // normalize for accurate comparison
+
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
       const card = document.createElement("div");
       card.classList.add("appointment-card");
 
+      // Format and convert appointment date
       let formattedDate = "N/A";
+      let appointmentDateObj = null;
+
       if (data.appointmentDate) {
         const [year, month, day] = data.appointmentDate.split("-");
-        formattedDate = new Date(year, month - 1, day).toLocaleDateString();
+        appointmentDateObj = new Date(year, month - 1, day);
+        formattedDate = appointmentDateObj.toLocaleDateString();
+      }
+
+      // 🎨 Apply color coding for date
+      if (appointmentDateObj) {
+        const diff = appointmentDateObj - today;
+
+        if (diff === 0) {
+          // Today
+          card.style.backgroundColor = "#E0FFE0"; // light green
+        } else if (diff < 0) {
+          // Past
+          card.style.backgroundColor = "#f0f0f0";
+          card.style.opacity = "0.6";
+        } else {
+          // Future
+          card.style.backgroundColor = "#E0EFFF";
+        }
+        
       }
 
       card.innerHTML = `
@@ -238,8 +268,13 @@ async function loadAppointments() {
         <button class="reject-btn">Reject</button>
       `;
 
-      card.querySelector(".accept-btn").addEventListener("click", () => acceptAppointment(data, docSnap.id));
-      card.querySelector(".reject-btn").addEventListener("click", () => rejectAppointment(docSnap.id));
+      card.querySelector(".accept-btn").addEventListener("click", () =>
+        acceptAppointment(data, docSnap.id)
+      );
+
+      card.querySelector(".reject-btn").addEventListener("click", () =>
+        rejectAppointment(docSnap.id)
+      );
 
       appointmentsContainer.appendChild(card);
     });
@@ -251,3 +286,4 @@ async function loadAppointments() {
 
 // Initial load
 loadAppointments();
+setInterval(loadAppointments, 30000); // Refresh every 30 seconds
