@@ -725,11 +725,24 @@ document
       }),
     };
 
+    // Capitalize first letter helper
+    function capitalizeFirstLetter(text) {
+      if (!text) return "";
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    // Apply capitalization to complaint
+    let complaintInput = document
+      .getElementById("consult-complaint")
+      .value.trim();
+
+    complaintInput = capitalizeFirstLetter(complaintInput);
+
     const consultData = {
       consultingDoctor: document.getElementById("consult-doctor").value,
       date: document.getElementById("consult-date").value,
       time: document.getElementById("consult-time").value,
-      complaint: document.getElementById("consult-complaint").value.trim(),
+      complaint: complaintInput,
       diagnosis: document.getElementById("consult-diagnosis").value,
       meds: medsDispensed,
       vitals: [newVitalEntry],
@@ -740,7 +753,7 @@ document
 
     try {
       // ✅ Save new complaint if not existing
-      const complaintValue = consultData.complaint;
+      const complaintValue = complaintInput;
       if (complaintValue !== "") {
         const complaintsRef = collection(db, "complaints");
         const q = query(complaintsRef, where("name", "==", complaintValue));
@@ -1173,7 +1186,8 @@ saveMedDetailsBtn.addEventListener("click", async () => {
   try {
     const qtyInputs = medDetailsContainer.querySelectorAll(".qty-input");
     const typeInputs = medDetailsContainer.querySelectorAll(".type-input");
-    const remarksInputs = medDetailsContainer.querySelectorAll(".remarks-input");
+    const remarksInputs =
+      medDetailsContainer.querySelectorAll(".remarks-input");
 
     let medsToAdd = [];
     const now = new Date();
@@ -1203,7 +1217,10 @@ saveMedDetailsBtn.addEventListener("click", async () => {
         remarks,
         NurseOnDuty: currentUserName,
         date: now.toISOString().split("T")[0],
-        time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        time: now.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       });
     });
 
@@ -1251,7 +1268,6 @@ saveMedDetailsBtn.addEventListener("click", async () => {
     if (updatedSnap.exists()) {
       showConsultationDetails(updatedSnap.data(), currentConsultationId);
     }
-
   } catch (err) {
     console.error(err);
     alert("❌ Failed to save medication.");
@@ -1261,7 +1277,6 @@ saveMedDetailsBtn.addEventListener("click", async () => {
     saveMedDetailsBtn.disabled = false;
   }
 });
-
 
 window.openMedDetailsModal = openMedDetailsModal;
 window.closeMedDetailsModal = closeMedDetailsModal;
@@ -1362,7 +1377,6 @@ saveVitalsBtn.addEventListener("click", async () => {
     if (updatedSnap.exists()) {
       showConsultationDetails(updatedSnap.data(), currentConsultationId);
     }
-
   } catch (err) {
     console.error(err);
     alert("❌ Failed to save vitals.");
@@ -1484,14 +1498,14 @@ async function loadPhysicalExaminations() {
       "physicalExaminations"
     );
     const snapshot = await getDocs(examRef);
-function getBMICategory(bmi) {
-  if (!bmi || isNaN(bmi)) return "-";
+    function getBMICategory(bmi) {
+      if (!bmi || isNaN(bmi)) return "-";
 
-  if (bmi < 18.5) return "Underweight";
-  if (bmi < 25) return "Healthy";
-  if (bmi < 30) return "Overweight";
-  return "Obesity";
-}
+      if (bmi < 18.5) return "Underweight";
+      if (bmi < 25) return "Healthy";
+      if (bmi < 30) return "Overweight";
+      return "Obesity";
+    }
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -1624,8 +1638,9 @@ editExamBtn.addEventListener("click", async () => {
   }
 
   // --- FIX FINDINGS PARSE SAFELY ---
-  const findingsText =
-    document.getElementById("ovr-exam-findings").value.trim();
+  const findingsText = document
+    .getElementById("ovr-exam-findings")
+    .value.trim();
 
   let findingsObj = {};
 
@@ -1653,8 +1668,7 @@ editExamBtn.addEventListener("click", async () => {
     visualAcuity: {
       os: document.getElementById("ovr-exam-os").value || "",
       od: document.getElementById("ovr-exam-od").value || "",
-      glasses:
-        document.getElementById("ovr-exam-glasses").value === "true",
+      glasses: document.getElementById("ovr-exam-glasses").value === "true",
     },
     findings: findingsObj,
     labPresent: document.getElementById("ovr-exam-lab").value || "",
@@ -1688,8 +1702,6 @@ editExamBtn.addEventListener("click", async () => {
     alert("Failed to update physical examination record.");
   }
 });
-
-
 
 /* -----------------------------------------------
      🔹 INITIAL LOAD
@@ -1759,7 +1771,6 @@ confirmBtn.addEventListener("click", async () => {
   }
 });
 
-
 // Cancel button resets everything
 cancelFileUploadBtn.addEventListener("click", () => {
   selectedFile = null;
@@ -1783,7 +1794,9 @@ async function loadDocumentsFiles() {
     ul.innerHTML = "";
 
     // Get the button inside the same category section
-    const button = ul.closest(".category-section").querySelector(".category-toggle");
+    const button = ul
+      .closest(".category-section")
+      .querySelector(".category-toggle");
 
     const { data, error } = await supabaseClient.storage
       .from("patient-documents")
@@ -1809,8 +1822,6 @@ async function loadDocumentsFiles() {
     }
   }
 }
-
-
 
 loadDocumentsFiles();
 

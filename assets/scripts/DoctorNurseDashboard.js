@@ -36,7 +36,7 @@ async function fetchVisitData({ department, course, yearLevel, dateFilter }) {
 
     consultSnap.forEach((consultDoc) => {
       const c = consultDoc.data();
-      if (!c.date || !c.time) return;
+      // if (!c.date || !c.time) return;
 
       const [year, month, day] = c.date.split("-").map(Number);
       const [hours, minutes] = c.time.split(":").map(Number);
@@ -77,12 +77,15 @@ async function fetchVisitData({ department, course, yearLevel, dateFilter }) {
     endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 7);
   } else if (dateFilter === "month") {
-    startDate = setDate(now.getFullYear(), now.getMonth(), 1);
-    endDate = setDate(now.getFullYear(), now.getMonth() + 1, 1);
+    startDate = new Date(now.getFullYear(), 0, 1); // Jan 1 of current year
+    endDate = new Date(now.getFullYear() + 1, 0, 1); // Jan 1 of next year
   } else if (dateFilter === "year") {
-    startDate = earliestDate || setDate(now.getFullYear(), 0, 1);
-    startDate.setHours(0, 0, 0, 0);
-    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const years = results.map((v) => v.visitDate.getFullYear());
+    const minYear = Math.min(...years);
+    const maxYear = Math.max(...years);
+
+    startDate = new Date(minYear, 0, 1);
+    endDate = new Date(maxYear + 1, 0, 1);
   }
 
   // Apply DATE filter
@@ -127,7 +130,6 @@ function categorizeVisit(v) {
 
   return "visitor";
 }
-
 
 /* ============================
    FINAL FIXED CHART GROUPING
@@ -235,31 +237,29 @@ async function renderVisitsChart(dateFilter = "week") {
   };
 
   const options = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: { y: { beginAtZero: true } },
-  interaction: { mode: "index", intersect: false },
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: { y: { beginAtZero: true } },
+    interaction: { mode: "index", intersect: false },
 
-  plugins: {
-    tooltip: {
-      callbacks: {
-        label: function (context) {
-          const dataset = context.dataset.data;
-          const total =
-            context.chart.data.datasets.reduce((sum, ds) => {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const dataset = context.dataset.data;
+            const total = context.chart.data.datasets.reduce((sum, ds) => {
               return sum + (ds.data[context.dataIndex] || 0);
             }, 0);
 
-          const value = context.raw;
-          const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+            const value = context.raw;
+            const percent = total ? ((value / total) * 100).toFixed(1) : 0;
 
-          return `${context.dataset.label}: ${value} (${percent}%)`;
+            return `${context.dataset.label}: ${value} (${percent}%)`;
+          },
         },
       },
     },
-  },
-};
-
+  };
 
   if (visitsChart) visitsChart.destroy();
   visitsChart = new Chart(visitsCtx, { type: "line", data, options });
@@ -416,7 +416,6 @@ async function loadComplaints(
   }
 }
 
-
 /* ===============================
    RENDER BAR CHART
 =============================== */
@@ -467,19 +466,12 @@ function renderComplaintsChart(labels, values) {
   });
 }
 
-
-
 /* ===============================
    FILTER HANDLERS
 =============================== */
 function applyFilters() {
-  loadComplaints(
-    deptFilter.value,
-    courseFilter.value,
-    yearLevelFilter.value
-  );
+  loadComplaints(deptFilter.value, courseFilter.value, yearLevelFilter.value);
 }
-
 
 deptFilter.addEventListener("change", applyFilters);
 courseFilter.addEventListener("change", applyFilters);
