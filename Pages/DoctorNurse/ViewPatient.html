@@ -11,6 +11,8 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
   </head>
   <body>
     <!-- NavBar -->
@@ -42,7 +44,7 @@
       >
         Back
       </button>
-      <!-- <button id="make-appointment">Make Appointment</button> -->
+      <button id="exportPDF">Export Data</button>
     </div>
 
     <div class="view-patient-container">
@@ -130,7 +132,7 @@
             <option value="Radiology">Radiology</option>
             <option value="Others">Others</option>
           </select>
-          <button id="confirm-upload-btn" >Upload</button>
+          <button id="confirm-upload-btn">Upload</button>
           <button id="cancel-upload-btn">Cancel</button>
         </div>
       </div>
@@ -504,10 +506,7 @@
 
             <form id="consultation-form">
               <label
-                >Consulting Doctor:<input
-                  type="text"
-                  id="consult-doctor"
-                  
+                >Consulting Doctor:<input type="text" id="consult-doctor"
               /></label>
               <label
                 >Date:<input type="date" id="consult-date" required

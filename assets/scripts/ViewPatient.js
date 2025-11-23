@@ -1836,3 +1836,158 @@ document.querySelectorAll(".category-toggle").forEach((btn) => {
 loadPatient();
 await loadConsultations();
 await loadPhysicalExaminations();
+
+
+document.getElementById("exportPDF").addEventListener("click", exportPatientPDF);
+
+// Helper to convert local image to Base64
+function getImageBase64(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous"; // needed for CORS
+    img.src = url;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const dataURL = canvas.toDataURL("image/png");
+      resolve(dataURL);
+    };
+    img.onerror = (err) => reject(err);
+  });
+}
+
+async function exportPatientPDF() {
+  if (!patientId) return alert("No patient selected!");
+
+  try {
+    // Convert local image to Base64
+    const headerImageBase64 = await getImageBase64("../../assets/images/KCP header.png"); // path relative to HTML file
+
+    const patientRef = doc(db, "patients", patientId);
+    const patientSnap = await getDoc(patientRef);
+
+    if (!patientSnap.exists()) {
+      alert("Patient not found!");
+      return;
+    }
+
+    const data = patientSnap.data();
+    const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${data.middleName || ""}`.trim();
+
+    const createField = (label, value) => ({
+  table: {
+    widths: ["*"],
+    body: [
+      [{ text: label, bold: true, fontSize: 8, fillColor: "#E0EFFF", margin: [2, 2, 2, 2] }],
+      [{ text: value || "", fontSize: 8, margin: [1, 1, 1, 1] }]
+    ],
+    heights: [15, 15] // slightly smaller now
+  },
+  layout: {
+    hLineWidth: () => 0.5,
+    vLineWidth: () => 0.5,
+    hLineColor: () => "#999999",
+    vLineColor: () => "#999999",
+    paddingLeft: () => 2,
+    paddingRight: () => 2,
+    paddingTop: () => 2,
+    paddingBottom: () => 2
+  },
+  margin: [0, 0, 0, 0],
+  width: "*"
+});
+
+
+    const createRows = (fields) => {
+      const rows = [];
+      for (let i = 0; i < fields.length; i += 3) {
+        rows.push({
+          columns: [
+            createField(fields[i][0], fields[i][1]),
+            fields[i + 1] ? createField(fields[i + 1][0], fields[i + 1][1]) : createField("", ""),
+            fields[i + 2] ? createField(fields[i + 2][0], fields[i + 2][1]) : createField("", "")
+          ]
+        });
+      }
+      return rows;
+    };
+
+    const personalFields = [
+      ["Last Name", data.lastName],
+      ["First Name", data.firstName],
+      ["Middle Name", data.middleName],
+      ["Extension Name", data.extName],
+      ["Gender", data.gender],
+      ["Birthdate", data.birthdate],
+      ["Age", data.age],
+      ["Civil Status", data.civilStatus],
+      ["Nationality", data.nationality],
+      ["Religion", data.religion],
+      ["School ID", data.schoolId],
+      ["Role", data.role],
+      ["Department", data.department],
+      ["Course", data.course],
+      ["Year Level", data.year],
+    ];
+
+    const contactFields = [
+      ["Phone", data.contact],
+      ["Email", data.email],
+      ["Address", data.address],
+      ["Guardian Name", data.guardianName],
+      ["Guardian Phone", data.guardianPhone],
+    ];
+
+    const parentFields = [
+      ["Father's Name", data.fatherName],
+      ["Father's Age", data.fatherAge],
+      ["Father Occupation", data.fatherOccupation],
+      ["Father Health", data.fatherHealth],
+      ["Mother's Name", data.motherName],
+      ["Mother's Age", data.motherAge],
+      ["Mother Occupation", data.motherOccupation],
+      ["Mother Health", data.motherHealth],
+    ];
+
+    const createSection = (title, fields) => ({
+      stack: [
+        { text: title, style: "sectionHeader", margin: [0, 0, 0, 5] },
+        ...createRows(fields)
+      ],
+      margin: [0, 0, 0, 15]
+    });
+
+    const docDefinition = {
+  pageSize: "A4",
+  pageMargins: [40, 0, 40, 50],
+  content: [
+    // HEADER IMAGE FULL WIDTH
+    { image: headerImageBase64, width: 515, alignment: "center", margin: [0, 0, 0, 10] },
+
+    // { text: "PATIENT INFORMATION RECORD", style: "header" },
+    { text: fullName, style: "subheader", margin: [0, 0, 0, 0] },
+
+    createSection("Personal Information", personalFields),
+    createSection("Contact Information", contactFields),
+    createSection("Parent Information", parentFields),
+  ],
+
+  styles: {
+    header: { fontSize: 18, bold: true, alignment: "center", margin: [0, 0, 0, 0] },
+    subheader: { fontSize: 16, bold: true, alignment: "center" },
+    sectionHeader: { fontSize: 10, bold: true },
+  },
+
+  defaultStyle: { fontSize: 10 },
+};
+
+
+    pdfMake.createPdf(docDefinition).open();
+
+  } catch (err) {
+    console.error("PDF export error:", err);
+  }
+}
