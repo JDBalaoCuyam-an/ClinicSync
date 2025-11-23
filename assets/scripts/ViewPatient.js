@@ -1839,11 +1839,11 @@ await loadPhysicalExaminations();
 
 document.getElementById("exportPDF").addEventListener("click", exportPatientPDF);
 
-// Helper to convert local image to Base64
+// Convert local image to Base64
 function getImageBase64(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "Anonymous"; // needed for CORS
+    img.crossOrigin = "Anonymous";
     img.src = url;
     img.onload = () => {
       const canvas = document.createElement("canvas");
@@ -1861,7 +1861,6 @@ async function exportPatientPDF() {
   if (!patientId) return alert("No patient selected!");
 
   try {
-    // Convert local header image to Base64
     const headerImageBase64 = await getImageBase64("../../assets/images/KCP header.png");
 
     const patientRef = doc(db, "patients", patientId);
@@ -1875,7 +1874,6 @@ async function exportPatientPDF() {
     const data = patientSnap.data();
     const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${data.middleName || ""}`.trim();
 
-    // Fetch Medical History subcollection
     const historyRef = collection(db, "patients", patientId, "medicalHistory");
     const historySnap = await getDocs(historyRef);
 
@@ -1890,7 +1888,24 @@ async function exportPatientPDF() {
       pastSurgicalHistory = h.pastSurgicalHistory || "";
     });
 
-    // Helper: Create bordered field (blue label + value) with optional autoHeight
+    const consultRef = collection(db, "patients", patientId, "consultations");
+    const consultSnap = await getDocs(consultRef);
+
+    let consultations = [];
+
+    consultSnap.forEach((c) => {
+      const d = c.data();
+      consultations.push({
+        date: d.date || "",
+        time: d.time || "",
+        complaint: d.complaint || "",
+        diagnosis: d.diagnosis || "",
+        notes: d.notes || "",
+        meds: Array.isArray(d.meds) ? d.meds : [],
+        vitals: Array.isArray(d.vitals) ? d.vitals : []
+      });
+    });
+
     const createField = (label, value, autoHeight = false) => ({
       table: {
         widths: ["*"],
@@ -1898,148 +1913,189 @@ async function exportPatientPDF() {
           [{ text: label, bold: true, fontSize: 8, fillColor: "#E0EFFF", margin: [1, 1, 1, 0] }],
           [{ text: value || "", fontSize: 8, margin: [1, 1, 1, 0] }]
         ],
-        heights: autoHeight
-          ? function (rowIndex) { return rowIndex === 0 ? 13 : 'auto'; } // label fixed, value auto
-          : [13, 13],
+        heights: autoHeight ? (row) => (row === 0 ? 13 : "auto") : [13, 13]
       },
-      layout: {
-        hLineWidth: () => 0.5,
-        vLineWidth: () => 0.5,
-        hLineColor: () => "#999999",
-        vLineColor: () => "#999999",
-        paddingLeft: () => 2,
-        paddingRight: () => 2,
-        paddingTop: () => 2,
-        paddingBottom: () => 1,
-      },
-      width: "*",
+      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => "#999", vLineColor: () => "#999", paddingLeft: () => 2, paddingRight: () => 2 },
+      width: "*"
     });
 
-    // Helper: 3-column rows
     const createRows = (fields) => {
       const rows = [];
       for (let i = 0; i < fields.length; i += 3) {
         rows.push({
           columns: [
             createField(fields[i][0], fields[i][1]),
-            fields[i + 1] ? createField(fields[i + 1][0], fields[i + 1][1]) : createField("", ""),
-            fields[i + 2] ? createField(fields[i + 2][0], fields[i + 2][1]) : createField("", ""),
-          ],
+            fields[i+1] ? createField(fields[i+1][0], fields[i+1][1]) : createField("", ""),
+            fields[i+2] ? createField(fields[i+2][0], fields[i+2][1]) : createField("", "")
+          ]
         });
       }
       return rows;
     };
 
-    // PERSONAL INFO
+    const createBorderedSection = (title, fieldsOrContent) => ({
+      table: {
+        widths: ["*"],
+        body: [[{
+          stack: [
+            { text: title, style: "sectionHeader", margin: [0, 2, 0, 4], alignment: "center" },
+            ...fieldsOrContent
+          ],
+          margin: [2, 2, 2, 2]
+        }]]
+      },
+      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => "#999", vLineColor: () => "#999" },
+      margin: [0, 5, 0, 5]
+    });
+
+    function buildConsultationRecord(item) {
+      const vitalsRows = item.vitals.length
+  ? item.vitals.map(v => [
+      {
+        stack: [
+          { text: v.recordedDate || "", fontSize: 8 },
+          { text: v.recordedTime || "", fontSize: 8 }
+        ]
+      },
+      { text: v.bp || "", fontSize: 8 },
+      { text: v.temp || "", fontSize: 8 },
+      { text: v.spo2 || "", fontSize: 8 },
+      { text: v.pr || "", fontSize: 8 },
+      { text: v.lmp || "", fontSize: 8 }
+    ])
+  : [["", "", "", "", "", ""]];
+
+
+      const medsRows = item.meds.length
+  ? item.meds.map(m => [
+      {
+        stack: [
+          { text: m.date || "", fontSize: 8 },
+          { text: m.time || "", fontSize: 8 } // assuming you have a separate time field
+        ]
+      },
+      { text: m.name || "", fontSize: 8 },
+      { text: m.quantity || "", fontSize: 8 }
+    ])
+  : [["", "", ""]];
+
+
+      return {
+        table: {
+          widths: ["auto","auto","auto","auto","auto","auto","*","*","*","auto","*","auto"],
+          body: [
+            [
+              { text: "Vitals", bold: true, fillColor: "#E0EFFF", colSpan: 6, alignment: "center", fontSize: 8 }, {}, {}, {}, {}, {},
+              { text: "Chief Complaint", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+              { text: "Diagnosis", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+              { text: "Notes/Intervention", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+              { text: "Medications", bold: true, fillColor: "#E0EFFF", colSpan: 3, alignment: "center", fontSize: 8 }, {}, {}
+            ],
+            [
+              {
+                colSpan: 6,
+                table: {
+                  widths: ["auto", "auto", "auto", "auto", "auto", "auto"],
+                  body: [
+                    [
+                      { text: "Date/Time", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+                      { text: "BP", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+                      { text: "T", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+                      { text: "Spo2", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+                      { text: "PR", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+                      { text: "LMP", bold: true, fillColor: "#E0EFFF", fontSize: 8 }
+                    ],
+                    ...vitalsRows
+                  ]
+                },
+                layout: "lightHorizontalLines"
+              }, {}, {}, {}, {}, {},
+              { text: item.complaint || "", fontSize: 8 },
+              { text: item.diagnosis || "", fontSize: 8 },
+              { text: item.notes || "", fontSize: 8 },
+              {
+                colSpan: 3,
+                table: {
+                  widths: ["auto", "*", "auto"],
+                  body: [
+                    [
+                      { text: "Date/Time", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+                      { text: "Name", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
+                      { text: "qty", bold: true, fillColor: "#E0EFFF", fontSize: 8 }
+                    ],
+                    ...medsRows
+                  ]
+                },
+                layout: "lightHorizontalLines"
+              }, {}, {}
+            ]
+          ]
+        },
+        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => "#999", vLineColor: () => "#999" },
+        margin: [0, 2, 0, 2]
+      };
+    }
+
     const personalFields = [
-      ["Last Name", data.lastName],
-      ["First Name", data.firstName],
-      ["Middle Name", data.middleName],
-      ["Extension Name", data.extName],
-      ["Gender", data.gender],
-      ["Birthdate", data.birthdate],
-      ["Age", data.age],
-      ["Civil Status", data.civilStatus],
-      ["Nationality", data.nationality],
-      ["Religion", data.religion],
-      ["School ID", data.schoolId],
-      ["Role", data.role],
-      ["Department", data.department],
-      ["Course/Strand/Gen. Educ.", data.course],
-      ["Year Level", data.year],
+      ["Last Name", data.lastName], ["First Name", data.firstName], ["Middle Name", data.middleName],
+      ["Extension Name", data.extName], ["Gender", data.gender], ["Birthdate", data.birthdate],
+      ["Age", data.age], ["Civil Status", data.civilStatus], ["Nationality", data.nationality],
+      ["Religion", data.religion], ["School ID", data.schoolId], ["Role", data.role],
+      ["Department", data.department], ["Course/Strand/Gen. Educ.", data.course], ["Year Level", data.year]
     ];
 
-    // PARENT INFO
-    const parentFields = [
-      ["Father's Name", data.fatherName],
-      ["Father's Age", data.fatherAge],
-      ["Father Occupation", data.fatherOccupation],
-      ["Father Health", data.fatherHealth],
-      ["Mother's Name", data.motherName],
-      ["Mother's Age", data.motherAge],
-      ["Mother Occupation", data.motherOccupation],
-      ["Mother Health", data.motherHealth],
-    ];
-
-    // MEDICAL HISTORY
     const medicalFields = [
       ["Past Medical History", pastMedicalHistory],
       ["Family History", familyHistory],
-      ["Past Surgical History", pastSurgicalHistory],
+      ["Past Surgical History", pastSurgicalHistory]
     ];
 
-    // Helper: Build a labeled 1-column full-width field
-    const oneColumnField = (label, value, topMargin = 0, autoHeight = false) => ({
-      columns: [createField(label, value, autoHeight)],
-      margin: [0, topMargin, 0, 0],
-    });
+    // Prepare consultation content
+    const consultationContent = consultations.length === 0
+      ? [{ text: "No consultation records found.", italics: true }]
+      : consultations.map(c => buildConsultationRecord(c));
 
-    // Helper: Build two side-by-side fields (2 columns)
-    const twoColumnFields = (label1, value1, label2, value2, topMargin = 0, autoHeight = false) => ({
-      columns: [
-        { ...createField(label1, value1, autoHeight), margin: [0, topMargin, 0, 0] },
-        { ...createField(label2, value2, autoHeight), margin: [0, topMargin, 0, 0] },
-      ],
-    });
+    const content = [
+      { image: headerImageBase64, width: 515, alignment: "center" },
+      { text: fullName, style: "subheader", margin: [0, 5, 0, 10] },
 
-    // SECTION builder with 10 top margin
-    const createSection = (title, fields) => ({
-      stack: [
-        { text: title, style: "sectionHeader", margin: [0, 0, 0, 0] },
-        ...createRows(fields),
-      ],
-      margin: [0, 10, 0, 0], // 10 top margin
-    });
+      createBorderedSection("Personal Information", createRows(personalFields)),
 
-    // Helper: Build Medical History rows with autoHeight
-    const createMedicalRows = (fields) => {
-      return fields.map(([label, value]) => ({
-        columns: [createField(label, value, true)],
-      }));
-    };
-
-    // ----------- FINAL PDF STRUCTURE -----------
-    const docDefinition = {
-      pageSize: "A4",
-      pageMargins: [40, 0, 40, 50],
-
-      content: [
-        { image: headerImageBase64, width: 515, alignment: "center", margin: [0, 0, 0, 0] },
-        { text: fullName, style: "subheader", margin: [0, 10, 0, 0] },
-
-        createSection("Personal Information", personalFields),
-
-        { text: "Contact Information", style: "sectionHeader", margin: [0, 10, 0, 0] },
-        {
-          stack: [
-            twoColumnFields("Phone", data.contact, "Email", data.email),
-            oneColumnField("Address", data.address),
-            twoColumnFields("Guardian Name", data.guardianName, "Guardian Phone", data.guardianPhone),
-          ],
-          margin: [0, 0, 0, 0],
+      {
+        table: {
+          widths: ["*"],
+          body: [[{
+            stack: [
+              { text: "Contact Information", style: "sectionHeader", margin: [0, 2, 0, 4], alignment: "center" },
+              { columns: [ createField("Phone", data.contact), createField("Email", data.email) ] },
+              { columns: [ createField("Address", data.address) ] },
+              { columns: [ createField("Guardian Name", data.guardianName), createField("Guardian Phone", data.guardianPhone) ] }
+            ],
+            margin: [2, 2, 2, 2]
+          }]]
         },
-
-        createSection("Parent Information", parentFields),
-
-        // Medical History section with auto height
-        {
-          stack: [
-            { text: "Medical History", style: "sectionHeader", margin: [0, 10, 0, 0] },
-            ...createMedicalRows(medicalFields),
-          ],
-          margin: [0, 0, 0, 0],
-        },
-      ],
-
-      styles: {
-        subheader: { fontSize: 16, bold: true, alignment: "center" },
-        sectionHeader: { fontSize: 10, bold: true },
+        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => "#999", vLineColor: () => "#999" },
+        margin: [0, 5, 0, 5]
       },
 
-      defaultStyle: { fontSize: 10 },
+      createBorderedSection("Medical History", createRows(medicalFields)),
+
+      createBorderedSection("Medical Consultation Records", consultationContent)
+    ];
+
+    const docDefinition = {
+      pageSize: "A4",
+      pageMargins: [40, 10, 40, 10],
+      content,
+      styles: {
+        subheader: { fontSize: 14, bold: true, alignment: "center" },
+        sectionHeader: { fontSize: 10, bold: true }
+      },
+      defaultStyle: { fontSize: 9 }
     };
 
     pdfMake.createPdf(docDefinition).open();
+
   } catch (err) {
     console.error("PDF export error:", err);
   }
