@@ -138,4 +138,34 @@
       type="module"
     ></script>
   <script src="../../assets/scripts/modal.js"></script>
+  <script>
+  // Wait for the DOM to fully load
+  document.addEventListener("DOMContentLoaded", () => {
+    // Select the back-to-top button
+    const backToTopBtn = document.querySelector(".backToTop");
+
+    // Check if button exists (important if footer is dynamically imported)
+    if (backToTopBtn) {
+      // Scroll smoothly to top when clicked
+      backToTopBtn.addEventListener("click", () => {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      });
+
+      // Optional: Show/hide button based on scroll position
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 300) {
+          backToTopBtn.style.display = "block"; // Show button
+        } else {
+          backToTopBtn.style.display = "none"; // Hide button
+        }
+      });
+
+      // Initially hide the button
+      backToTopBtn.style.display = "none";
+    }
+  });
+</script>
 </html>

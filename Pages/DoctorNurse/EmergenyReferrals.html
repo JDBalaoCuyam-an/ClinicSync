@@ -19,9 +19,7 @@
     <!-- NavBar -->
     <header class="navbar">
       <div class="left-header">
-        <button class="menu-icon" onclick="toggleSidebar()" aria-label="Toggle menu">
-          <i class="fa-solid fa-bars"></i>
-        </button>
+        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
         <h1>ClinicSync</h1>
       </div>
       <div class="right-header">
@@ -105,11 +103,15 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3 id="modalTitle">Add Emergency Referral</h3>
-          <button class="close-btn" onclick="closeReferralModal()" aria-label="Close modal">
+          <button
+            class="close-btn"
+            onclick="closeReferralModal()"
+            aria-label="Close modal"
+          >
             <i class="fa-solid fa-times"></i>
           </button>
         </div>
-        
+
         <form id="referralForm">
           <input type="hidden" id="referralId" />
 
@@ -118,22 +120,28 @@
               <label for="referralDate">Date</label>
               <input type="date" id="referralDate" required />
             </div>
-            
+
             <div class="form-group">
               <label for="referralTime">Time</label>
               <input type="time" id="referralTime" required />
             </div>
-            
+
             <div class="form-group">
               <label for="referralName">Name</label>
               <input type="text" id="referralName" required />
             </div>
-            
+
             <div class="form-group">
               <label for="referralAge">Age</label>
-              <input type="number" id="referralAge" required min="1" max="120" />
+              <input
+                type="number"
+                id="referralAge"
+                required
+                min="1"
+                max="120"
+              />
             </div>
-            
+
             <div class="form-group">
               <label for="referralGender">Gender</label>
               <select id="referralGender" required>
@@ -143,27 +151,27 @@
                 <option>Other</option>
               </select>
             </div>
-            
+
             <div class="form-group">
               <label for="referralDept">Department</label>
               <input type="text" id="referralDept" required />
             </div>
-            
+
             <div class="form-group">
               <label for="referralYear">Year</label>
               <input type="text" id="referralYear" required />
             </div>
-            
+
             <div class="form-group full-width">
               <label for="referralAddress">Address</label>
               <textarea id="referralAddress" required rows="3"></textarea>
             </div>
-            
+
             <div class="form-group full-width">
               <label for="referralComplaint">Chief Complaint</label>
               <textarea id="referralComplaint" required rows="3"></textarea>
             </div>
-            
+
             <div class="form-group full-width">
               <label for="referralRemarks">Remarks</label>
               <textarea id="referralRemarks" rows="3"></textarea>
@@ -171,16 +179,57 @@
           </div>
 
           <div class="modal-buttons">
-            <button type="button" class="cancel-btn" onclick="closeReferralModal()">Cancel</button>
-            <button type="submit" class="save-btn primary-btn">Save Referral</button>
+            <button
+              type="button"
+              class="cancel-btn"
+              onclick="closeReferralModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="save-btn primary-btn">
+              Save Referral
+            </button>
           </div>
         </form>
       </div>
     </div>
 
-    <div id="footer-container"></div>
-
-    <script type="module" src="../../assets/scripts/EmergencyReferrals.js"></script>
+    <script
+      type="module"
+      src="../../assets/scripts/EmergencyReferrals.js"
+    ></script>
     <script src="../../assets/scripts/modal.js"></script>
   </body>
+
+  <footer id="footer-container"></footer>
+  <script>
+  // Wait for the DOM to fully load
+  document.addEventListener("DOMContentLoaded", () => {
+    // Select the back-to-top button
+    const backToTopBtn = document.querySelector(".backToTop");
+
+    // Check if button exists (important if footer is dynamically imported)
+    if (backToTopBtn) {
+      // Scroll smoothly to top when clicked
+      backToTopBtn.addEventListener("click", () => {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      });
+
+      // Optional: Show/hide button based on scroll position
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 300) {
+          backToTopBtn.style.display = "block"; // Show button
+        } else {
+          backToTopBtn.style.display = "none"; // Hide button
+        }
+      });
+
+      // Initially hide the button
+      backToTopBtn.style.display = "none";
+    }
+  });
+</script>
 </html>
