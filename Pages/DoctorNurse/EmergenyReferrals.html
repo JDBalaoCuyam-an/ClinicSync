@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Emergency Referrals</title>
+    <title>Emergency Referrals | ClinicSync</title>
 
     <script type="module" src="../../firebaseconfig.js"></script>
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
@@ -19,14 +19,16 @@
     <!-- NavBar -->
     <header class="navbar">
       <div class="left-header">
-        <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
+        <button class="menu-icon" onclick="toggleSidebar()" aria-label="Toggle menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
         <h1>ClinicSync</h1>
       </div>
       <div class="right-header">
         <div class="user-name" id="displayName"></div>
         <div class="logout-container">
           <form>
-            <button type="submit" id="logout-button">
+            <button type="submit" id="logout-button" aria-label="Logout">
               <i class="fa-solid fa-right-from-bracket"></i>
             </button>
           </form>
@@ -39,91 +41,138 @@
 
     <!-- PAGE CONTENT -->
     <main class="content">
-        <!-- CHART -->
-      <div class="chart-section">
-        <h3 style="text-align:center; margin-top: 20px;">Referral Frequency</h3>
-        <select id="chartFilter" class="chart-filter">
-          <option value="all">All Time</option>
-          <option value="day">Today</option>
-          <option value="week">Weekly</option>
-          <option value="month">Monthly</option>
-          <option value="year">Yearly</option>
-        </select>
-        <canvas id="referralChart" style="height:300px;"></canvas>
-      </div>
+      <!-- CHART SECTION -->
+      <section class="chart-section">
+        <div class="section-header">
+          <h2>Referral Frequency</h2>
+          <div class="chart-controls">
+            <select id="chartFilter" class="chart-filter">
+              <option value="all">All Time</option>
+              <option value="day">Today</option>
+              <option value="week">Weekly</option>
+              <option value="month">Monthly</option>
+              <option value="year">Yearly</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="referralChart"></canvas>
+        </div>
+      </section>
 
-      <div class="header-section">
-        <h2 style="text-align: center;">Emergency Referrals</h2>
-        <button id="addReferralBtn" class="add-btn">
-          <i class="fa-solid fa-plus"></i> Add Referral
-        </button>
-      </div>
+      <!-- REFERRALS SECTION -->
+      <section class="referrals-section">
+        <div class="section-header">
+          <h2>Emergency Referrals</h2>
+          <button id="addReferralBtn" class="add-btn primary-btn">
+            <i class="fa-solid fa-plus"></i> Add Referral
+          </button>
+        </div>
 
-      <!-- REFERRALS TABLE -->
-      <table class="referral-table">
-        <thead>
-          <tr>
-            <th>Date & Time</th>
-            <th>Name</th>
-            <th>Age</th>
-            <th>Gender</th>
-            <th>Department</th>
-            <th>Year</th>
-            <th>Chief Complaint</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="referralsList"></tbody>
-      </table>
-
-      
-
+        <!-- REFERRALS TABLE -->
+        <div class="table-container">
+          <table class="referral-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Department</th>
+                <th>Year</th>
+                <th>Chief Complaint</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="referralsList">
+              <!-- Loading state -->
+              <tr class="loading-row">
+                <td colspan="8">
+                  <div class="loading-spinner">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Loading referrals...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
 
     <!-- ADD / EDIT MODAL -->
     <div id="referralModal" class="modal">
       <div class="modal-content">
-        <h3 id="modalTitle">Add Emergency Referral</h3>
+        <div class="modal-header">
+          <h3 id="modalTitle">Add Emergency Referral</h3>
+          <button class="close-btn" onclick="closeReferralModal()" aria-label="Close modal">
+            <i class="fa-solid fa-times"></i>
+          </button>
+        </div>
+        
         <form id="referralForm">
           <input type="hidden" id="referralId" />
 
-          <label>Date</label>
-          <input type="date" id="referralDate" required />
-
-          <label>Time</label>
-          <input type="time" id="referralTime" required />
-
-          <label>Name</label>
-          <input type="text" id="referralName" required />
-
-          <label>Age</label>
-          <input type="number" id="referralAge" required />
-
-          <label>Gender</label>
-          <select id="referralGender" required>
-            <option value="">Select</option>
-            <option>Male</option>
-            <option>Female</option>
-          </select>
-
-          <label>Department</label>
-          <input type="text" id="referralDept" required />
-
-          <label>Year</label>
-          <input type="text" id="referralYear" required />
-
-          <label>Address</label>
-          <textarea id="referralAddress" required></textarea>
-
-          <label>Chief Complaint</label>
-          <textarea id="referralComplaint" required></textarea>
-
-          <label>Remarks</label>
-          <textarea id="referralRemarks"></textarea>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="referralDate">Date</label>
+              <input type="date" id="referralDate" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="referralTime">Time</label>
+              <input type="time" id="referralTime" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="referralName">Name</label>
+              <input type="text" id="referralName" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="referralAge">Age</label>
+              <input type="number" id="referralAge" required min="1" max="120" />
+            </div>
+            
+            <div class="form-group">
+              <label for="referralGender">Gender</label>
+              <select id="referralGender" required>
+                <option value="">Select</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="referralDept">Department</label>
+              <input type="text" id="referralDept" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="referralYear">Year</label>
+              <input type="text" id="referralYear" required />
+            </div>
+            
+            <div class="form-group full-width">
+              <label for="referralAddress">Address</label>
+              <textarea id="referralAddress" required rows="3"></textarea>
+            </div>
+            
+            <div class="form-group full-width">
+              <label for="referralComplaint">Chief Complaint</label>
+              <textarea id="referralComplaint" required rows="3"></textarea>
+            </div>
+            
+            <div class="form-group full-width">
+              <label for="referralRemarks">Remarks</label>
+              <textarea id="referralRemarks" rows="3"></textarea>
+            </div>
+          </div>
 
           <div class="modal-buttons">
-            <button type="submit" class="save-btn">Save</button>
             <button type="button" class="cancel-btn" onclick="closeReferralModal()">Cancel</button>
+            <button type="submit" class="save-btn primary-btn">Save Referral</button>
           </div>
         </form>
       </div>

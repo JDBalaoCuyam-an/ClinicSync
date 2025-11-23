@@ -4,18 +4,38 @@
 
 /* PAGE WRAPPER */
 .content {
-padding: 20px;
-  height: 100vh;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
+/* SECTION STYLES */
+.chart-section,
+.referrals-section {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+  overflow: hidden;
+}
 
-.header-section h2 {
-  font-size: 28px;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-header h2 {
+  font-size: 22px;
   font-weight: 600;
   color: #333;
+  margin: 0;
 }
 
-.add-btn {
+/* BUTTON STYLES */
+.primary-btn {
   background: #2b7cff;
   color: white;
   border: none;
@@ -23,22 +43,128 @@ padding: 20px;
   border-radius: 8px;
   cursor: pointer;
   transition: 0.2s ease;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 7px;
 }
 
-.add-btn i {
-  font-size: 14px;
+.primary-btn:hover {
+  background: #1e63d6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(43, 124, 255, 0.2);
 }
 
-.add-btn:hover {
-  background: #1e63d6;
+.primary-btn:active {
+  transform: translateY(0);
+}
+
+/* CHART SECTION */
+.chart-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.chart-filter {
+  padding: 8px 12px;
+  border: 1px solid #d3d3d3;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.chart-container {
+  padding: 20px;
+  height: 300px;
+}
+
+#referralChart {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* TABLE STYLES */
+.table-container {
+  overflow-x: auto;
+  padding: 0 25px 25px;
+}
+
+.referral-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.referral-table th {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #e9ecef;
+  white-space: nowrap;
+}
+
+.referral-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e9ecef;
+  color: #495057;
+}
+
+.referral-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.referral-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* ACTION BUTTONS */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.2s;
+  color: #6c757d;
+}
+
+.btn-icon:hover {
+  background: #f0f0f0;
+  color: #495057;
+}
+
+.btn-edit:hover {
+  color: #2b7cff;
+}
+
+.btn-delete:hover {
+  color: #dc3545;
+}
+
+/* LOADING STATE */
+.loading-row td {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #6c757d;
 }
 
 /* =============================== */
-/* MODAL */
+/* MODAL STYLES */
 /* =============================== */
 
 .modal {
@@ -52,16 +178,18 @@ padding: 20px;
   justify-content: center;
   align-items: center;
   z-index: 500;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .modal-content {
-  width: 500px;
+  width: 100%;
+  max-width: 600px;
   max-height: 85vh;
   overflow-y: auto;
   background: #fff;
-  padding: 25px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
   animation: fadeIn 0.2s ease-in-out;
 }
 
@@ -70,17 +198,59 @@ padding: 20px;
   to { opacity: 1; transform: scale(1); }
 }
 
-.modal-content h3 {
-  text-align: center;
-  font-size: 22px;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-header h3 {
+  font-size: 20px;
   font-weight: 600;
-  margin-bottom: 18px;
+  margin: 0;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: 0.2s;
+}
+
+.close-btn:hover {
+  background: #f0f0f0;
+  color: #495057;
 }
 
 /* FORM STYLES */
+#referralForm {
+  padding: 25px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
 #referralForm label {
-  display: block;
-  margin-top: 12px;
+  margin-bottom: 6px;
   font-size: 14px;
   font-weight: 500;
   color: #333;
@@ -89,19 +259,18 @@ padding: 20px;
 #referralForm input,
 #referralForm select,
 #referralForm textarea {
-  width: 100%;
-  padding: 10px;
-  margin-top: 6px;
+  padding: 10px 12px;
   border: 1px solid #d3d3d3;
   border-radius: 8px;
   font-size: 14px;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 #referralForm input:focus,
 #referralForm select:focus,
 #referralForm textarea:focus {
   border-color: #2b7cff;
+  box-shadow: 0 0 0 3px rgba(43, 124, 255, 0.1);
   outline: none;
 }
 
@@ -112,64 +281,94 @@ padding: 20px;
 
 /* MODAL BUTTONS */
 .modal-buttons {
-  margin-top: 18px;
+  margin-top: 25px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
-.save-btn {
-  background: #2b7cff;
-  color: white;
-  border: none;
+.cancel-btn {
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #d3d3d3;
   padding: 10px 18px;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
   transition: 0.2s;
 }
 
-.save-btn:hover {
-  background: #1e63d6;
-}
-
-.cancel-btn {
-  background: #ddd;
-  color: #333;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
 .cancel-btn:hover {
-  background: #c8c8c8;
+  background: #e9ecef;
 }
 
 /* =============================== */
-/* MOBILE RESPONSIVENESS */
+/* RESPONSIVE STYLES */
 /* =============================== */
 
-@media (max-width: 600px) {
-  .modal-content {
-    width: 90%;
+@media (max-width: 992px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .section-header .primary-btn {
+    align-self: flex-end;
   }
 }
 
-.chart-section {
-    width: 100%;
-    max-width: 1200px; /* optional */
-    margin: 40px auto 50px auto;
-    background-color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+@media (max-width: 768px) {
+  .content {
+    padding: 15px;
+  }
+  
+  .section-header {
+    padding: 15px 20px;
+  }
+  
+  .table-container {
+    padding: 0 15px 15px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+    max-height: 90vh;
+  }
+  
+  .modal {
+    align-items: flex-end;
+    padding: 0;
+  }
 }
 
-#referralChart {
-    width: 100% !important;
-    height: auto !important; /* Let Chart.js handle height */
-    max-height: 400px;       /* optional max height */
+@media (max-width: 576px) {
+  .chart-container {
+    height: 250px;
+    padding: 15px;
+  }
+  
+  .referral-table th,
+  .referral-table td {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .modal-buttons {
+    flex-direction: column-reverse;
+  }
+  
+  .modal-buttons button {
+    width: 100%;
+  }
 }
