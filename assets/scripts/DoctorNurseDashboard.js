@@ -130,6 +130,157 @@ function categorizeVisit(v) {
 
   return "visitor";
 }
+// ========================
+// ✅ DYNAMIC CHART FILTER: DEPT → COURSE → YEAR
+// ========================
+const chartDept = document.getElementById("department");
+const chartCourse = document.getElementById("course");
+const chartYear = document.getElementById("yearLevel");
+
+// ✅ Store original options
+const allChartDeptOptions = Array.from(chartDept.options);
+const allChartCourseOptions = Array.from(chartCourse.options);
+const allChartYearOptions = Array.from(chartYear.options);
+
+// ✅ Department → Courses mapping (same as before)
+const chartDepartmentCourses = {
+  basiced: [
+    "Kindergarten",
+    "Elementary",
+    "Junior Highschool",
+    "Accountancy and Business Management",
+    "Science, Technology, Engineering, and Mathematics",
+    "Humanities and Sciences",
+  ],
+  cabm: [
+    "Bachelor of Science in Accountancy",
+    "Bachelor of Science in Office Administration",
+    "Bachelor of Science in Hospitality Management",
+    "Bachelor of Science in Business Administration",
+  ],
+  cte: [
+    "Bachelor of Elementary Education",
+    "Bachelor of Science in Psychology",
+    "Bachelor of Science in Social Work",
+    "Bachelor of Secondary Education",
+    "Technical Vocational Teacher Education",
+  ],
+  cit: ["Bachelor of Science in Information Technology"],
+  tted: ["NC1 NC2 NC3"],
+  cot: ["Bachelor of Theology"],
+  ccje: ["Bachelor of Science in Criminology"],
+  visitor: ["Visitor"],
+};
+
+// ✅ Course → Year Levels mapping (same as before)
+const chartCourseYears = {
+  "Kindergarten": ["1","2"],
+  "Elementary": ["1","2","3","4","5","6"],
+  "Junior Highschool": ["7","8","9","10"],
+  "Accountancy and Business Management": ["11","12"],
+  "Science, Technology, Engineering, and Mathematics": ["11","12"],
+  "Humanities and Sciences": ["11","12"],
+  "Bachelor of Science in Accountancy": ["1","2","3","4"],
+  "Bachelor of Science in Office Administration": ["1","2","3","4"],
+  "Bachelor of Science in Hospitality Management": ["1","2","3","4"],
+  "Bachelor of Science in Business Administration": ["1","2","3","4"],
+  "Bachelor of Elementary Education": ["1","2","3","4"],
+  "Bachelor of Science in Psychology": ["1","2","3","4"],
+  "Bachelor of Science in Social Work": ["1","2","3","4"],
+  "Bachelor of Secondary Education": ["1","2","3","4"],
+  "Technical Vocational Teacher Education": ["1","2","3"],
+  "Bachelor of Science in Information Technology": ["1","2","3","4"],
+  "NC1 NC2 NC3": ["1","2","3"],
+  "Bachelor of Theology": ["1","2","3","4"],
+  "Bachelor of Science in Criminology": ["1","2","3","4"],
+  "Visitor": ["all-year"]
+};
+
+// ========================
+// ✅ Update Chart Course List
+// ========================
+function updateChartCourseList() {
+  const selectedDept = chartDept.value;
+
+  // Visitor Case → show only Visitor
+  if (selectedDept.toLowerCase() === "visitor") {
+    chartDept.innerHTML = "";
+    chartCourse.innerHTML = "";
+    chartYear.innerHTML = "";
+
+    const visitorDept = allChartDeptOptions.find(opt => opt.value === "Visitor");
+    const visitorCourse = allChartCourseOptions.find(opt => opt.value === "Visitor");
+    const visitorYear = allChartYearOptions.find(opt => opt.value === "all-year");
+
+    if (visitorDept) chartDept.appendChild(visitorDept.cloneNode(true));
+    if (visitorCourse) chartCourse.appendChild(visitorCourse.cloneNode(true));
+    if (visitorYear) chartYear.appendChild(visitorYear.cloneNode(true));
+
+    chartDept.disabled = true;
+    chartCourse.disabled = true;
+    chartYear.disabled = true;
+    return;
+  }
+
+  // Restore dropdowns if previously disabled
+  chartDept.disabled = false;
+  chartCourse.disabled = false;
+  chartYear.disabled = false;
+
+  // Restore Departments
+  chartDept.innerHTML = "";
+  allChartDeptOptions.forEach(opt => chartDept.appendChild(opt.cloneNode(true)));
+
+  // Update Courses
+  chartCourse.innerHTML = "";
+  const defaultCourse = allChartCourseOptions.find(opt => opt.value === "all-course-strand-genEduc");
+  if (defaultCourse) chartCourse.appendChild(defaultCourse.cloneNode(true));
+
+  if (selectedDept === "all-dept" || !chartDepartmentCourses[selectedDept.toLowerCase()]) {
+    allChartCourseOptions.forEach(opt => {
+      if (opt.value !== "all-course-strand-genEduc") chartCourse.appendChild(opt.cloneNode(true));
+    });
+  } else {
+    const deptKey = selectedDept.toLowerCase();
+    chartDepartmentCourses[deptKey].forEach(courseName => {
+      const match = allChartCourseOptions.find(opt => opt.textContent.trim() === courseName);
+      if (match) chartCourse.appendChild(match.cloneNode(true));
+    });
+  }
+
+  chartCourse.value = "all-course-strand-genEduc";
+  updateChartYearList();
+}
+
+// ========================
+// ✅ Update Chart Year List
+// ========================
+function updateChartYearList() {
+  const selectedCourse = chartCourse.value;
+
+  chartYear.innerHTML = "";
+  const defaultYear = allChartYearOptions.find(opt => opt.value === "all-year");
+  if (defaultYear) chartYear.appendChild(defaultYear.cloneNode(true));
+
+  if (selectedCourse === "all-course-strand-genEduc" || !chartCourseYears[selectedCourse]) {
+    allChartYearOptions.forEach(opt => {
+      if (opt.value !== "all-year") chartYear.appendChild(opt.cloneNode(true));
+    });
+  } else {
+    chartCourseYears[selectedCourse].forEach(yearValue => {
+      const match = allChartYearOptions.find(opt => opt.value === yearValue);
+      if (match) chartYear.appendChild(match.cloneNode(true));
+    });
+  }
+
+  chartYear.value = "all-year";
+}
+
+// ========================
+// ✅ Event Listeners
+// ========================
+chartDept.addEventListener("change", updateChartCourseList);
+chartCourse.addEventListener("change", updateChartYearList);
 
 /* ============================
    FINAL FIXED CHART GROUPING
@@ -415,6 +566,159 @@ async function loadComplaints(
     console.error("❌ Error loading complaints:", err);
   }
 }
+// ========================
+// ✅ DYNAMIC COMPLAINT FILTER: DEPT → COURSE → YEAR
+// ========================
+const deptComplaint = document.getElementById("departmentComplaintFilter");
+const courseComplaint = document.getElementById("courseComplaintFilter");
+const yearComplaint = document.getElementById("yearLevelComplaintFilter");
+
+// ✅ Store original options
+const allDeptComplaintOptions = Array.from(deptComplaint.options);
+const allCourseComplaintOptions = Array.from(courseComplaint.options);
+const allYearComplaintOptions = Array.from(yearComplaint.options);
+
+// ✅ Department → Courses mapping
+const departmentCoursesComplaint = {
+  basiced: [
+    "Kindergarten",
+    "Elementary",
+    "Junior Highschool",
+    "Accountancy and Business Management",
+    "Science, Technology, Engineering, and Mathematics",
+    "Humanities and Sciences",
+  ],
+  cabm: [
+    "Bachelor of Science in Accountancy",
+    "Bachelor of Science in Office Administration",
+    "Bachelor of Science in Hospitality Management",
+    "Bachelor of Science in Business Administration",
+  ],
+  cte: [
+    "Bachelor of Elementary Education",
+    "Bachelor of Science in Psychology",
+    "Bachelor of Science in Social Work",
+    "Bachelor of Secondary Education",
+    "Technical Vocational Teacher Education",
+  ],
+  cit: ["Bachelor of Science in Information Technology"],
+  tted: ["NC1 NC2 NC3"],
+  cot: ["Bachelor of Theology"],
+  ccje: ["Bachelor of Science in Criminology"],
+  visitor: ["Visitor"],
+};
+
+// ✅ Course → Year Levels mapping
+const courseYearsComplaint = {
+  "Kindergarten": ["1","2"],
+  "Elementary": ["1","2","3","4","5","6"],
+  "Junior Highschool": ["7","8","9","10"],
+  "Accountancy and Business Management": ["11","12"],
+  "Science, Technology, Engineering, and Mathematics": ["11","12"],
+  "Humanities and Sciences": ["11","12"],
+  "Bachelor of Science in Accountancy": ["1","2","3","4"],
+  "Bachelor of Science in Office Administration": ["1","2","3","4"],
+  "Bachelor of Science in Hospitality Management": ["1","2","3","4"],
+  "Bachelor of Science in Business Administration": ["1","2","3","4"],
+  "Bachelor of Elementary Education": ["1","2","3","4"],
+  "Bachelor of Science in Psychology": ["1","2","3","4"],
+  "Bachelor of Science in Social Work": ["1","2","3","4"],
+  "Bachelor of Secondary Education": ["1","2","3","4"],
+  "Technical Vocational Teacher Education": ["1","2","3"],
+  "Bachelor of Science in Information Technology": ["1","2","3","4"],
+  "NC1 NC2 NC3": ["1","2","3"],
+  "Bachelor of Theology": ["1","2","3","4"],
+  "Bachelor of Science in Criminology": ["1","2","3","4"],
+  "Visitor": ["all-yearLevel"]
+};
+
+// ========================
+// ✅ Update Course List for Complaint Filter
+// ========================
+function updateComplaintCourseList() {
+  const selectedDept = deptComplaint.value;
+
+  // Visitor Case → show only Visitor
+  if (selectedDept.toLowerCase() === "visitor") {
+    deptComplaint.innerHTML = "";
+    courseComplaint.innerHTML = "";
+    yearComplaint.innerHTML = "";
+
+    const visitorDept = allDeptComplaintOptions.find(opt => opt.value === "Visitor");
+    const visitorCourse = allCourseComplaintOptions.find(opt => opt.value === "Visitor");
+    const visitorYear = allYearComplaintOptions.find(opt => opt.value === "all-yearLevel");
+
+    if (visitorDept) deptComplaint.appendChild(visitorDept.cloneNode(true));
+    if (visitorCourse) courseComplaint.appendChild(visitorCourse.cloneNode(true));
+    if (visitorYear) yearComplaint.appendChild(visitorYear.cloneNode(true));
+
+    // Disable all
+    deptComplaint.disabled = true;
+    courseComplaint.disabled = true;
+    yearComplaint.disabled = true;
+    return;
+  }
+
+  // Restore dropdowns if previously disabled
+  deptComplaint.disabled = false;
+  courseComplaint.disabled = false;
+  yearComplaint.disabled = false;
+
+  // Restore Departments
+  deptComplaint.innerHTML = "";
+  allDeptComplaintOptions.forEach(opt => deptComplaint.appendChild(opt.cloneNode(true)));
+
+  // Update Courses
+  courseComplaint.innerHTML = "";
+  const defaultCourse = allCourseComplaintOptions.find(opt => opt.value === "all-course-strand-genEduc");
+  if (defaultCourse) courseComplaint.appendChild(defaultCourse.cloneNode(true));
+
+  if (selectedDept === "all-dept" || !departmentCoursesComplaint[selectedDept.toLowerCase()]) {
+    allCourseComplaintOptions.forEach(opt => {
+      if (opt.value !== "all-course-strand-genEduc") courseComplaint.appendChild(opt.cloneNode(true));
+    });
+  } else {
+    const deptKey = selectedDept.toLowerCase();
+    departmentCoursesComplaint[deptKey].forEach(courseName => {
+      const match = allCourseComplaintOptions.find(opt => opt.textContent.trim() === courseName);
+      if (match) courseComplaint.appendChild(match.cloneNode(true));
+    });
+  }
+
+  courseComplaint.value = "all-course-strand-genEduc";
+  updateComplaintYearList();
+}
+
+// ========================
+// ✅ Update Year List for Complaint Filter
+// ========================
+function updateComplaintYearList() {
+  const selectedCourse = courseComplaint.value;
+
+  yearComplaint.innerHTML = "";
+  const defaultYear = allYearComplaintOptions.find(opt => opt.value === "all-yearLevel");
+  if (defaultYear) yearComplaint.appendChild(defaultYear.cloneNode(true));
+
+  if (selectedCourse === "all-course-strand-genEduc" || !courseYearsComplaint[selectedCourse]) {
+    allYearComplaintOptions.forEach(opt => {
+      if (opt.value !== "all-yearLevel") yearComplaint.appendChild(opt.cloneNode(true));
+    });
+  } else {
+    courseYearsComplaint[selectedCourse].forEach(yearValue => {
+      const match = allYearComplaintOptions.find(opt => opt.value === yearValue);
+      if (match) yearComplaint.appendChild(match.cloneNode(true));
+    });
+  }
+
+  yearComplaint.value = "all-yearLevel";
+}
+
+// ========================
+// ✅ Event Listeners
+// ========================
+deptComplaint.addEventListener("change", updateComplaintCourseList);
+courseComplaint.addEventListener("change", updateComplaintYearList);
+
 
 /* ===============================
    RENDER BAR CHART
