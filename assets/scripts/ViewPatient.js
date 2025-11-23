@@ -1837,7 +1837,6 @@ loadPatient();
 await loadConsultations();
 await loadPhysicalExaminations();
 
-
 document.getElementById("exportPDF").addEventListener("click", exportPatientPDF);
 
 // Helper to convert local image to Base64
@@ -1852,8 +1851,7 @@ function getImageBase64(url) {
       canvas.height = img.height;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0);
-      const dataURL = canvas.toDataURL("image/png");
-      resolve(dataURL);
+      resolve(canvas.toDataURL("image/png"));
     };
     img.onerror = (err) => reject(err);
   });
@@ -1863,8 +1861,8 @@ async function exportPatientPDF() {
   if (!patientId) return alert("No patient selected!");
 
   try {
-    // Convert local image to Base64
-    const headerImageBase64 = await getImageBase64("../../assets/images/KCP header.png"); // path relative to HTML file
+    // Convert local header image to Base64
+    const headerImageBase64 = await getImageBase64("../../assets/images/KCP header.png");
 
     const patientRef = doc(db, "patients", patientId);
     const patientSnap = await getDoc(patientRef);
@@ -1877,30 +1875,47 @@ async function exportPatientPDF() {
     const data = patientSnap.data();
     const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${data.middleName || ""}`.trim();
 
-    const createField = (label, value) => ({
-  table: {
-    widths: ["*"],
-    body: [
-      [{ text: label, bold: true, fontSize: 8, fillColor: "#E0EFFF", margin: [2, 2, 2, 2] }],
-      [{ text: value || "", fontSize: 8, margin: [1, 1, 1, 1] }]
-    ],
-    heights: [15, 15] // slightly smaller now
-  },
-  layout: {
-    hLineWidth: () => 0.5,
-    vLineWidth: () => 0.5,
-    hLineColor: () => "#999999",
-    vLineColor: () => "#999999",
-    paddingLeft: () => 2,
-    paddingRight: () => 2,
-    paddingTop: () => 2,
-    paddingBottom: () => 2
-  },
-  margin: [0, 0, 0, 0],
-  width: "*"
-});
+    // Fetch Medical History subcollection
+    const historyRef = collection(db, "patients", patientId, "medicalHistory");
+    const historySnap = await getDocs(historyRef);
 
+    let pastMedicalHistory = "";
+    let familyHistory = "";
+    let pastSurgicalHistory = "";
 
+    historySnap.forEach((doc) => {
+      const h = doc.data();
+      pastMedicalHistory = h.pastMedicalHistory || "";
+      familyHistory = h.familyHistory || "";
+      pastSurgicalHistory = h.pastSurgicalHistory || "";
+    });
+
+    // Helper: Create bordered field (blue label + value) with optional autoHeight
+    const createField = (label, value, autoHeight = false) => ({
+      table: {
+        widths: ["*"],
+        body: [
+          [{ text: label, bold: true, fontSize: 8, fillColor: "#E0EFFF", margin: [1, 1, 1, 0] }],
+          [{ text: value || "", fontSize: 8, margin: [1, 1, 1, 0] }]
+        ],
+        heights: autoHeight
+          ? function (rowIndex) { return rowIndex === 0 ? 13 : 'auto'; } // label fixed, value auto
+          : [13, 13],
+      },
+      layout: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => "#999999",
+        vLineColor: () => "#999999",
+        paddingLeft: () => 2,
+        paddingRight: () => 2,
+        paddingTop: () => 2,
+        paddingBottom: () => 1,
+      },
+      width: "*",
+    });
+
+    // Helper: 3-column rows
     const createRows = (fields) => {
       const rows = [];
       for (let i = 0; i < fields.length; i += 3) {
@@ -1908,13 +1923,14 @@ async function exportPatientPDF() {
           columns: [
             createField(fields[i][0], fields[i][1]),
             fields[i + 1] ? createField(fields[i + 1][0], fields[i + 1][1]) : createField("", ""),
-            fields[i + 2] ? createField(fields[i + 2][0], fields[i + 2][1]) : createField("", "")
-          ]
+            fields[i + 2] ? createField(fields[i + 2][0], fields[i + 2][1]) : createField("", ""),
+          ],
         });
       }
       return rows;
     };
 
+    // PERSONAL INFO
     const personalFields = [
       ["Last Name", data.lastName],
       ["First Name", data.firstName],
@@ -1929,18 +1945,11 @@ async function exportPatientPDF() {
       ["School ID", data.schoolId],
       ["Role", data.role],
       ["Department", data.department],
-      ["Course", data.course],
+      ["Course/Strand/Gen. Educ.", data.course],
       ["Year Level", data.year],
     ];
 
-    const contactFields = [
-      ["Phone", data.contact],
-      ["Email", data.email],
-      ["Address", data.address],
-      ["Guardian Name", data.guardianName],
-      ["Guardian Phone", data.guardianPhone],
-    ];
-
+    // PARENT INFO
     const parentFields = [
       ["Father's Name", data.fatherName],
       ["Father's Age", data.fatherAge],
@@ -1952,41 +1961,85 @@ async function exportPatientPDF() {
       ["Mother Health", data.motherHealth],
     ];
 
-    const createSection = (title, fields) => ({
-      stack: [
-        { text: title, style: "sectionHeader", margin: [0, 0, 0, 5] },
-        ...createRows(fields)
-      ],
-      margin: [0, 0, 0, 15]
+    // MEDICAL HISTORY
+    const medicalFields = [
+      ["Past Medical History", pastMedicalHistory],
+      ["Family History", familyHistory],
+      ["Past Surgical History", pastSurgicalHistory],
+    ];
+
+    // Helper: Build a labeled 1-column full-width field
+    const oneColumnField = (label, value, topMargin = 0, autoHeight = false) => ({
+      columns: [createField(label, value, autoHeight)],
+      margin: [0, topMargin, 0, 0],
     });
 
+    // Helper: Build two side-by-side fields (2 columns)
+    const twoColumnFields = (label1, value1, label2, value2, topMargin = 0, autoHeight = false) => ({
+      columns: [
+        { ...createField(label1, value1, autoHeight), margin: [0, topMargin, 0, 0] },
+        { ...createField(label2, value2, autoHeight), margin: [0, topMargin, 0, 0] },
+      ],
+    });
+
+    // SECTION builder with 10 top margin
+    const createSection = (title, fields) => ({
+      stack: [
+        { text: title, style: "sectionHeader", margin: [0, 0, 0, 0] },
+        ...createRows(fields),
+      ],
+      margin: [0, 10, 0, 0], // 10 top margin
+    });
+
+    // Helper: Build Medical History rows with autoHeight
+    const createMedicalRows = (fields) => {
+      return fields.map(([label, value]) => ({
+        columns: [createField(label, value, true)],
+      }));
+    };
+
+    // ----------- FINAL PDF STRUCTURE -----------
     const docDefinition = {
-  pageSize: "A4",
-  pageMargins: [40, 0, 40, 50],
-  content: [
-    // HEADER IMAGE FULL WIDTH
-    { image: headerImageBase64, width: 515, alignment: "center", margin: [0, 0, 0, 10] },
+      pageSize: "A4",
+      pageMargins: [40, 0, 40, 50],
 
-    // { text: "PATIENT INFORMATION RECORD", style: "header" },
-    { text: fullName, style: "subheader", margin: [0, 0, 0, 0] },
+      content: [
+        { image: headerImageBase64, width: 515, alignment: "center", margin: [0, 0, 0, 0] },
+        { text: fullName, style: "subheader", margin: [0, 10, 0, 0] },
 
-    createSection("Personal Information", personalFields),
-    createSection("Contact Information", contactFields),
-    createSection("Parent Information", parentFields),
-  ],
+        createSection("Personal Information", personalFields),
 
-  styles: {
-    header: { fontSize: 18, bold: true, alignment: "center", margin: [0, 0, 0, 0] },
-    subheader: { fontSize: 16, bold: true, alignment: "center" },
-    sectionHeader: { fontSize: 10, bold: true },
-  },
+        { text: "Contact Information", style: "sectionHeader", margin: [0, 10, 0, 0] },
+        {
+          stack: [
+            twoColumnFields("Phone", data.contact, "Email", data.email),
+            oneColumnField("Address", data.address),
+            twoColumnFields("Guardian Name", data.guardianName, "Guardian Phone", data.guardianPhone),
+          ],
+          margin: [0, 0, 0, 0],
+        },
 
-  defaultStyle: { fontSize: 10 },
-};
+        createSection("Parent Information", parentFields),
 
+        // Medical History section with auto height
+        {
+          stack: [
+            { text: "Medical History", style: "sectionHeader", margin: [0, 10, 0, 0] },
+            ...createMedicalRows(medicalFields),
+          ],
+          margin: [0, 0, 0, 0],
+        },
+      ],
+
+      styles: {
+        subheader: { fontSize: 16, bold: true, alignment: "center" },
+        sectionHeader: { fontSize: 10, bold: true },
+      },
+
+      defaultStyle: { fontSize: 10 },
+    };
 
     pdfMake.createPdf(docDefinition).open();
-
   } catch (err) {
     console.error("PDF export error:", err);
   }
