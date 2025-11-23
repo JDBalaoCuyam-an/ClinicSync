@@ -11,6 +11,126 @@ import {
   orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+/* ======================================================
+   CARDS VISITS BORROWWED ITEMS MEDICINES
+====================================================== */
+async function updateMonthlyVisitsComparison() {
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-11
+  const currentYear = now.getFullYear();
+
+  // Last month calculation
+  let lastMonth = currentMonth - 1;
+  let lastMonthYear = currentYear;
+  if (lastMonth < 0) {
+    lastMonth = 11; // December
+    lastMonthYear -= 1;
+  }
+
+  const patientsRef = collection(db, "patients");
+  const patientSnap = await getDocs(patientsRef);
+
+  let currentMonthCount = 0;
+  let lastMonthCount = 0;
+
+  const promises = patientSnap.docs.map(async (patientDoc) => {
+    const consultationsRef = collection(
+      db,
+      "patients",
+      patientDoc.id,
+      "consultations"
+    );
+    const consultSnap = await getDocs(consultationsRef);
+
+    consultSnap.forEach((consultDoc) => {
+      const c = consultDoc.data();
+      if (!c.date || !c.time) return;
+
+      const [year, month, day] = c.date.split("-").map(Number);
+      const [hours, minutes] = c.time.split(":").map(Number);
+      const visitDate = new Date(year, month - 1, day, hours, minutes, 0);
+
+      if (visitDate.getFullYear() === currentYear && visitDate.getMonth() === currentMonth) {
+        currentMonthCount++;
+      }
+      if (visitDate.getFullYear() === lastMonthYear && visitDate.getMonth() === lastMonth) {
+        lastMonthCount++;
+      }
+    });
+  });
+
+  await Promise.all(promises);
+
+  // Update current month visits
+  const visitElement = document.getElementById("thisMonthVisits");
+  visitElement.textContent = currentMonthCount;
+
+  // Calculate % change
+  let changePercent = 0;
+  let changeText = '';
+  if (lastMonthCount === 0) {
+    changeText = currentMonthCount === 0 ? '0%' : '+100%';
+  } else {
+    changePercent = ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100;
+    changeText = changePercent > 0 ? `+${changePercent.toFixed(1)}%` : `${changePercent.toFixed(1)}%`;
+  }
+
+  // Optional: Add comparison text under the card
+  let comparisonElement = document.getElementById("monthComparison");
+  if (!comparisonElement) {
+    comparisonElement = document.createElement("div");
+    comparisonElement.id = "monthComparison";
+    comparisonElement.style.fontSize = "0.9em";
+    comparisonElement.style.color = "#555";
+    visitElement.parentElement.appendChild(comparisonElement);
+  }
+  comparisonElement.textContent = `Compared to last month: ${changeText}`;
+}
+// Call the function
+updateMonthlyVisitsComparison();
+
+const unreturnedItemsDiv = document.getElementById("unreturnedItems");
+
+async function loadUnreturnedItemsCount() {
+  try {
+    const querySnapshot = await getDocs(collection(db, "ClinicInventory"));
+    let totalUnreturned = 0;
+
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.status === "Borrowed") {
+        totalUnreturned += data.quantity || 1; // counts quantities if available
+      }
+    });
+
+    unreturnedItemsDiv.textContent = totalUnreturned;
+  } catch (error) {
+    console.error("Error loading unreturned items:", error);
+    unreturnedItemsDiv.textContent = "0";
+  }
+}
+
+// Run once on load
+loadUnreturnedItemsCount();
+async function updateLowStockItems() {
+  const medicinesRef = collection(db, "MedicineInventory");
+  const querySnapshot = await getDocs(medicinesRef);
+
+  let lowStockCount = 0;
+
+  querySnapshot.forEach((docSnap) => {
+    const med = docSnap.data();
+    if (med.stock != null && med.stock < 15) {
+      lowStockCount++;
+    }
+  });
+
+  // Update the card
+  document.getElementById("lowStockItems").textContent = lowStockCount;
+}
+
+// Call the function
+updateLowStockItems();
 
 /* ======================================================
    OPTIMIZED & FIXED FETCH VISIT DATA FUNCTION
@@ -942,122 +1062,95 @@ renderStockChart(currentFilter);
 
 // 🔄 Optional: Auto-refresh every minute
 setInterval(() => renderStockChart(currentFilter), 60000);
+async function loadTodayAppointments() {
+  const appointmentsContainer = document.getElementById("appointmentsList");
+  appointmentsContainer.innerHTML = "";
 
-/* ===========================================
-TODAY'S APPOINTMENTS SECTION
-=========================================== */
-const appointmentsList = document.getElementById("appointmentsList");
-const currentDateTimeSpan = document.getElementById("currentDateTime");
+  // Make container scrollable
+  appointmentsContainer.style.maxHeight = "400px"; // adjust height as needed
+  appointmentsContainer.style.overflowY = "auto";
+  appointmentsContainer.style.paddingRight = "5px"; // avoid scrollbar overlay
 
-let appointments = [];
-
-// Utility: format date to YYYY-MM-DD
-function formatDate(date) {
-  return date.toISOString().split("T")[0];
-}
-
-// Display current date/time
-function displayCurrentDate() {
-  const now = new Date();
-  const options = {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  };
-  currentDateTimeSpan.textContent = now.toLocaleDateString(undefined, options);
-}
-
-// Load appointments from Firestore
-async function loadAppointments() {
-  appointments = [];
-  const querySnapshot = await getDocs(collection(db, "schedules"));
-
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    appointments.push({ id: docSnap.id, ...data });
-  });
-
-  renderAppointments();
-}
-
-// Render only today's appointments
-function renderAppointments() {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const dd = String(now.getDate()).padStart(2, "0");
-  const todayStr = `${yyyy}-${mm}-${dd}`; // e.g., "2025-11-09"
-
-  appointmentsList.innerHTML = "";
-
-  // Filter appointments for today, upcoming status, and not in the past
-  const todaysAppointments = appointments.filter((appt) => {
-    if (appt.date !== todayStr) return false;
-    if (appt.status !== "upcoming") return false; // Only show upcoming appointments
-
-    if (!appt.time) return true; // If no time, assume it's still valid
-
-    const [hours, minutes] = appt.time.split(":").map(Number);
-    const apptDateTime = new Date(yyyy, now.getMonth(), dd, hours, minutes);
-
-    return apptDateTime >= now;
-  });
-
-  if (todaysAppointments.length === 0) {
-    appointmentsList.innerHTML = `<p class="no-appointments">No upcoming appointments for today.</p>`;
-    return;
-  }
-
-  todaysAppointments.forEach((appt) => {
-    const apptDiv = document.createElement("div");
-    apptDiv.className = "appointment-item onclick window href";
-    apptDiv.innerHTML = `
-      <div class="patient-info">
-        <div class="patient-name">${appt.person || "-"}</div>
-        <div class="appointment-time">⏰${appt.date} ${appt.time || "-"}</div>
-        <div class="doctor-name">👨‍⚕️ ${appt.doctor || "-"}</div>
-        <div class="appointment-details">🗒️ ${
-          appt.details || "No details provided"
-        }</div>
-      </div>
-    `;
-    // ✅ Make the whole div clickable
-    apptDiv.addEventListener("click", () => {
-      // Example: redirect to an appointment details page
-      window.location.href = `Schedules.html`;
-    });
-
-    // Optional: make it look clickable with CSS
-    apptDiv.style.cursor = "pointer";
-    appointmentsList.appendChild(apptDiv);
-  });
-}
-
-// Initialize
-displayCurrentDate();
-loadAppointments();
-
-const unreturnedItemsDiv = document.getElementById("unreturnedItems");
-
-async function loadUnreturnedItemsCount() {
   try {
-    const querySnapshot = await getDocs(collection(db, "ClinicInventory"));
-    let totalUnreturned = 0;
+    const q = query(
+      collection(db, "PendingAppointments"),
+      orderBy("appointmentDate", "asc")
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      appointmentsContainer.innerHTML = "<p style='font-size:0.9em;'>No appointments today.</p>";
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // normalize
+
+    let hasTodayAppointments = false;
 
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      if (data.status === "Borrowed") {
-        totalUnreturned += data.quantity || 1; // counts quantities if available
-      }
+      if (!data.appointmentDate) return;
+
+      const [year, month, day] = data.appointmentDate.split("-").map(Number);
+      const appointmentDateObj = new Date(year, month - 1, day);
+      appointmentDateObj.setHours(0, 0, 0, 0);
+
+      if (appointmentDateObj.getTime() !== today.getTime()) return;
+
+      hasTodayAppointments = true;
+
+      // Create clickable card
+      const card = document.createElement("div");
+      card.classList.add("appointment-card");
+      card.style.cursor = "pointer";
+      card.style.padding = "8px 10px";
+      card.style.marginBottom = "8px";
+      card.style.borderRadius = "6px";
+      card.style.border = "1px solid #E0EFFF";
+      // card.style.backgroundColor = "#E0FFE0";
+      card.style.boxShadow = "0 1px 4px rgba(0,0,0,0.1)";
+      card.style.transition = "transform 0.2s";
+      card.style.fontSize = "0.85em"; // smaller text
+
+      card.addEventListener("mouseover", () => {
+        card.style.transform = "scale(1.02)";
+      });
+      card.addEventListener("mouseout", () => {
+        card.style.transform = "scale(1)";
+      });
+
+      card.addEventListener("click", () => {
+        window.location.href = "Schedules.html";
+      });
+
+      const formattedDate = appointmentDateObj.toLocaleDateString();
+
+      card.innerHTML = `
+        <h4 style="margin:0 0 4px 0;">${data.patientFirstName || ""} ${data.patientMiddleName || ""} ${data.patientLastName || ""}</h4>
+        <p style="margin:1px 0;"><strong>Type:</strong> ${data.patientType || "N/A"}</p>
+        <p style="margin:1px 0;"><strong>Reason:</strong> ${data.appointmentReason || "N/A"}</p>
+        <p style="margin:1px 0;"><strong>Scheduled:</strong> ${formattedDate}</p>
+        <p style="margin:1px 0;"><strong>Time:</strong> ${data.appointmentTime || "N/A"}</p>
+      `;
+
+      appointmentsContainer.appendChild(card);
     });
 
-    unreturnedItemsDiv.textContent = totalUnreturned;
+    if (!hasTodayAppointments) {
+      appointmentsContainer.innerHTML = "<p style='font-size:0.9em;'>No appointments today.</p>";
+    }
+
+    // Update current date display
+    const dateTimeEl = document.getElementById("currentDateTime");
+    dateTimeEl.textContent = today.toLocaleDateString();
+
   } catch (error) {
-    console.error("Error loading unreturned items:", error);
-    unreturnedItemsDiv.textContent = "0";
+    console.error("Error loading appointments:", error);
+    appointmentsContainer.innerHTML = "<p style='font-size:0.9em;'>Failed to load appointments.</p>";
   }
 }
 
-// Run once on load
-loadUnreturnedItemsCount();
+// Call the function
+loadTodayAppointments();
