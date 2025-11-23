@@ -319,6 +319,9 @@ const chartCourseYears = {
 // ========================
 // ✅ Update Chart Course List
 // ========================
+// ========================
+// ✅ Update Chart Course List
+// ========================
 function updateChartCourseList() {
   const selectedDept = chartDept.value;
 
@@ -347,9 +350,10 @@ function updateChartCourseList() {
   chartCourse.disabled = false;
   chartYear.disabled = false;
 
-  // Restore Departments
+  // Restore Departments and preserve selection
   chartDept.innerHTML = "";
   allChartDeptOptions.forEach(opt => chartDept.appendChild(opt.cloneNode(true)));
+  chartDept.value = selectedDept;
 
   // Update Courses
   chartCourse.innerHTML = "";
@@ -751,12 +755,11 @@ const courseYearsComplaint = {
   "Bachelor of Science in Criminology": ["1","2","3","4"],
   "Visitor": ["all-yearLevel"]
 };
-
 // ========================
 // ✅ Update Course List for Complaint Filter
 // ========================
 function updateComplaintCourseList() {
-  const selectedDept = deptComplaint.value;
+  const selectedDept = deptComplaint.value; // store current selection
 
   // Visitor Case → show only Visitor
   if (selectedDept.toLowerCase() === "visitor") {
@@ -772,7 +775,7 @@ function updateComplaintCourseList() {
     if (visitorCourse) courseComplaint.appendChild(visitorCourse.cloneNode(true));
     if (visitorYear) yearComplaint.appendChild(visitorYear.cloneNode(true));
 
-    // Disable all
+    // Disable all dropdowns
     deptComplaint.disabled = true;
     courseComplaint.disabled = true;
     yearComplaint.disabled = true;
@@ -784,9 +787,10 @@ function updateComplaintCourseList() {
   courseComplaint.disabled = false;
   yearComplaint.disabled = false;
 
-  // Restore Departments
+  // Restore Departments and preserve selection
   deptComplaint.innerHTML = "";
   allDeptComplaintOptions.forEach(opt => deptComplaint.appendChild(opt.cloneNode(true)));
+  deptComplaint.value = selectedDept;
 
   // Update Courses
   courseComplaint.innerHTML = "";
