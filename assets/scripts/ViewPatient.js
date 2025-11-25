@@ -43,7 +43,7 @@ async function loadPatient() {
     } ${data.firstName || ""}`.trim();
 
     /* 🧩 Contact Details */
-    document.getElementById("phone-number").value = data.contact || "";
+    document.getElementById("phone-number").value = data.phoneNumber || "";
     document.getElementById("email-address").value = data.email || "";
     document.getElementById("home-address").value = data.address || "";
     document.getElementById("guardian-name").value = data.guardianName || "";
@@ -73,7 +73,7 @@ async function loadPatient() {
     /* 🧩 Select fields */
     document.getElementById("department").value = data.department || "";
     document.getElementById("course").value = data.course || "";
-    document.getElementById("year").value = data.year || "";
+    document.getElementById("year").value = data.yearLevel || "";
 
     /* 🧩 Parent Info */
     const parentFields = {
@@ -176,7 +176,7 @@ editBtn.addEventListener("click", async () => {
   if (!isEditingContacts) {
     // Store original values
     originalContactData = {
-      contact: document.getElementById("phone-number").value,
+      phoneNumber: document.getElementById("phone-number").value,
       email: document.getElementById("email-address").value,
       address: document.getElementById("home-address").value,
       guardianName: document.getElementById("guardian-name").value,
@@ -191,7 +191,7 @@ editBtn.addEventListener("click", async () => {
   } else {
     // Save updated contact info
     const updatedData = {
-      contact: document.getElementById("phone-number").value,
+      phoneNumber: document.getElementById("phone-number").value,
       email: document.getElementById("email-address").value,
       address: document.getElementById("home-address").value,
       guardianName: document.getElementById("guardian-name").value,
@@ -214,7 +214,7 @@ editBtn.addEventListener("click", async () => {
 
 cancelContactEditBtn.addEventListener("click", () => {
   // Restore original values
-  document.getElementById("phone-number").value = originalContactData.contact;
+  document.getElementById("phone-number").value = originalContactData.phoneNumber;
   document.getElementById("email-address").value = originalContactData.email;
   document.getElementById("home-address").value = originalContactData.address;
   document.getElementById("guardian-name").value =
@@ -457,7 +457,7 @@ editPatientInfoBtn.addEventListener("click", async () => {
       schoolId: document.getElementById("schoolId").value,
       department: document.getElementById("department").value,
       course: document.getElementById("course").value,
-      year: Number(document.getElementById("year").value),
+      yearLevel: Number(document.getElementById("year").value),
 
       fatherName: document.getElementById("fatherName")?.value,
       fatherAge: Number(document.getElementById("fatherAge")?.value || 0),
@@ -1952,7 +1952,7 @@ async function exportPatientPDF() {
           body: [[{
             stack: [
               { text: "Contact Information", style: "sectionHeader", margin: [0, 2, 0, 4], alignment: "center" },
-              { columns: [ createField("Phone", data.contact), createField("Email", data.email) ] },
+              { columns: [ createField("Phone", data.phoneNumber), createField("Email", data.email) ] },
               { columns: [ createField("Address", data.address) ] },
               { columns: [ createField("Guardian Name", data.guardianName), createField("Guardian Phone", data.guardianPhone) ] }
             ],

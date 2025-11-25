@@ -36,147 +36,6 @@
     <div id="sidebar-container"></div>
     <div id="overlay" class="overlay"></div>
 
-    <div class="add-new-patient" id="add-new-patient">
-      <h2 class="close-button" onclick="closeButtonOverlay()">&times;</h2>
-      <h2>Add New Patient</h2>
-      <form id="new-patient-form">
-        <div class="info-grid">
-          <label
-            >Last Name : <input type="text" name="lastName" required
-          /></label>
-          <label
-            >First Name : <input type="text" name="firstName" required
-          /></label>
-          <label>Middle Name : <input type="text" name="middleName" /></label>
-          <label>Ext. Name : <input type="text" name="extName" /></label>
-          <label
-            >Gender :
-            <select name="gender" required>
-              <option value="">Select</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-          </label>
-
-          <label
-            >Birthdate : <input type="date" name="birthdate" required
-          /></label>
-          <label>Age : <input type="number" name="age" required /></label>
-          <label>Civil Status : <input type="text" name="civilStatus" /></label>
-          <label>Nationality : <input type="text" name="nationality" /></label>
-          <label>Religion : <input type="text" name="religion" /></label>
-
-          <label>School ID : <input type="text" name="schoolId" /></label>
-          <label
-            >Patient Type :
-            <select name="role" required>
-              <option value="Student">Student</option>
-              <option value="Employee">Employee</option>
-              <option value="Visitor">Visitor</option>
-            </select>
-          </label>
-          <label>
-            Department :
-            <select name="department" required>
-              <option value="">Select Department</option>
-              <option value="CABM">CABM</option>
-              <option value="CCJE">CCJE</option>
-              <option value="CIT">CIT</option>
-              <option value="COT">COT</option>
-              <option value="TTED">TTED</option>
-              <option value="CTE">CTE</option>
-              <option value="BasicEd">BasicEd</option>
-              <option value="Visitor">Visitor</option>
-            </select>
-          </label>
-
-          <label
-            >Course/Strand/General Education :
-            <select name="course">
-              <option value="">Select Course/Strand/GE</option>
-              <option value="Bachelor of Science in Accountancy">
-                Bachelor of Science in Accountancy
-              </option>
-              <option value="Bachelor of Science in Hospitality Management">
-                Bachelor of Science in Hospitality Management
-              </option>
-              <option value="Bachelor of Science in Information Technology">
-                Bachelor of Science in Information Technology
-              </option>
-              <option value="Bachelor of Science in Office Administration">
-                Bachelor of Science in Office Administration
-              </option>
-              <option value="Bachelor of Science in Business Administration">
-                Bachelor of Science in Business Administration
-              </option>
-              <option value="Bachelor of Elementary Education">
-                Bachelor of Elementary Education
-              </option>
-              <option value="Bachelor of Science in Psychology">
-                Bachelor of Science in Psychology
-              </option>
-              <option value="Bachelor of Science in Social Work">
-                Bachelor of Science in Social Work
-              </option>
-              <option value="Bachelor of Secondary Education">
-                Bachelor of Secondary Education
-              </option>
-              <option value="Technical Vocational Teacher Education">
-                Technical Vocational Teacher Education
-              </option>
-              <option value="Bachelor of Science in Criminology">
-                Bachelor of Science in Criminology
-              </option>
-              <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
-              <option value="Bachelor of Theology">Bachelor of Theology</option>
-              <option value="Accountancy and Business Management">
-                Accountancy and Business Management (ABM)
-              </option>
-              <option value="Science, Technology, Engineering, and Mathematics">
-                Science, Technology, Engineering, and Mathematics (STEM)
-              </option>
-              <option value="Humanities and Sciences">
-                Humanities and Sciences
-              </option>
-              <option value="Junior Highschool">Junior Highschool</option>
-              <option value="Elementary">Elementary</option>
-              <option value="Kindergarten">Kindergarten</option>
-              <option value="Visitor">Visitor</option>
-            </select></label
-          >
-          <label>Year : <input type="number" name="year" max="12" /></label>
-        </div>
-
-        <hr />
-
-        <h3>Parent’s Information</h3>
-        <div class="info-grid">
-          <label>Father’s Name : <input type="text" name="fatherName" /></label>
-          <label>Age : <input type="number" name="fatherAge" /></label>
-          <label
-            >Occupation : <input type="text" name="fatherOccupation"
-          /></label>
-          <label
-            >Health Status : <input type="text" name="fatherHealth"
-          /></label>
-
-          <label>Mother’s Name : <input type="text" name="motherName" /></label>
-          <label>Age : <input type="number" name="motherAge" /></label>
-          <label
-            >Occupation : <input type="text" name="motherOccupation"
-          /></label>
-          <label
-            >Health Status : <input type="text" name="motherHealth"
-          /></label>
-        </div>
-
-        <br />
-        <button type="submit" class="save-btn">Add Patient</button>
-        <button type="button" class="cancel-btn" onclick="closeButtonOverlay()">
-          Cancel
-        </button>
-      </form>
-    </div>
 
     <!-- Main Content -->
     <div class="records-container">
@@ -184,9 +43,6 @@
         <h2>Medical Records</h2>
       </div>
       <div class="controls">
-        <button onclick="addPatientOverlay()" class="add-btn">
-          + New Patient
-        </button>
         <input
           type="text"
           id="searchName"
@@ -200,17 +56,11 @@
           class="search-bar"
         />
 
-        <select id="filterGender">
-          <option value="all">All Gender</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-        </select>
-
         <select id="filterRole">
           <option value="all">All Patient Type</option>
-          <option value="Student">Student</option>
-          <option value="Employee">Employee</option>
-          <option value="Visitor">Visitor</option>
+          <option value="student">Student</option>
+          <option value="employee">Employee</option>
+          <option value="visitor">Visitor</option>
         </select>
 
         <select id="filterDept">
@@ -312,7 +162,7 @@
     </div>
     <div id="footer-container"></div>
   </body>
-  <script src="../../assets/scripts/MedicalRecords.js" type="module"></script>
+  <script src="../../assets/scripts/Patients.js" type="module"></script>
   <script src="../../assets/scripts/modal.js"></script>
   <script>
   // Wait for the DOM to fully load
