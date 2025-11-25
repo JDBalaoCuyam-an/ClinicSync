@@ -16,7 +16,7 @@ const filterDept = document.getElementById("filterDept");
 const filterCourse = document.getElementById("filterCourse");
 const filterYear = document.getElementById("filterYear");
 
-const patientsRef = collection(db, "patients");
+const patientsRef = collection(db, "users");
 let allPatients = []; // store all fetched data
 
 // Load all patients once
@@ -50,8 +50,8 @@ function displayPatients(patients) {
         <td>${data.department}</td>
         <td>${data.course}</td>
         <td>${data.year || "-"}</td>
-        <td>${data.role}</td>
-        <td>${data.contact || "-"}</td>
+        <td>${data.user_type}</td>
+        <td>${data.email || "-"}</td>
       `;
     row.onclick = () => {
       window.location.href = "ViewPatient.html?id=" + data.id;
@@ -113,176 +113,6 @@ function filterPatients() {
   el.addEventListener("input", filterPatients);
   el.addEventListener("change", filterPatients);
 });
-
-// ======================================================
-// ✅ DYNAMIC FILTER: DEPT → COURSE → YEAR → ROLE
-// ======================================================
-const deptSelect = document.getElementById("filterDept");
-const courseSelect = document.getElementById("filterCourse");
-const roleSelect = document.getElementById("filterRole");
-const yearSelect = document.getElementById("filterYear");
-
-// ✅ Store original options
-const allDeptOptions = Array.from(deptSelect.options);
-const allCourseOptions = Array.from(courseSelect.options);
-const allYearOptions = Array.from(yearSelect.options);
-
-// ✅ Department → Courses
-const departmentCourses = {
-  basiced: [
-    "Kindergarten",
-    "Elementary",
-    "Junior Highschool",
-    "Accountancy and Business Management",
-    "Science, Technology, Engineering, and Mathematics",
-    "Humanities and Sciences",
-  ],
-  cabm: [
-    "Bachelor of Science in Accountancy",
-    "Bachelor of Science in Office Administration",
-    "Bachelor of Science in Hospitality Management",
-    "Bachelor of Science in Business Administration",
-  ],
-  cte: [
-    "Bachelor of Elementary Education",
-    "Bachelor of Science in Psychology",
-    "Bachelor of Science in Social Work",
-    "Bachelor of Secondary Education",
-    "Technical Vocational Teacher Education",
-  ],
-  cit: ["Bachelor of Science in Information Technology"],
-  tted: ["NC1 NC2 NC3"],
-  cot: ["Bachelor of Theology"],
-  ccje: ["Bachelor of Science in Criminology"],
-  visitor: ["Visitor"],
-};
-
-// ✅ Course → Year Levels
-const courseYears = {
-  "Kindergarten": ["1","2"],
-  "Elementary": ["1","2","3","4","5","6"],
-  "Junior Highschool": ["7","8","9","10"],
-  "Accountancy and Business Management": ["11","12"],
-  "Science, Technology, Engineering, and Mathematics": ["11","12"],
-  "Humanities and Sciences": ["11","12"],
-  "Bachelor of Science in Accountancy": ["1","2","3","4"],
-  "Bachelor of Science in Office Administration": ["1","2","3","4"],
-  "Bachelor of Science in Hospitality Management": ["1","2","3","4"],
-  "Bachelor of Science in Business Administration": ["1","2","3","4"],
-  "Bachelor of Elementary Education": ["1","2","3","4"],
-  "Bachelor of Science in Psychology": ["1","2","3","4"],
-  "Bachelor of Science in Social Work": ["1","2","3","4"],
-  "Bachelor of Secondary Education": ["1","2","3","4"],
-  "Technical Vocational Teacher Education": ["1","2","3"],
-  "Bachelor of Science in Information Technology": ["1","2","3","4"],
-  "NC1 NC2 NC3": ["1","2","3"],
-  "Bachelor of Theology": ["1","2","3","4"],
-  "Bachelor of Science in Criminology": ["1","2","3","4"],
-  "Visitor": ["allyear"]
-};
-
-// ========================
-// ✅ Update Course List
-// ========================
-// ========================
-// ✅ Update Course List
-// ========================
-function updateCourseList() {
-  const selectedDept = deptSelect.value;
-  const selectedRole = roleSelect.value;
-
-  // --- Visitor Case ---
-  if (selectedRole === "Visitor") {
-    // Clear dropdowns
-    deptSelect.innerHTML = "";
-    courseSelect.innerHTML = "";
-    yearSelect.innerHTML = "";
-
-    // Append Visitor options
-    const visitorDept = allDeptOptions.find(opt => opt.value === "Visitor");
-    const visitorCourse = allCourseOptions.find(opt => opt.value === "Visitor");
-    const visitorYear = allYearOptions.find(opt => opt.value === "allyear");
-
-    if (visitorDept) deptSelect.appendChild(visitorDept.cloneNode(true));
-    if (visitorCourse) courseSelect.appendChild(visitorCourse.cloneNode(true));
-    if (visitorYear) yearSelect.appendChild(visitorYear.cloneNode(true));
-
-    // ✅ Disable the dropdowns
-    deptSelect.disabled = true;
-    courseSelect.disabled = true;
-    yearSelect.disabled = true;
-
-    filterPatients();
-    return;
-  }
-
-  // --- Restore dropdowns ---
-  deptSelect.disabled = false;
-  courseSelect.disabled = false;
-  yearSelect.disabled = false;
-
-  // --- Restore Departments ---
-  if (deptSelect.options.length < allDeptOptions.length) {
-    deptSelect.innerHTML = "";
-    allDeptOptions.forEach(opt => deptSelect.appendChild(opt.cloneNode(true)));
-  }
-
-  // --- Update Courses ---
-  courseSelect.innerHTML = "";
-  const defaultCourse = allCourseOptions.find(opt => opt.value === "allcourse");
-  if (defaultCourse) courseSelect.appendChild(defaultCourse.cloneNode(true));
-
-  if (selectedDept === "alldept" || !departmentCourses[selectedDept.toLowerCase()]) {
-    allCourseOptions.forEach(opt => {
-      if (opt.value !== "allcourse") courseSelect.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    const deptKey = selectedDept.toLowerCase();
-    departmentCourses[deptKey].forEach(courseName => {
-      const match = allCourseOptions.find(
-        opt => opt.textContent.trim() === courseName
-      );
-      if (match) courseSelect.appendChild(match.cloneNode(true));
-    });
-  }
-
-  courseSelect.value = "allcourse";
-  updateYearList(); // update years when courses change
-  filterPatients();
-}
-
-
-// ========================
-// ✅ Update Year List
-// ========================
-function updateYearList() {
-  const selectedCourse = courseSelect.value;
-
-  yearSelect.innerHTML = "";
-  const defaultYear = allYearOptions.find(opt => opt.value === "allyear");
-  if (defaultYear) yearSelect.appendChild(defaultYear.cloneNode(true));
-
-  if (selectedCourse === "allcourse" || !courseYears[selectedCourse]) {
-    allYearOptions.forEach(opt => {
-      if (opt.value !== "allyear") yearSelect.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    courseYears[selectedCourse].forEach(yearValue => {
-      const match = allYearOptions.find(opt => opt.value === yearValue);
-      if (match) yearSelect.appendChild(match.cloneNode(true));
-    });
-  }
-
-  yearSelect.value = "allyear";
-  filterPatients();
-}
-
-// ========================
-// ✅ Event Listeners
-// ========================
-deptSelect.addEventListener("change", updateCourseList);
-roleSelect.addEventListener("change", updateCourseList);
-courseSelect.addEventListener("change", updateYearList);
 
 
 // ======================================================

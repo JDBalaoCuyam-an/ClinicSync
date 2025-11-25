@@ -27,7 +27,7 @@ async function loadPatient() {
   if (!patientId) return;
 
   try {
-    const patientRef = doc(db, "patients", patientId);
+    const patientRef = doc(db, "users", patientId);
     const patientSnap = await getDoc(patientRef);
 
     if (!patientSnap.exists()) {
@@ -62,7 +62,7 @@ async function loadPatient() {
       nationality: data.nationality || "",
       religion: data.religion || "",
       schoolId: data.schoolId || "",
-      role: data.role || "",
+      
     };
 
     Object.keys(infoFields).forEach((key) => {
@@ -93,7 +93,7 @@ async function loadPatient() {
     });
 
     /* 🩺 LOAD MEDICAL HISTORY SUBCOLLECTION */
-    const historyRef = collection(db, "patients", patientId, "medicalHistory");
+    const historyRef = collection(db, "users", patientId, "medicalHistory");
     const historySnap = await getDocs(
       query(historyRef, orderBy("updatedAt", "desc"), limit(1))
     );
@@ -199,7 +199,7 @@ editBtn.addEventListener("click", async () => {
     };
 
     try {
-      await updateDoc(doc(db, "patients", patientId), updatedData);
+      await updateDoc(doc(db, "users", patientId), updatedData);
       alert("Contact details updated!");
       inputs.forEach((inp) => inp.setAttribute("disabled", "true"));
       editBtn.textContent = "✏️ Edit";
@@ -278,7 +278,7 @@ editHistoryBtn.addEventListener("click", async () => {
     isEditingHistory = true;
 
     // 🩺 Get latest medicalHistory document ID for updating later
-    const historyRef = collection(db, "patients", patientId, "medicalHistory");
+    const historyRef = collection(db, "users", patientId, "medicalHistory");
     const historySnap = await getDocs(
       query(historyRef, orderBy("updatedAt", "desc"), limit(1))
     );
@@ -327,7 +327,7 @@ editHistoryBtn.addEventListener("click", async () => {
     try {
       const historyRef = collection(
         db,
-        "patients",
+        "users",
         patientId,
         "medicalHistory"
       );
@@ -455,7 +455,6 @@ editPatientInfoBtn.addEventListener("click", async () => {
       nationality: document.getElementById("nationality").value,
       religion: document.getElementById("religion").value,
       schoolId: document.getElementById("schoolId").value,
-      role: document.getElementById("role").value,
       department: document.getElementById("department").value,
       course: document.getElementById("course").value,
       year: Number(document.getElementById("year").value),
@@ -471,7 +470,7 @@ editPatientInfoBtn.addEventListener("click", async () => {
     };
 
     try {
-      await updateDoc(doc(db, "patients", patientId), updatedData);
+      await updateDoc(doc(db, "users", patientId), updatedData);
       alert("Patient information updated!");
       disablePatientInfoEditing(fields);
     } catch (err) {
@@ -487,114 +486,6 @@ cancelPatientInfoBtn.addEventListener("click", () => {
   restoreOriginalPatientInfo(fields);
   disablePatientInfoEditing(fields);
 });
-
-// ======================================================
-// ✅ DYNAMIC DEPARTMENT → COURSE FOR VIEW PATIENT / FORM
-// ======================================================
-
-// Grab selects
-const roleSelectForm = document.getElementById("role");
-const deptSelectForm = document.getElementById("department");
-const courseSelectForm = document.getElementById("course");
-
-// Store original options
-const allDeptOptionsForm = Array.from(deptSelectForm.options);
-const allCourseOptionsForm = Array.from(courseSelectForm.options);
-
-// Department → allowed courses mapping
-const departmentCoursesForm = {
-  BasicEd: [
-    "Kindergarten",
-    "Elementary",
-    "Junior Highschool",
-    "Accountancy and Business Management",
-    "Science, Technology, Engineering, and Mathematics",
-    "Humanities and Sciences",
-  ],
-  CABM: [
-    "Bachelor of Science in Accountancy",
-    "Bachelor of Science in Office Administration",
-    "Bachelor of Science in Hospitality Management",
-    "Bachelor of Science in Business Administration",
-  ],
-  CTE: [
-    "Bachelor of Elementary Education",
-    "Bachelor of Science in Psychology",
-    "Bachelor of Science in Social Work",
-    "Bachelor of Secondary Education",
-    "Technical Vocational Teacher Education",
-  ],
-  CIT: ["Bachelor of Science in Information Technology"],
-  TTED: ["NC1 NC2 NC3"],
-  COT: ["Bachelor of Theology"],
-  CCJE: ["Bachelor of Science in Criminology"],
-  Visitor: ["Visitor"],
-};
-
-// Function to update Department & Course dynamically
-function updateDeptCourseForm() {
-  const selectedRole = roleSelectForm.value;
-  const selectedDept = deptSelectForm.value;
-
-  // --- VISITOR RULE ---
-  if (selectedRole === "Visitor") {
-    // Only show Visitor in Department
-    deptSelectForm.innerHTML = "";
-    const visitorDept = allDeptOptionsForm.find(
-      (opt) => opt.value === "Visitor"
-    );
-    if (visitorDept) deptSelectForm.appendChild(visitorDept.cloneNode(true));
-
-    // Only show Visitor in Course
-    courseSelectForm.innerHTML = "";
-    const visitorCourse = allCourseOptionsForm.find(
-      (opt) => opt.value === "Visitor"
-    );
-    if (visitorCourse)
-      courseSelectForm.appendChild(visitorCourse.cloneNode(true));
-
-    return;
-  }
-
-  // Restore all departments if needed
-  if (deptSelectForm.options.length < allDeptOptionsForm.length) {
-    deptSelectForm.innerHTML = "";
-    allDeptOptionsForm.forEach((opt) =>
-      deptSelectForm.appendChild(opt.cloneNode(true))
-    );
-  }
-
-  // --- COURSE FILTER BASED ON DEPARTMENT ---
-  courseSelectForm.innerHTML = "";
-  const defaultCourse = allCourseOptionsForm.find((opt) => opt.value === "");
-  if (defaultCourse)
-    courseSelectForm.appendChild(defaultCourse.cloneNode(true));
-
-  if (selectedDept === "" || !departmentCoursesForm[selectedDept]) {
-    // Show all courses
-    allCourseOptionsForm.forEach((opt) => {
-      if (opt.value !== "") courseSelectForm.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    // Show only department-specific courses
-    departmentCoursesForm[selectedDept].forEach((courseName) => {
-      const match = allCourseOptionsForm.find((opt) =>
-        opt.textContent.includes(courseName)
-      );
-      if (match) courseSelectForm.appendChild(match.cloneNode(true));
-    });
-  }
-
-  // Reset course to default
-  courseSelectForm.value = "";
-}
-
-// --- Event Listeners ---
-roleSelectForm.addEventListener("change", updateDeptCourseForm);
-deptSelectForm.addEventListener("change", updateDeptCourseForm);
-
-// ✅ Initial call in case Role is pre-selected
-updateDeptCourseForm();
 
 /* -----------------------------------------------
      🔹 CONSULTATION FORM SUBMIT
@@ -768,17 +659,11 @@ document
       }
 
       // ✅ Save Consultation Record
-      const consultRef = collection(db, "patients", patientId, "consultations");
+      const consultRef = collection(db, "users", patientId, "consultations");
       const newConsultDoc = await addDoc(consultRef, consultData);
       const consultationId = newConsultDoc.id;
       console.log("✅ New Consultation ID:", consultationId);
 
-      // ✅ Save Patient Visit
-      const patientRef = doc(db, "patients", patientId);
-      await addDoc(collection(db, "PatientVisits"), {
-        patientId,
-        consultationId,
-      });
       console.log("✅ PatientVisits logged.");
 
       await addDoc(collection(db, "complaintRecords"), {
@@ -844,7 +729,7 @@ async function loadConsultations() {
   tableBody.innerHTML = "";
 
   try {
-    const consultRef = collection(db, "patients", patientId, "consultations");
+    const consultRef = collection(db, "users", patientId, "consultations");
     const snapshot = await getDocs(consultRef);
 
     snapshot.forEach((docSnap) => {
@@ -1007,7 +892,7 @@ editOverviewBtn.addEventListener("click", async () => {
   try {
     const consultRef = doc(
       db,
-      "patients",
+      "users",
       patientId,
       "consultations",
       currentConsultationId
@@ -1231,7 +1116,7 @@ saveMedDetailsBtn.addEventListener("click", async () => {
 
     const consultRef = doc(
       db,
-      "patients",
+      "users",
       patientId,
       "consultations",
       currentConsultationId
@@ -1353,7 +1238,7 @@ saveVitalsBtn.addEventListener("click", async () => {
 
     const consultRef = doc(
       db,
-      "patients",
+      "users",
       patientId,
       "consultations",
       currentConsultationId
@@ -1443,7 +1328,7 @@ document
     try {
       const examRef = collection(
         db,
-        "patients",
+        "users",
         patientId,
         "physicalExaminations"
       );
@@ -1493,7 +1378,7 @@ async function loadPhysicalExaminations() {
   try {
     const examRef = collection(
       db,
-      "patients",
+      "users",
       patientId,
       "physicalExaminations"
     );
@@ -1546,7 +1431,7 @@ window.showExamOverview = async function (patientId, examId) {
     // ✅ Fetch latest data directly from Firestore
     const examRef = doc(
       db,
-      "patients",
+      "users",
       patientId,
       "physicalExaminations",
       examId
@@ -1680,7 +1565,7 @@ editExamBtn.addEventListener("click", async () => {
   try {
     const examRef = doc(
       db,
-      "patients",
+      "users",
       currentPatientId,
       "physicalExaminations",
       currentExamId
@@ -1863,7 +1748,7 @@ async function exportPatientPDF() {
   try {
     const headerImageBase64 = await getImageBase64("../../assets/images/KCP header.png");
 
-    const patientRef = doc(db, "patients", patientId);
+    const patientRef = doc(db, "users", patientId);
     const patientSnap = await getDoc(patientRef);
 
     if (!patientSnap.exists()) {
@@ -1874,7 +1759,7 @@ async function exportPatientPDF() {
     const data = patientSnap.data();
     const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${data.middleName || ""}`.trim();
 
-    const historyRef = collection(db, "patients", patientId, "medicalHistory");
+    const historyRef = collection(db, "users", patientId, "medicalHistory");
     const historySnap = await getDocs(historyRef);
 
     let pastMedicalHistory = "";
@@ -1888,7 +1773,7 @@ async function exportPatientPDF() {
       pastSurgicalHistory = h.pastSurgicalHistory || "";
     });
 
-    const consultRef = collection(db, "patients", patientId, "consultations");
+    const consultRef = collection(db, "users", patientId, "consultations");
     const consultSnap = await getDocs(consultRef);
 
     let consultations = [];

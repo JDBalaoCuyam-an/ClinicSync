@@ -90,9 +90,44 @@ function loadHTML(id, file) {
     });
 }
 
-// Example usage:
-// loadHTML("header-container", "header.html");
+
 loadHTML("sidebar-container", "sidebar.html");
 loadHTML("footer-container", "footer.html");
 
+// class Modal {
+//   constructor(modalId, openBtnId, cancelBtnId = null) {
+//     this.modal = document.getElementById(modalId);
+//     this.openBtn = document.getElementById(openBtnId);
+//     this.cancelBtn = cancelBtnId ? document.getElementById(cancelBtnId) : null;
+
+//     if (!this.modal || !this.openBtn) {
+//       console.error("Modal or open button not found.");
+//       return;
+//     }
+
+//     // Bind events
+//     this.openBtn.addEventListener("click", () => this.open());
+//     if (this.cancelBtn) this.cancelBtn.addEventListener("click", () => this.close());
+
+//     // Background click closes modal
+//     this.modal.addEventListener("click", (e) => {
+//       if (e.target === this.modal) this.close();
+//     });
+
+//     // ESC key close
+//     document.addEventListener("keydown", (e) => {
+//       if (e.key === "Escape") this.close();
+//     });
+//   }
+
+//   open() {
+//     this.modal.classList.add("open");
+//   }
+
+//   close() {
+//     this.modal.classList.remove("open");
+//   }
+// }
+
+// const createNewUser = new Modal('create-new-user','create-new-user-btn','cancel-create-new-user');
 

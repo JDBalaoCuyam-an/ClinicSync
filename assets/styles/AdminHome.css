@@ -1,247 +1,32 @@
-/* ==============================
-   GLOBAL LAYOUT
-============================== */
-body {
+
+* {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   background-color: #f5f7fa;
   padding: 30px;
+  position: relative;
 }
 
-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-}
-
-button {
-  cursor: pointer;
-}
-
-/* ==============================
-   LOGOUT BUTTON
-============================== */
-#logout-button {
-  padding: 10px 20px;
-  background: #e74c3c;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  font-weight: bold;
-}
-
-#logout-button:hover {
-  background: #c0392b;
-}
-
-/* ==============================
-   TABLE STYLING
-============================== */
-h2 {
-  margin-top: 10px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-thead {
-  background: #2c3e50;
-  color: white;
-}
-
-thead th {
-  padding: 15px;
-  text-align: left;
-}
-
-tbody tr:nth-child(even) {
-  background: #f3f3f3;
-}
-
-tbody td {
-  padding: 12px 15px;
-}
-
-tbody tr:hover {
-  background: #dfe6e9;
-}
-
-table button {
-  padding: 6px 10px;
-  background: #3498db;
-  border: none;
-  color: white;
-  border-radius: 5px;
-}
-
-table button:hover {
-  background: #2980b9;
-}
-
-/* ==============================
-   NEW USER MODAL
-============================== */
-.newUserModal {
+.simple-modal {
   position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  z-index: 999;
+}
+
+.simple-modal.open {
+  display: block;
+}
+
+.simple-modal {
+  position: fixed; /* <-- Important: fixed = center of SCREEN */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  width: 350px;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 3px 20px rgba(0,0,0,0.3);
-  z-index: 1000;
-}
-
-.newUserModal h1 {
-  margin-top: 0;
-}
-
-.newUserModal label {
-  font-weight: bold;
-  display: block;
-  margin-top: 10px;
-}
-
-.newUserModal input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 3px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-#regAsAdmin {
-  width: auto;
-  margin-top: 10px;
-}
-
-#create-account {
-  margin-top: 15px;
-  width: 100%;
-  padding: 10px;
-  background: #27ae60;
-  border: none;
-  color: white;
-  border-radius: 6px;
-}
-
-#create-account:hover {
-  background: #1f8f4e;
-}
-
-/* ==============================
-   OVERVIEW MODAL BACKDROP
-============================== */
-.overviewModal {
-  position: fixed;
-  width: 350px;
-
-  background: rgba(0,0,0,0.35);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-/* ==============================
-   OVERVIEW MODAL BOX
-============================== */
-.overviewContent {
-  background: white;
-  padding: 25px;
-  width: 400px;
-  border-radius: 12px;
-  box-shadow: 0 3px 20px rgba(0,0,0,0.2);
-}
-
-.overviewContent h2 {
-  margin-top: 0;
-  text-align: center;
-}
-
-.overviewContent label {
-  font-weight: bold;
-  display: block;
-  margin-top: 10px;
-}
-
-.overviewContent input,
-.overviewContent select {
-  width: 100%;
-  padding: 8px;
-  margin-top: 3px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-#updateUserBtn {
-  margin-top: 15px;
-  width: 100%;
-  padding: 10px;
-  background: #f1c40f;
-  border: none;
-  color: black;
-  border-radius: 6px;
-  font-weight: bold;
-}
-
-#updateUserBtn:hover {
-  background: #d4ac0d;
-}
-
-#closeOverview {
-  margin-top: 10px;
-  width: 100%;
-  padding: 10px;
-  background: #b2bec3;
-  border: none;
-  color: black;
-  border-radius: 6px;
-}
-
-#closeOverview:hover {
-  background: #95a5a6;
-}
-
-/* ==============================
-   RESPONSIVE DESIGN
-============================== */
-@media (max-width: 600px) {
-  .overviewContent,
-  .newUserModal {
-    width: 90%;
-  }
-
-  table {
-    font-size: 14px;
-  }
-}
-#createNewUserBtn {
-  padding: 10px 20px;
-  background: #27ae60;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  font-weight: bold;
-  margin-right: 10px;
-}
-#cancelAddUserBtn {
-  padding: 10px 20px;
-  background: #979797;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  font-weight: bold;
-  width: 100%;
+  background: #fff;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 8px;
 }

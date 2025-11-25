@@ -2,7 +2,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import {
   getAuth,
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
@@ -28,72 +27,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ✅ Create Account WITHOUT Logging Out Admin
-// ✅ Create Account WITHOUT Logging Out Admin
-const register = document.getElementById("create-account");
-if (register) {
-  register.addEventListener("click", async function (event) {
-    event.preventDefault();
-
-    const admin = auth.currentUser;
-    const adminEmail = admin.email;
-    const adminPassword = prompt("Enter your Admin password:");
-
-    const email = document.getElementById("reg_email").value;
-    const password = document.getElementById("reg_password").value;
-
-    const isAdmin = document.getElementById("regAsAdmin").checked;
-    const userType = isAdmin ? "admin" : "staff";
-
-    const firstName = document.getElementById("first_name").value;
-    const middleName = document.getElementById("middle_name").value;
-    const lastName = document.getElementById("last_name").value;
-    const extName = document.getElementById("ext_name").value;
-    const contact = document.getElementById("contact_number").value;
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const newUser = userCredential.user;
-
-      await setDoc(doc(db, "users", newUser.uid), {
-        email: newUser.email,
-        uid: newUser.uid,
-        user_type: userType,
-        firstName,
-        middleName: middleName || "",
-        lastName,
-        extName: extName || "",
-        contact,
-        createdAt: new Date(),
-      });
-
-      alert("✅ User Created Successfully!");
-
-      // ✅ Restore admin session
-      await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
-
-      // ✅ CLEAR FORM AFTER SUCCESS
-      document.getElementById("reg_email").value = "";
-      document.getElementById("reg_password").value = "";
-      document.getElementById("regAsAdmin").checked = false;
-      document.getElementById("first_name").value = "";
-      document.getElementById("middle_name").value = "";
-      document.getElementById("last_name").value = "";
-      document.getElementById("ext_name").value = "";
-      document.getElementById("contact_number").value = "";
-
-      document.querySelector(".newUserModal").style.display = "none";
-    } catch (error) {
-      console.error("Error creating account:", error);
-      alert("❌ Failed: " + error.message);
-    }
-  });
-}
-
 // ✅ Login Functionality with Loading State
 const login = document.getElementById("login-button");
 if (login) {
@@ -109,7 +42,11 @@ if (login) {
     login.textContent = "Logging in... ⏳";
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       const userDocRef = doc(db, "users", user.uid);
@@ -120,18 +57,23 @@ if (login) {
 
         // Reactivate if disabled
         if (userData.disabled === true) {
-          await setDoc(userDocRef, { disabled: false, disabledAt: null }, { merge: true });
+          await setDoc(
+            userDocRef,
+            { disabled: false, disabledAt: null },
+            { merge: true }
+          );
         }
 
         // Update last login timestamp
         await setDoc(userDocRef, { lastLogin: new Date() }, { merge: true });
 
-        alert("✅ Logged in as " + user.email);
-
         // Redirect based on role
-        window.location.href = userData.user_type === "admin"
-          ? "Pages/Admin/AdminHome.html"
-          : "Pages/DoctorNurse/DoctorNurseDashboard.html";
+        window.location.href =
+          userData.user_type === "admin"
+            ? "Pages/Admin/AdminHome.html"
+            : userData.user_type === "doctor" || userData.user_type === "nurse"
+            ? "Pages/DoctorNurse/DoctorNurseDashboard.html"
+            : "Pages/Patient/PatientPortal.html";
       }
     } catch (error) {
       alert("❌ Login error: " + error.message);
@@ -142,7 +84,6 @@ if (login) {
     }
   });
 }
-
 
 // ✅ Logout with confirmation
 const logoutButton = document.getElementById("logout-button");
@@ -155,7 +96,6 @@ if (logoutButton) {
 
     signOut(auth)
       .then(() => {
-        alert("Logged out!");
         window.location.href = "../../index.html";
       })
       .catch((error) => {
