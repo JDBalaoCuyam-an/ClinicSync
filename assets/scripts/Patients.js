@@ -5,9 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const patientTableBody = document.querySelector(".records-table tbody");
-
-const searchName = document.getElementById("searchName");
-const searchId = document.getElementById("searchId");
+const searchQuery = document.getElementById("searchQuery");
 const filterRole = document.getElementById("filterRole");
 
 const patientsRef = collection(db, "users");
@@ -67,38 +65,37 @@ function displayPatients(patients) {
 }
 
 
-// ======================================================
-// ✅ Filtering — Name, ID, Gender, Role
-// ======================================================
+// ================================
+// Combined Search: Name OR ID
+// ================================
 function filterPatients() {
-  const nameQuery = searchName.value.toLowerCase();
-  const idQuery = searchId.value.toLowerCase();
+  const query = searchQuery.value.toLowerCase();
   const roleFilter = filterRole.value;
 
   const filtered = allPatients.filter((p) => {
-    const matchesName =
-      p.firstName?.toLowerCase().includes(nameQuery) ||
-      p.lastName?.toLowerCase().includes(nameQuery);
+    const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+    const idValue = p.schoolId?.toLowerCase() || "";
 
-    const matchesId = p.schoolId?.toLowerCase().includes(idQuery);
+    const matchesSearch =
+      fullName.includes(query) || idValue.includes(query);
 
     const matchesRole =
       roleFilter === "all" || p.user_type?.toLowerCase() === roleFilter;
 
-    return matchesName && matchesId && matchesRole;
+    return matchesSearch && matchesRole;
   });
 
   displayPatients(filtered);
 }
 
-
 // ======================================================
 // Event Listeners
 // ======================================================
-[searchName, searchId, filterRole].forEach((el) => {
+[searchQuery, filterRole].forEach((el) => {
   el.addEventListener("input", filterPatients);
   el.addEventListener("change", filterPatients);
 });
+
 
 
 loadPatients();

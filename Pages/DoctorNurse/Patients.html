@@ -3,10 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Medical Records</title>
+    <title>Patients</title>
     <script type="module" src="../../firebaseconfig.js"></script>
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
     <link rel="stylesheet" href="../../assets/styles/Patients.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -36,162 +40,183 @@
     <div id="sidebar-container"></div>
     <div id="overlay" class="overlay"></div>
 
+    <div class="container-fluid py-4">
+      <div class="records-container">
+        <!-- Header -->
+        <div class="records-header">
+          <h2 class="h4 mb-0 fw-bold">Patients</h2>
+        </div>
 
-    <!-- Main Content -->
-    <div class="records-container">
-      <div class="records-header">
-        <h2>Medical Records</h2>
+        <!-- Filters & Search -->
+        <div class="controls d-flex flex-wrap align-items-center">
+          <div class="flex-grow-1 me-3">
+            <input
+              type="text"
+              id="searchQuery"
+              placeholder="Search by Name or ID"
+              class="form-control search-bar"
+            />
+          </div>
+
+          <div class="flex-shrink-0">
+            <select id="filterRole" class="form-select">
+              <option value="all">All Patient Type</option>
+              <option value="student">Student</option>
+              <option value="employee">Employee</option>
+              <option value="visitor">Visitor</option>
+            </select>
+          </div>
+
+          <div class="flex-shrink-0">
+            <select id="filterDept" class="form-select">
+              <option value="alldept">All Department</option>
+              <option value="CABM">CABM</option>
+              <option value="CCJE">CCJE</option>
+              <option value="CIT">CIT</option>
+              <option value="COT">COT</option>
+              <option value="TTED">TTED</option>
+              <option value="CTE">CTE</option>
+              <option value="BasicEd">BasicEd</option>
+              <option value="Visitor">Visitor</option>
+            </select>
+          </div>
+
+          <div class="flex-shrink-0">
+            <select id="filterCourse" class="form-select">
+              <option value="allcourse">All Course/Strand/GE</option>
+              <option value="Bachelor of Science in Accountancy">
+                Bachelor of Science in Accountancy
+              </option>
+              <option value="Bachelor of Science in Hospitality Management">
+                Bachelor of Science in Hospitality Management
+              </option>
+              <option value="Bachelor of Science in Information Technology">
+                Bachelor of Science in Information Technology
+              </option>
+              <option value="Bachelor of Science in Office Administration">
+                Bachelor of Science in Office Administration
+              </option>
+              <option value="Bachelor of Science in Business Administration">
+                Bachelor of Science in Business Administration
+              </option>
+              <option value="Bachelor of Elementary Education">
+                Bachelor of Elementary Education
+              </option>
+              <option value="Bachelor of Science in Psychology">
+                Bachelor of Science in Psychology
+              </option>
+              <option value="Bachelor of Science in Social Work">
+                Bachelor of Science in Social Work
+              </option>
+              <option value="Bachelor of Secondary Education">
+                Bachelor of Secondary Education
+              </option>
+              <option value="Technical Vocational Teacher Education">
+                Technical Vocational Teacher Education
+              </option>
+              <option value="Bachelor of Science in Criminology">
+                Bachelor of Science in Criminology
+              </option>
+              <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+              <option value="Bachelor of Theology">Bachelor of Theology</option>
+              <option value="Accountancy and Business Management">
+                Accountancy and Business Management
+              </option>
+              <option value="Science, Technology, Engineering, and Mathematics">
+                Science, Technology, Engineering, and Mathematics
+              </option>
+              <option value="Humanities and Sciences">
+                Humanities and Sciences
+              </option>
+              <option value="Junior Highschool">Junior Highschool</option>
+              <option value="Elementary">Elementary</option>
+              <option value="Kindergarten">Kindergarten</option>
+              <option value="Visitor">Visitor</option>
+            </select>
+          </div>
+
+          <div class="flex-shrink-0">
+            <select id="filterYear" class="form-select">
+              <option value="allyear">All Year Levels</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+              <option value="5">5th Year</option>
+              <option value="6">6th Year</option>
+              <option value="7">7th Grade</option>
+              <option value="8">8th Grade</option>
+              <option value="9">9th Grade</option>
+              <option value="10">10th Grade</option>
+              <option value="11">11th Grade</option>
+              <option value="12">12th Grade</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 records-table">
+            <thead class="text-nowrap">
+              <tr>
+                <th>Patient Name</th>
+                <th>School ID</th>
+                <th>Department</th>
+                <th>Course/Strand/General Education</th>
+                <th>Year/Grade Level</th>
+                <th>Patient Type</th>
+                <th>Contact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Example row (repeat or generate dynamically) -->
+              <tr onclick="window.location.href='ViewPatient.html'">
+                <td>Juan Dela Cruz</td>
+                <td>20210001</td>
+                <td>CIT</td>
+                <td>Bachelor of Science in Information Technology</td>
+                <td>3rd Year</td>
+                <td>Student</td>
+                <td>0917-123-4567</td>
+              </tr>
+              <!-- More rows go here -->
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="controls">
-        <input
-          type="text"
-          id="searchName"
-          placeholder="Search by Name"
-          class="search-bar"
-        />
-        <input
-          type="text"
-          id="searchId"
-          placeholder="Search by ID"
-          class="search-bar"
-        />
-
-        <select id="filterRole">
-          <option value="all">All Patient Type</option>
-          <option value="student">Student</option>
-          <option value="employee">Employee</option>
-          <option value="visitor">Visitor</option>
-        </select>
-
-        <select id="filterDept">
-          <option value="alldept">All Department</option>
-          <option value="CABM">CABM</option>
-          <option value="CCJE">CCJE</option>
-          <option value="CIT">CIT</option>
-          <option value="COT">COT</option>
-          <option value="TTED">TTED</option>
-          <option value="CTE">CTE</option>
-          <option value="BasicEd">BasicEd</option>
-          <option value="Visitor">Visitor</option>
-        </select>
-        <select id="filterCourse">
-          <option value="allcourse">All Course/Strand/GE</option>
-          <option value="Bachelor of Science in Accountancy">
-            Bachelor of Science in Accountancy
-          </option>
-          <option value="Bachelor of Science in Hospitality Management">
-            Bachelor of Science in Hospitality Management
-          </option>
-          <option value="Bachelor of Science in Information Technology">
-            Bachelor of Science in Information Technology
-          </option>
-          <option value="Bachelor of Science in Office Administration">
-            Bachelor of Science in Office Administration
-          </option>
-          <option value="Bachelor of Science in Business Administration">
-            Bachelor of Science in Business Administration
-          </option>
-          <option value="Bachelor of Elementary Education">
-            Bachelor of Elementary Education
-          </option>
-          <option value="Bachelor of Science in Psychology">
-            Bachelor of Science in Psychology
-          </option>
-          <option value="Bachelor of Science in Social Work">
-            Bachelor of Science in Social Work
-          </option>
-          <option value="Bachelor of Secondary Education">
-            Bachelor of Secondary Education
-          </option>
-          <option value="Technical Vocational Teacher Education">
-            Technical Vocational Teacher Education
-          </option>
-          <option value="Bachelor of Science in Criminology">
-            Bachelor of Science in Criminology
-          </option>
-          <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
-          <option value="Bachelor of Theology">Bachelor of Theology</option>
-          <option value="Accountancy and Business Management">
-            Accountancy and Business Management
-          </option>
-          <option value="Science, Technology, Engineering, and Mathematics">
-            Science, Technology, Engineering, and Mathematics
-          </option>
-          <option value="Humanities and Sciences">
-            Humanities and Sciences
-          </option>
-          <option value="Junior Highschool">Junior Highschool</option>
-          <option value="Elementary">Elementary</option>
-          <option value="Kindergarten">Kindergarten</option>
-          <option value="Visitor">Visitor</option>
-        </select>
-        <select id="filterYear">
-          <option value="allyear">All Year Levels</option>
-          <option value="1">1st Year</option>
-          <option value="2">2nd Year</option>
-          <option value="3">3rd Year</option>
-          <option value="4">4th Year</option>
-          <option value="5">5th Year</option>
-          <option value="6">6th Year</option>
-          <option value="7">7th Grade</option>
-          <option value="8">8th Grade</option>
-          <option value="9">9th Grade</option>
-          <option value="10">10th Grade</option>
-          <option value="11">11th Grade</option>
-          <option value="12">12th Grade</option>
-        </select>
-      </div>
-
-      <table class="records-table">
-        <thead>
-          <tr>
-            <th>Patient Name</th>
-            <th>School ID</th>
-            <th>Department</th>
-            <th>Course/Strand/General Education</th>
-            <th>Year/Grade Level</th>
-            <th>Patient Type</th>
-            <th>Contact</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr onclick="window.location.href='ViewPatient.html'"></tr>
-          <!-- More rows dynamically inserted here -->
-        </tbody>
-      </table>
     </div>
     <div id="footer-container"></div>
   </body>
   <script src="../../assets/scripts/Patients.js" type="module"></script>
   <script src="../../assets/scripts/modal.js"></script>
   <script>
-  // Wait for the DOM to fully load
-  document.addEventListener("DOMContentLoaded", () => {
-    // Select the back-to-top button
-    const backToTopBtn = document.querySelector(".backToTop");
+    // Wait for the DOM to fully load
+    document.addEventListener("DOMContentLoaded", () => {
+      // Select the back-to-top button
+      const backToTopBtn = document.querySelector(".backToTop");
 
-    // Check if button exists (important if footer is dynamically imported)
-    if (backToTopBtn) {
-      // Scroll smoothly to top when clicked
-      backToTopBtn.addEventListener("click", () => {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth"
+      // Check if button exists (important if footer is dynamically imported)
+      if (backToTopBtn) {
+        // Scroll smoothly to top when clicked
+        backToTopBtn.addEventListener("click", () => {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
         });
-      });
 
-      // Optional: Show/hide button based on scroll position
-      window.addEventListener("scroll", () => {
-        if (window.scrollY > 300) {
-          backToTopBtn.style.display = "block"; // Show button
-        } else {
-          backToTopBtn.style.display = "none"; // Hide button
-        }
-      });
+        // Optional: Show/hide button based on scroll position
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 300) {
+            backToTopBtn.style.display = "block"; // Show button
+          } else {
+            backToTopBtn.style.display = "none"; // Hide button
+          }
+        });
 
-      // Initially hide the button
-      backToTopBtn.style.display = "none";
-    }
-  });
-</script>
+        // Initially hide the button
+        backToTopBtn.style.display = "none";
+      }
+    });
+  </script>
 </html>
