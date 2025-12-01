@@ -1,0 +1,653 @@
+:root {
+    --primary: #2c7fb8;
+    --primary-dark: #1d5f8a;
+    --secondary: #7fcdbb;
+    --light: #f0f8ff;
+    --dark: #333;
+    --gray: #777;
+    --light-gray: #f5f5f5;
+    --border: #e0e0e0;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+}
+
+body {
+    background-color: #f8f9fa;
+    color: var(--dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Custom Bootstrap Overrides */
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.text-primary {
+    color: var(--primary) !important;
+}
+
+.border-primary {
+    border-color: var(--primary) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary) !important;
+}
+
+/* Header Styles */
+.patient-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+/* Navigation */
+.patient-nav {
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.nav-tabs .nav-link {
+    color: var(--gray);
+    font-weight: 500;
+    border: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary);
+    background-color: transparent;
+    border-bottom: 3px solid var(--primary);
+}
+
+/* Logout Button Styles - Portrait Rectangle with Red Background */
+.logout-btn {
+    width: 30px;
+    height: 40px; /* Taller than wide for portrait rectangle */
+    border-radius: 6px; /* Slightly rounded corners */
+    background-color: #dc3545; /* Bootstrap danger red */
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    padding: 0;
+}
+
+.logout-btn:hover {
+    background-color: #c82333; /* Darker red on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.logout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+}
+
+/* Optional: Tooltip for better UX */
+.logout-container {
+    position: relative;
+}
+
+.logout-container::after {
+    content: 'Logout';
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.logout-container:hover::after {
+    opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .logout-btn {
+        width: 36px;
+        height: 46px;
+        font-size: 1rem;
+    }
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Patient Info Styles */
+.info-group {
+    margin-bottom: 15px;
+}
+
+.info-group label {
+    font-weight: 500;
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    padding: 8px 12px;
+    background-color: var(--light-gray);
+    border-radius: 4px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.contact-info {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+}
+
+.info-field.editing {
+    background-color: #fff;
+    border: 2px solid #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.info-field:disabled {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+}
+
+.info-field {
+    transition: all 0.3s ease;
+}
+
+/* Button States */
+#edit-info-btn, #cancel-info-btn, #save-info-btn {
+    transition: all 0.3s ease;
+}
+
+/* Button visibility control */
+#cancel-info-btn,
+#save-info-btn {
+    display: none;
+}
+
+#edit-info-btn {
+    display: inline-block;
+}
+
+/* When in edit mode, show cancel and save buttons */
+.editing-mode #cancel-info-btn,
+.editing-mode #save-info-btn {
+    display: inline-block !important;
+}
+
+.editing-mode #edit-info-btn {
+    display: none !important;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-completed {
+    background-color: #e8f5e9;
+    color: var(--success);
+}
+
+.status-pending {
+    background-color: #fff3e0;
+    color: var(--warning);
+}
+
+/* Medical Records Table Styles */
+.table td {
+    vertical-align: middle;
+}
+
+/* Prescription column specific styling */
+.table tbody tr td:nth-child(6) {
+    max-width: 250px;
+    word-wrap: break-word;
+}
+
+/* Calendar Styles */
+#calendar-container {
+    margin-bottom: 20px;
+}
+
+#calendar {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* FullCalendar Customizations */
+.fc {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.fc-toolbar {
+    padding: 10px 0;
+    margin-bottom: 10px !important;
+}
+
+.fc-toolbar-title {
+    font-size: 1.5rem;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.fc-button {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    font-weight: 500;
+}
+
+.fc-button:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+}
+
+.fc-button-active {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+}
+
+.fc-day-today {
+    background-color: rgba(44, 127, 184, 0.1) !important;
+}
+
+.fc-event {
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: none;
+}
+
+.fc-event:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Appointment Cards */
+.appointment-card {
+    border-left: 4px solid var(--primary);
+    padding: 15px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+}
+
+.appointment-card.upcoming {
+    border-left-color: var(--success);
+}
+
+.appointment-card.past {
+    border-left-color: var(--gray);
+    opacity: 0.8;
+}
+
+.appointment-card.cancelled {
+    border-left-color: var(--danger);
+}
+
+.appointment-date {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+
+.appointment-time {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.appointment-doctor {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.appointment-reason {
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+/* Footer */
+.patient-footer {
+    background-color: white;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .calendar-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .info-group label {
+        font-size: 0.85rem;
+    }
+
+    .info-value {
+        font-size: 0.9rem;
+    }
+    
+    .fc-toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .fc-toolbar-title {
+        font-size: 1.2rem;
+    }
+}
+
+/* ==========================
+   FOOTER STYLES - PATIENT VERSION
+========================== */
+.footer-container {
+    background-color: var(--primary);
+    color: #fff;
+    padding: 40px 20px 10px;
+    width: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 40px;
+}
+
+.footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 2rem;
+}
+
+/* 🔹 LOGO + SYSTEM NAME */
+.footer-logo {
+    flex: 1 1 250px;
+    text-align: center;
+}
+
+.footer-logo-img {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 10px;
+}
+
+.footer-logo h3 {
+    margin: 5px 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.footer-desc {
+    font-size: 0.85rem;
+    color: #d1d5db;
+}
+
+/* 🔹 PATIENT LINKS */
+.footer-links {
+    flex: 1 1 200px;
+}
+
+.footer-links h4 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #fff;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links ul li {
+    margin: 6px 0;
+}
+
+.footer-links ul li a {
+    color: #e5e7eb;
+    text-decoration: none;
+    transition: 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.footer-links ul li a:hover {
+    color: #38bdf8;
+    transform: translateX(4px);
+}
+
+/* 🔹 BACK TO TOP BUTTON */
+.footer-backtop {
+    flex: 1 1 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .backToTop {
+    background-color: #ffffff;
+    color: var(--primary);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .backToTop:hover {
+    background-color: #38bdf8;
+    color: white;
+  }
+
+/* 🔹 COPYRIGHT AREA */
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 30px;
+    text-align: center;
+    padding-top: 10px;
+    font-size: 0.9rem;
+    color: #e5e7eb;
+}
+
+/* 🔹 RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .footer-container {
+        padding: 30px 15px 10px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    .footer-logo {
+        flex: 1 1 100%;
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    .footer-logo h3 {
+        font-size: 1.2rem;
+    }
+
+    .footer-links {
+        flex: 1 1 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .footer-links h4 {
+        text-align: center;
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+
+    .footer-links ul {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        text-align: center;
+        max-width: 300px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .footer-links ul li {
+        margin: 4px 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .footer-links ul li a {
+        font-size: 0.9rem;
+        padding: 4px 0;
+        justify-content: center;
+    }
+
+    .footer-backtop {
+        flex: 1 1 100%;
+        justify-content: center;
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .backToTop {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+        width: 100%;
+        max-width: 200px;
+        justify-content: center;
+    }
+
+    .footer-bottom {
+        margin-top: 20px;
+        font-size: 0.85rem;
+        padding: 15px 10px 5px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .footer-container {
+        padding: 25px 10px 5px;
+    }
+
+    .footer-logo-img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .footer-logo h3 {
+        font-size: 1.1rem;
+    }
+
+    .footer-desc {
+        font-size: 0.8rem;
+    }
+
+    .footer-links ul {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .footer-links ul li a {
+        justify-content: center;
+    }
+
+    .backToTop {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+    }
+
+    .footer-bottom {
+        font-size: 0.8rem;
+    }
+}

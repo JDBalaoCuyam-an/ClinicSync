@@ -240,7 +240,7 @@ async function loadAppointments() {
         formattedDate = appointmentDateObj.toLocaleDateString();
       }
 
-      // 🎨 Apply color coding for date
+      // ðŸŽ¨ Apply color coding for date
       if (appointmentDateObj) {
         const diff = appointmentDateObj - today;
 
