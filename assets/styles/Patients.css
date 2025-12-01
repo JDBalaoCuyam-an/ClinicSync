@@ -27,11 +27,8 @@
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-/* Table Styling */
-table thead tr:first-child{
-  background-color: #2980b9;
-}
 
 table tbody tr:hover{
   cursor: pointer;
 }
+
