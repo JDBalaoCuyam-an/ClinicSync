@@ -244,93 +244,31 @@
   }
 
 }
-
-.appointments-section {
-  flex: 7;
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-top: 20px;
-  
-}
-
-.appointments-section:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-.appointments-section h2 {
-  margin-bottom: 15px;
-  color: #2c3e50;
-}
-
-.appointments-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-/* Appointment Card */
-.appointment-card {
-  background: #f8f9fa;
-  border-radius: 10px;
-  padding: 15px 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.appointment-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.appointment-card h3 {
-  margin: 0 0 8px;
-  font-size: 1.1rem;
-  color: #3498db;
-}
-
-.appointment-card p {
-  margin: 4px 0;
-  font-size: 0.9rem;
-  color: #2c3e50;
-}
-
-.modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 1000;
-}
-.modal-content {
+/* Staff list */
+.staff-list {
   background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  width: 300px;
-  text-align: center;
-}
-.hidden { display: none; }
-.close {
-  position: absolute;
-  top: 10px; right: 15px;
-  font-size: 24px;
-  cursor: pointer;
-}
-button { margin: 10px; padding: 10px 15px; }
-.appointment-today {
-  background: #d4f8d4 !important;
-  border-left: 5px solid #2ecc71;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-.appointment-past {
-  background: #f0f0f0;
-  opacity: 0.6;
+.staff-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eaeaea;
 }
 
-.appointment-future {
-  background: #ffffff;
+.staff-item:last-child {
+  border-bottom: none;
+}
+
+.staff-name {
+  font-weight: 600;
+}
+
+.staff-btn {
+  padding: 6px 12px;
+  font-size: 14px;
 }

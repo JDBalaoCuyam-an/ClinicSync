@@ -4,59 +4,63 @@
   padding: 0;
   box-sizing: border-box;
   position: relative;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   scroll-behavior: smooth;
 }
-body{
+body {
   position: relative;
   background-color: #f5f7fa;
 }
 /* COLOR SYSTEM */
 :root {
-  --primary-color: #4682B4;
-  --primary-light: #E0EFFF;
-  --primary-lighter: #F0F8FF;
+  --primary-color: #4682b4;
+  --primary-light: #e0efff;
+  --primary-lighter: #f0f8ff;
   --text-dark: #333333;
   --text-medium: #777777;
-  --text-light: #FFFFFF;
-  --border-color: #DDDDDD;
+  --text-light: #ffffff;
+  --border-color: #dddddd;
   --shadow-light: 0 2px 5px rgba(0, 0, 0, 0.1);
   --shadow-medium: 2px 0 10px rgba(0, 0, 0, 0.1);
   --transition-fast: 0.2s ease-in-out;
   --transition-normal: 0.3s ease-in-out;
   --transition-slow: 0.3s ease-out;
 }
- .navbar {
-      background-color: #1e3a8a; /* blue-700 – matches your previous preference */
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 1.5rem;
-      color: white !important;
-    }
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      background-color: aliceblue;
-      border: 2px solid rgba(255,255,255,0.3);
-    }
-    .btn-logout {
-      color: white;
-      background: transparent;
-      border: none;
-      font-size: 1.25rem;
-      padding: 0.5rem;
-      transition: all 0.2s;
-    }
-    .btn-logout:hover {
-      background-color: rgba(255,255,255,0.2);
-      border-radius: 50%;
-    }
-    @media (max-width: 576px) {
-      .user-name { font-size: 0.9rem; }
-      .btn-logout { font-size: 1.1rem; }
-    }
+.navbar {
+  background-color: #1e3a8a; /* blue-700 – matches your previous preference */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: white !important;
+}
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: aliceblue;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+.btn-logout {
+  color: white;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  transition: all 0.2s;
+}
+.btn-logout:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+@media (max-width: 576px) {
+  .user-name {
+    font-size: 0.9rem;
+  }
+  .btn-logout {
+    font-size: 1.1rem;
+  }
+}
 /* UNIFORM ICON STYLING */
 .card-icon i,
 .chart-title i,
@@ -157,7 +161,9 @@ body{
   height: 80%;
   object-fit: cover;
 }
-
+.sidebar ul{
+  list-style-type: none;
+}
 .sidebar ul li {
   display: flex;
   align-items: center;
@@ -187,7 +193,6 @@ body{
   color: var(--text-light);
 }
 
-
 /* BUTTONS - Consistent styling */
 .edit-btn {
   padding: 2px 8px;
@@ -201,7 +206,7 @@ body{
   cursor: pointer;
   transition: background-color var(--transition-fast);
 }
-#cancel-contact-edit-btn{
+#cancel-contact-edit-btn {
   position: absolute;
   top: 15px;
   right: 0;
@@ -249,11 +254,11 @@ body{
 }
 
 #logout-button:hover {
-  color:  var(--primary-light);
+  color: var(--primary-light);
 }
 
 #logout-button:hover i {
-  color:  var(--primary-light);
+  color: var(--primary-light);
 }
 /* OVERLAY */
 .overlay {
@@ -275,14 +280,13 @@ body{
    FOOTER STYLES
 ========================== */
 .footer-container {
-  background-color: var(--primary-color); 
+  background-color: var(--primary-color);
   color: #fff;
   padding: 40px 20px 10px;
   width: 100%;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
-
 
 .footer-content {
   display: flex;
