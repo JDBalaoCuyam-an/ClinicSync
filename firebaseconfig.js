@@ -121,7 +121,7 @@ if (!window.location.pathname.includes("index.html")) {
 const nameDisplay = document.getElementById("displayName");
 
 let currentUserName = ""; // 🌟 will store the name of the logged-in user
-
+let patientKey = ""; // 🌟 will store the patient key if needed
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     const userRef = doc(db, "users", user.uid);
@@ -132,8 +132,8 @@ onAuthStateChanged(auth, async (user) => {
 
       const fullName =
         `${data.lastName}, ${data.firstName} ${data.extName}`.trim();
-
       nameDisplay.textContent = fullName;
+      patientKey = user.uid; // 🌟 <-- JUST THIS LINE ADDED
       currentUserName = fullName; // ✅ <-- JUST THIS LINE ADDED
     } else {
       nameDisplay.textContent = user.email;
@@ -145,4 +145,4 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-export { db, auth, currentUserName };
+export { db, auth, currentUserName, patientKey };

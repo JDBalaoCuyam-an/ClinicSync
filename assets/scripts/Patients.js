@@ -1,7 +1,6 @@
 import { db } from "../../firebaseconfig.js";
 import {
-  collection,
-  getDocs,
+  collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const patientTableBody = document.querySelector(".records-table tbody");
@@ -10,7 +9,6 @@ const filterRole = document.getElementById("filterRole");
 
 const patientsRef = collection(db, "users");
 let allPatients = []; // store all fetched data
-
 
 // ======================================================
 // ✅ Load only STUDENT and EMPLOYEE users
@@ -33,7 +31,6 @@ async function loadPatients() {
   displayPatients(allPatients);
 }
 
-
 // ======================================================
 // ✅ Display Patients
 // ======================================================
@@ -49,7 +46,9 @@ function displayPatients(patients) {
   patients.forEach((data) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td><strong>${data.lastName}</strong>, ${data.firstName} ${data.middleName || ""}</td>
+      <td><strong>${data.lastName}</strong>, ${data.firstName} ${
+      data.middleName || ""
+    }</td>
       <td>${data.schoolId || "-"}</td>
       <td>${data.department || "-"}</td>
       <td>${data.course || "-"}</td>
@@ -64,7 +63,6 @@ function displayPatients(patients) {
   });
 }
 
-
 // ================================
 // Combined Search: Name OR ID
 // ================================
@@ -76,8 +74,7 @@ function filterPatients() {
     const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
     const idValue = p.schoolId?.toLowerCase() || "";
 
-    const matchesSearch =
-      fullName.includes(query) || idValue.includes(query);
+    const matchesSearch = fullName.includes(query) || idValue.includes(query);
 
     const matchesRole =
       roleFilter === "all" || p.user_type?.toLowerCase() === roleFilter;
@@ -96,6 +93,5 @@ function filterPatients() {
   el.addEventListener("change", filterPatients);
 });
 
-
-
 loadPatients();
+

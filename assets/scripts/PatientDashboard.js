@@ -1,609 +1,194 @@
-// Sample data - in a real application, this would come from a database
-const patientData = {
-    name: "John Michael Doe",
-    id: "2023-12345",
-    department: "College of Information Technology",
-    course: "Bachelor of Science in Information Technology",
-    year: "3rd Year",
-    dob: "1990-01-15",
-    gender: "Male",
-    phone: "+1 (555) 123-4567",
-    email: "john.doe@example.edu",
-    address: "123 University Ave, City, State 12345"
-};
+import { db, auth } from "../../firebaseconfig.js";
+import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-const medicalRecords = [
-    {
-        date: "2023-10-15",
-        doctor: "Dr. Sarah Johnson",
-        nurse: "Nurse Maria Santos",
-        complaint: "Fever and sore throat",
-        diagnosis: "Viral pharyngitis",
-        prescription: "Paracetamol 500mg - 1 tab every 6 hours for 3 days",
-        followUp: "No"
-    },
-    {
-        date: "2023-08-22",
-        doctor: "Dr. Michael Chen",
-        nurse: "Nurse James Wilson",
-        complaint: "Annual physical examination",
-        diagnosis: "Good health, normal results",
-        prescription: "Multivitamins once daily",
-        followUp: "Yes - Next year"
-    },
-    {
-        date: "2023-06-10",
-        doctor: "Dr. Emily Rodriguez",
-        nurse: "Nurse Lisa Garcia",
-        complaint: "Allergy symptoms",
-        diagnosis: "Seasonal allergies",
-        prescription: "Loratadine 10mg - 1 tab daily as needed",
-        followUp: "No"
-    },
-    {
-        date: "2023-03-05",
-        doctor: "Dr. Robert Brown",
-        nurse: "Nurse David Lee",
-        complaint: "Back pain",
-        diagnosis: "Muscle strain",
-        prescription: "Ibuprofen 400mg - 1 tab every 8 hours for pain",
-        followUp: "Yes - 2 weeks"
-    },
-    {
-        date: "2023-01-18",
-        doctor: "Dr. Jennifer Martinez",
-        nurse: "Nurse Anna Kim",
-        complaint: "Headache and dizziness",
-        diagnosis: "Migraine",
-        prescription: "Sumatriptan 50mg - 1 tab at onset of migraine",
-        followUp: "No"
+const staffList = document.getElementById("staffs");
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    // ✅ Get the currently logged-in user
+    const patientRef = doc(db, "users", user.uid);
+    const patientSnap = await getDoc(patientRef);
+
+    if (patientSnap.exists()) {
+      const data = patientSnap.data();
+
+      // Personal Details
+      document.getElementById("lastName").value = data.lastName || "";
+      document.getElementById("firstName").value = data.firstName || "";
+      document.getElementById("middleName").value = data.middleName || "";
+      document.getElementById("extName").value = data.extName || "";
+      document.getElementById("gender").value = data.gender || "";
+      document.getElementById("birthdate").value = data.birthdate || "";
+      document.getElementById("age").value = data.age || "";
+      document.getElementById("civilStatus").value = data.civilStatus || "";
+      document.getElementById("nationality").value = data.nationality || "";
+      document.getElementById("religion").value = data.religion || "";
+
+      // School Information
+      document.getElementById("schoolId").value = data.schoolId || "";
+      document.getElementById("department").value = data.department || "";
+      document.getElementById("course").value = data.course || "";
+      document.getElementById("yearLevel").value = data.yearLevel || "";
+
+      // Parent's Information
+      document.getElementById("fatherName").value = data.fatherName || "";
+      document.getElementById("fatherAge").value = data.fatherAge || "";
+      document.getElementById("fatherOccupation").value = data.fatherOccupation || "";
+      document.getElementById("fatherHealth").value = data.fatherHealth || "";
+      document.getElementById("motherName").value = data.motherName || "";
+      document.getElementById("motherAge").value = data.motherAge || "";
+      document.getElementById("motherOccupation").value = data.motherOccupation || "";
+      document.getElementById("motherHealth").value = data.motherHealth || "";
+
+      // Contact Details
+      document.getElementById("phone").value = data.phone || "";
+      document.getElementById("email").value = data.email || "";
+      document.getElementById("address").value = data.address || "";
+      document.getElementById("guardianName").value = data.guardianName || "";
+      document.getElementById("guardianPhone").value = data.guardianPhone || "";
+
+    } else {
+      console.warn("User document not found");
     }
-];
+  } else {
+    console.log("No user is logged in");
+  }
 
-const appointments = [
-    {
-        id: 1,
-        date: "2023-11-20",
-        time: "10:00 AM",
-        doctor: "Dr. Sarah Johnson",
-        reason: "Follow-up consultation",
-        status: "Upcoming"
-    },
-    {
-        id: 2,
-        date: "2023-09-05",
-        time: "2:30 PM",
-        doctor: "Dr. Michael Chen",
-        reason: "Vaccination",
-        status: "Completed"
-    },
-    {
-        id: 3,
-        date: "2023-07-18",
-        time: "9:15 AM",
-        doctor: "Dr. Emily Rodriguez",
-        reason: "Skin rash evaluation",
-        status: "Completed"
-    }
-];
-
-// Global variables
-let calendar;
-let appointmentFormListener = null;
-
-// DOM elements
-const appointmentsList = document.getElementById('appointments-list');
-const recordsTableBody = document.getElementById('records-table-body');
-const nextAppointmentElement = document.getElementById('next-appointment');
-
-// Initialize the page
-document.addEventListener('DOMContentLoaded', function () {
-    // Set patient name in header
-    document.getElementById('patient-name').textContent = patientData.name;
-
-    // Populate medical records
-    populateMedicalRecords();
-
-    // Populate appointments
-    populateAppointments();
-
-    // Initialize FullCalendar
-    initializeCalendar();
-
-    // Set up next appointment
-    const nextAppointment = appointments.find(app => app.status === 'Upcoming');
-    if (nextAppointment) {
-        nextAppointmentElement.innerHTML = `
-            <p class="mb-1"><strong>${formatDate(nextAppointment.date)} at ${nextAppointment.time}</strong></p>
-            <p class="mb-1">With ${nextAppointment.doctor}</p>
-            <p class="mb-0">Reason: ${nextAppointment.reason}</p>
-        `;
-    }
-
-    // Set up new appointment button
-    document.getElementById('new-appointment-btn').addEventListener('click', function () {
-        setupAppointmentModal();
-        const appointmentModal = new bootstrap.Modal(document.getElementById('appointmentModal'));
-        appointmentModal.show();
-    });
-
-    // Initialize My Information edit functionality
-    initializeEditInformation();
-
-    // Initialize footer functionality
-    initializeFooter();
-
-    // Setup modal event listeners
-    setupModalEventListeners();
+  // ✅ Load staff regardless of logged-in user
+  loadStaff();
 });
 
-// Setup modal event listeners
-function setupModalEventListeners() {
-    const appointmentModal = document.getElementById('appointmentModal');
-    
-    // Reset form when modal is hidden
-    appointmentModal.addEventListener('hidden.bs.modal', function () {
-        resetAppointmentForm();
-        removeAppointmentFormListener();
-    });
-    
-    // Clean up when modal is closed
-    appointmentModal.addEventListener('hide.bs.modal', function () {
-        removeAppointmentFormListener();
-    });
+
+
+const editBtn = document.getElementById("edit-info-btn");
+const cancelBtn = document.getElementById("cancel-info-btn");
+const saveBtn = document.getElementById("save-info-btn");
+
+const infoFields = document.querySelectorAll(".info-field");
+
+let originalData = {};
+let currentUserId = "";
+
+// Initially, only Edit is visible
+cancelBtn.style.display = "none";
+saveBtn.style.display = "none";
+
+// Helper to enable/disable inputs
+function setFieldsEditable(editable) {
+  infoFields.forEach(field => field.disabled = !editable);
 }
 
-// Setup appointment modal
-function setupAppointmentModal() {
-    // Remove any existing listener first
-    removeAppointmentFormListener();
-    
-    // Set today's date as the default
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    document.getElementById('appointment-date').value = formattedDate;
-    
-    // Set default time (next available hour)
-    const nextHour = today.getHours() + 1;
-    const formattedTime = `${nextHour.toString().padStart(2, '0')}:00`;
-    document.getElementById('appointment-time').value = formattedTime;
-    
-    // Add new form submission listener
-    const appointmentForm = document.getElementById('appointment-form');
-    appointmentFormListener = function(e) {
-        e.preventDefault();
-        handleAppointmentSubmission();
-    };
-    appointmentForm.addEventListener('submit', appointmentFormListener);
+// Store original values
+function storeOriginalData() {
+  originalData = {};
+  infoFields.forEach(field => {
+    originalData[field.id] = field.value;
+  });
 }
 
-// Remove appointment form listener
-function removeAppointmentFormListener() {
-    if (appointmentFormListener) {
-        const appointmentForm = document.getElementById('appointment-form');
-        appointmentForm.removeEventListener('submit', appointmentFormListener);
-        appointmentFormListener = null;
+// Restore original values
+function restoreOriginalData() {
+  infoFields.forEach(field => {
+    if (originalData[field.id] !== undefined) {
+      field.value = originalData[field.id];
     }
+  });
 }
 
-// Reset appointment form
-function resetAppointmentForm() {
-    const appointmentForm = document.getElementById('appointment-form');
-    if (appointmentForm) {
-        appointmentForm.reset();
-    }
-}
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  currentUserId = user.uid;
 
-// Handle appointment form submission
-function handleAppointmentSubmission() {
-    // Get form data
-    const formData = {
-        date: document.getElementById('appointment-date').value,
-        time: document.getElementById('appointment-time').value,
-        reason: document.getElementById('appointment-reason').value,
-        doctor: document.getElementById('appointment-doctor').value
-    };
+  const docRef = doc(db, "users", currentUserId);
+  const docSnap = await getDoc(docRef);
 
-    // Validate required fields
-    if (!formData.date || !formData.time || !formData.reason) {
-        alert('Please fill in all required fields: Date, Time, and Reason for Visit.');
-        return;
-    }
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    infoFields.forEach(field => field.value = data[field.id] || "");
+  }
+});
 
-    // Validate date is not in the past
-    const selectedDate = new Date(formData.date + 'T' + formData.time);
-    const today = new Date();
-    
-    if (selectedDate < today) {
-        alert('Please select a future date and time for your appointment.');
-        return;
-    }
+// Edit button click
+editBtn.addEventListener("click", () => {
+  setFieldsEditable(true);
+  storeOriginalData();
+  editBtn.style.display = "none"; // hide edit
+  cancelBtn.style.display = "inline-block";
+  saveBtn.style.display = "inline-block";
+});
 
-    // Create new appointment
-    const newAppointment = {
-        id: appointments.length + 1,
-        date: formData.date,
-        time: formatTimeForDisplay(formData.time),
-        doctor: formData.doctor || 'Any Available Doctor',
-        reason: formData.reason,
-        status: 'Upcoming'
-    };
-    
-    appointments.push(newAppointment);
+// Cancel button click
+cancelBtn.addEventListener("click", () => {
+  restoreOriginalData();
+  setFieldsEditable(false);
+  editBtn.style.display = "inline-block"; // show edit
+  cancelBtn.style.display = "none";
+  saveBtn.style.display = "none";
+});
 
-    console.log('Appointment scheduled:', newAppointment);
+// Save button click
+saveBtn.addEventListener("click", async () => {
+  const updatedData = {};
+  infoFields.forEach(field => updatedData[field.id] = field.value);
 
-    // Hide modal first
-    const appointmentModal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
-    appointmentModal.hide();
+  try {
+    const docRef = doc(db, "users", currentUserId);
+    await updateDoc(docRef, updatedData);
+    alert("Information saved successfully!");
+    setFieldsEditable(false);
+    editBtn.style.display = "inline-block"; // show edit
+    cancelBtn.style.display = "none";
+    saveBtn.style.display = "none";
+  } catch (err) {
+    console.error("Error saving info:", err);
+    alert("Failed to save changes.");
+  }
+});
 
-    // Show success message
-    setTimeout(() => {
-        alert('Appointment scheduled successfully!');
-        
-        // Refresh appointments list and calendar
-        populateAppointments();
-        refreshCalendar();
-        
-        // Update next appointment
-        updateNextAppointment();
-    }, 300);
-}
 
-// Format time for display (convert 24h to 12h format)
-function formatTimeForDisplay(timeString) {
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
-}
+/* -----------------------------------------------
+     Appointment Related Functions
+  ----------------------------------------------- */
+async function loadStaff() {
+  try {
+    const q = query(
+      collection(db, "users"),
+      where("user_type", "in", ["doctor", "nurse"])
+    );
+    const snap = await getDocs(q);
+    staffList.innerHTML = "";
 
-// Initialize FullCalendar
-function initializeCalendar() {
-    const calendarEl = document.getElementById('calendar');
-    
-    // Convert appointments to FullCalendar events
-    const events = appointments.map(appointment => {
-        const eventDate = new Date(appointment.date);
-        const [time, modifier] = appointment.time.split(' ');
-        let [hours, minutes] = time.split(':');
-        
-        if (modifier === 'PM' && hours !== '12') {
-            hours = parseInt(hours, 10) + 12;
-        }
-        if (modifier === 'AM' && hours === '12') {
-            hours = '00';
-        }
-        
-        eventDate.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-        
-        return {
-            id: appointment.id,
-            title: `Appointment with ${appointment.doctor}`,
-            start: eventDate,
-            extendedProps: {
-                reason: appointment.reason,
-                status: appointment.status,
-                time: appointment.time
-            },
-            backgroundColor: appointment.status === 'Upcoming' ? '#2c7fb8' : 
-                            appointment.status === 'Completed' ? '#28a745' : '#6c757d',
-            borderColor: appointment.status === 'Upcoming' ? '#1d5f8a' : 
-                        appointment.status === 'Completed' ? '#1e7e34' : '#545b62'
-        };
-    });
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const id = docSnap.id;
+      const fullName = `${data.lastName}, ${data.firstName}`;
+      const role = data.user_type;
+      const doctorType = data.doctor_type ?? null;
+      const availability = data.availability || [];
 
-    calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        events: events,
-        eventClick: function(info) {
-            const appointment = appointments.find(app => app.id == info.event.id);
-            if (appointment) {
-                showAppointmentDetails(appointment);
-            }
-        },
-        dateClick: function(info) {
-            // When a date is clicked, open the appointment modal with that date pre-filled
-            document.getElementById('appointment-date').value = info.dateStr;
-            setupAppointmentModal();
-            const appointmentModal = new bootstrap.Modal(document.getElementById('appointmentModal'));
-            appointmentModal.show();
-        },
-        eventMouseEnter: function(info) {
-            // Show tooltip on hover
-            info.el.setAttribute('title', `${info.event.extendedProps.reason} - ${info.event.extendedProps.status}`);
-        },
-        eventDisplay: 'block',
-        eventTimeFormat: {
-            hour: '2-digit',
-            minute: '2-digit',
-            meridiem: true
-        }
-    });
+      const availabilityHtml = availability.length
+        ? `<ul class="m-0 mt-2 p-0" style="list-style:none;">
+             ${availability.map(a => `<li>${a.day}: ${a.start} - ${a.end}</li>`).join("")}
+           </ul>`
+        : '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
 
-    calendar.render();
-}
-
-// Refresh calendar
-function refreshCalendar() {
-    if (calendar) {
-        calendar.refetchEvents();
-    }
-}
-
-// Show appointment details
-function showAppointmentDetails(appointment) {
-    const modalContent = `
-        <div class="appointment-details">
-            <h5>Appointment Details</h5>
-            <div class="detail-item">
-                <strong>Date:</strong> ${formatDate(appointment.date)}
-            </div>
-            <div class="detail-item">
-                <strong>Time:</strong> ${appointment.time}
-            </div>
-            <div class="detail-item">
-                <strong>Doctor:</strong> ${appointment.doctor}
-            </div>
-            <div class="detail-item">
-                <strong>Reason:</strong> ${appointment.reason}
-            </div>
-            <div class="detail-item">
-                <strong>Status:</strong> 
-                <span class="badge ${appointment.status === 'Upcoming' ? 'bg-warning' : 'bg-success'}">
-                    ${appointment.status}
-                </span>
-            </div>
+      const item = document.createElement("div");
+      item.classList.add("staff-item");
+      item.innerHTML = `
+        <div class="staff-card p-3 mb-3 shadow-sm rounded" style="cursor:pointer;">
+          <p class="mb-1 fw-bold">${fullName}</p>
+          <p class="m-0 text-secondary">${role === "doctor" ? "Doctor" : "Nurse"}</p>
+          ${role === "doctor" ? `<p class="m-0 text-primary">Specialization: ${doctorType ?? "(none yet)"}</p>` : ""}
+          ${availabilityHtml}
         </div>
-    `;
-    
-    // You could use a custom modal or alert for this
-    // For now, using a simple alert
-    alert(`Appointment Details:\n\nDate: ${formatDate(appointment.date)}\nTime: ${appointment.time}\nDoctor: ${appointment.doctor}\nReason: ${appointment.reason}\nStatus: ${appointment.status}`);
-}
-
-// Update next appointment display
-function updateNextAppointment() {
-    const nextAppointment = appointments.find(app => app.status === 'Upcoming');
-    if (nextAppointment) {
-        nextAppointmentElement.innerHTML = `
-            <p class="mb-1"><strong>${formatDate(nextAppointment.date)} at ${nextAppointment.time}</strong></p>
-            <p class="mb-1">With ${nextAppointment.doctor}</p>
-            <p class="mb-0">Reason: ${nextAppointment.reason}</p>
-        `;
-    } else {
-        nextAppointmentElement.innerHTML = `<p class="text-muted mb-0">No upcoming appointments</p>`;
-    }
-}
-
-// Footer Quick Links functionality
-function initializeFooter() {
-    // Footer quick links navigation
-    const footerLinks = document.querySelectorAll('.footer-links a[data-tab]');
-
-    footerLinks.forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-            const tabId = this.getAttribute('data-tab');
-
-            // Switch to the selected tab
-            const targetTab = document.querySelector(`a[href="#${tabId}"]`);
-            if (targetTab) {
-                const tab = new bootstrap.Tab(targetTab);
-                tab.show();
-
-                // Scroll to top of the page
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
-        });
+      `;
+      item.querySelector(".staff-card").addEventListener("click", () => {
+        openAvailabilityModal(id, fullName);
+      });
+      staffList.appendChild(item);
     });
-
-    // Back to Top functionality
-    const backToTopBtn = document.querySelector('.backToTop');
-
-    if (backToTopBtn) {
-        // Scroll to top when clicked
-        backToTopBtn.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-    }
+  } catch (err) {
+    console.error("Error loading staff:", err);
+  }
 }
-
-// Simple Edit Information Functionality
-function initializeEditInformation() {
-    const editBtn = document.getElementById('edit-info-btn');
-    const cancelBtn = document.getElementById('cancel-info-btn');
-    const saveBtn = document.getElementById('save-info-btn');
-    const infoFields = document.querySelectorAll('.info-field');
-
-    // Edit button click handler
-    editBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        console.log('Edit button clicked - enabling edit mode');
-
-        // Enable all fields
-        infoFields.forEach(field => {
-            field.disabled = false;
-            field.classList.add('editing');
-        });
-
-        // Toggle button visibility
-        editBtn.style.display = 'none';
-        cancelBtn.style.display = 'inline-block';
-        saveBtn.style.display = 'inline-block';
-    });
-
-    // Cancel button click handler
-    cancelBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        console.log('Cancel button clicked - disabling edit mode');
-
-        // Disable all fields
-        infoFields.forEach(field => {
-            field.disabled = true;
-            field.classList.remove('editing');
-        });
-
-        // Toggle button visibility
-        editBtn.style.display = 'inline-block';
-        cancelBtn.style.display = 'none';
-        saveBtn.style.display = 'none';
-
-        // Reset form to original values
-        resetInformationForm();
-    });
-
-    // Save button click handler
-    saveBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        console.log('Save button clicked - saving changes');
-
-        // Get the updated values
-        const firstName = document.getElementById('firstName').value;
-        const lastName = document.getElementById('lastName').value;
-
-        // Update the header name
-        document.getElementById('patient-name').textContent = `${firstName} ${lastName}`;
-
-        // Update avatar initials
-        const userAvatar = document.querySelector('.user-avatar');
-        if (userAvatar) {
-            userAvatar.textContent = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-        }
-
-        // Disable all fields
-        infoFields.forEach(field => {
-            field.disabled = true;
-            field.classList.remove('editing');
-        });
-
-        // Toggle button visibility
-        editBtn.style.display = 'inline-block';
-        cancelBtn.style.display = 'none';
-        saveBtn.style.display = 'none';
-
-        alert('Information saved successfully!');
-    });
-
-    // Auto-calculate age when birthdate changes
-    const birthdateField = document.getElementById('birthdate');
-    const ageField = document.getElementById('age');
-
-    if (birthdateField && ageField) {
-        birthdateField.addEventListener('change', function () {
-            const birthdate = new Date(this.value);
-            const today = new Date();
-            let age = today.getFullYear() - birthdate.getFullYear();
-            const monthDiff = today.getMonth() - birthdate.getMonth();
-
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdate.getDate())) {
-                age--;
-            }
-
-            ageField.value = age;
-        });
-    }
-}
-
-// Reset information form to original values
-function resetInformationForm() {
-    document.getElementById('firstName').value = 'John';
-    document.getElementById('lastName').value = 'Doe';
-    document.getElementById('middleName').value = 'Michael';
-    document.getElementById('extName').value = '';
-    document.getElementById('gender').value = 'Male';
-    document.getElementById('birthdate').value = '1990-01-15';
-    document.getElementById('age').value = '33';
-    document.getElementById('civilStatus').value = 'Single';
-    document.getElementById('nationality').value = 'Filipino';
-    document.getElementById('religion').value = 'Roman Catholic';
-    document.getElementById('schoolId').value = '2023-12345';
-    document.getElementById('department').value = 'CIT';
-    document.getElementById('course').value = 'Bachelor of Science in Information Technology';
-    document.getElementById('year').value = '3';
-    document.getElementById('fatherName').value = 'Robert Doe';
-    document.getElementById('fatherAge').value = '65';
-    document.getElementById('fatherOccupation').value = 'Engineer';
-    document.getElementById('fatherHealth').value = 'Good';
-    document.getElementById('motherName').value = 'Jane Doe';
-    document.getElementById('motherAge').value = '62';
-    document.getElementById('motherOccupation').value = 'Teacher';
-    document.getElementById('motherHealth').value = 'Good';
-    document.getElementById('phone').value = '+1 (555) 123-4567';
-    document.getElementById('email').value = 'john.doe@example.edu';
-    document.getElementById('address').value = '123 University Ave, City, State 12345';
-    document.getElementById('guardianName').value = 'Jane Doe';
-    document.getElementById('guardianPhone').value = '+1 (555) 987-6543';
-}
-
-// Helper functions
-function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-}
-
-function populateMedicalRecords() {
-    recordsTableBody.innerHTML = '';
-
-    medicalRecords.forEach(record => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${formatDate(record.date)}</td>
-            <td>${record.doctor}</td>
-            <td>${record.nurse}</td>
-            <td>${record.complaint}</td>
-            <td>${record.diagnosis}</td>
-            <td>${record.prescription}</td>
-            <td>
-                <span class="badge ${record.followUp === 'No' ? 'bg-success' : 'bg-warning'}">
-                    ${record.followUp}
-                </span>
-            </td>
-        `;
-        recordsTableBody.appendChild(row);
-    });
-}
-
-function populateAppointments() {
-    appointmentsList.innerHTML = '';
-
-    appointments.forEach(appointment => {
-        const col = document.createElement('div');
-        col.className = 'col-md-6 col-lg-4 mb-3';
-        col.innerHTML = `
-            <div class="card appointment-card ${appointment.status.toLowerCase()} h-100">
-                <div class="card-body">
-                    <div class="appointment-date fw-bold">${formatDate(appointment.date)}</div>
-                    <div class="appointment-time text-muted">${appointment.time}</div>
-                    <div class="appointment-doctor mt-2">With: ${appointment.doctor}</div>
-                    <div class="appointment-reason mt-1">${appointment.reason}</div>
-                    <div class="mt-3">
-                        <span class="badge ${appointment.status === 'Upcoming' ? 'bg-warning' : 'bg-success'}">${appointment.status}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        appointmentsList.appendChild(col);
-    });
-}
-
-// Export functions for global access (useful for debugging)
-window.patientDashboard = {
-    patientData,
-    medicalRecords,
-    appointments,
-    populateAppointments,
-    populateMedicalRecords
-};
