@@ -13,6 +13,21 @@ import {
   createUserWithEmailAndPassword,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
+  const userTypeSelect = document.getElementById("user_type");
+  const doctorTypeSelect = document.getElementById("doctor_type");
+  const doctorTypeLabel = document.getElementById("doctor_type_label");
+  userTypeSelect.addEventListener("change", () => {
+    if (userTypeSelect.value === "doctor") {
+      doctorTypeSelect.hidden = false; // show dropdown
+      doctorTypeSelect.required = true; // make it required
+      doctorTypeLabel.hidden = false; // show label
+    } else {
+      doctorTypeLabel.hidden = true; // hide label
+      doctorTypeSelect.hidden = true; // hide dropdown
+      doctorTypeSelect.required = false; // remove required
+      doctorTypeSelect.value = ""; // reset selection
+    }
+  });
 document
   .getElementById("createUserForm")
   .addEventListener("submit", async (e) => {
@@ -25,6 +40,7 @@ document
     const extName = document.getElementById("ext_name").value.trim();
     const schoolId = document.getElementById("school_id").value.trim();
     const userType = document.getElementById("user_type").value;
+    const doctorType = document.getElementById("doctor_type").value;
     const gender = document.getElementById("gender")?.value || "";
     const birthdate = document.getElementById("birthdate")?.value || "";
     const age = document.getElementById("age")?.value || "";
@@ -70,6 +86,7 @@ document
         extName,
         schoolId,
         user_type: userType,
+        doctor_type: doctorType || "",
         gender,
         birthdate,
         age,
