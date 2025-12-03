@@ -245,3 +245,4 @@ async function removeAvailability(userId,index){
   await setDoc(ref,{availability},{merge:true});
   loadAvailability(userId);
 }
+
