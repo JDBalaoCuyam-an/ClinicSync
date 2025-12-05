@@ -357,7 +357,10 @@ function formatTime(date) {
 
 
 document.getElementById("saveAppointment").addEventListener("click", async () => {
-  const day = document.getElementById("apptDay").value;
+  const rawDay = document.getElementById("apptDay").value; 
+  const [day, weekdayWithParen] = rawDay.split(" ");
+  const weekday = weekdayWithParen.replace("(", "").replace(")", "");
+
   const slot = document.getElementById("apptSlot").value;
   const reason = document.getElementById("apptReason").value;
 
@@ -379,7 +382,8 @@ document.getElementById("saveAppointment").addEventListener("click", async () =>
 
   try {
     await addDoc(collection(db, "appointments"), {
-      day,
+      day,               // "2025-12-08"
+      weekday,           // "Monday"
       slot,
       reason,
       staffId: selectedStaffId,
@@ -399,42 +403,54 @@ document.getElementById("saveAppointment").addEventListener("click", async () =>
   }
 });
 
-async function loadPatientAppointments() {
+
+function loadPatientAppointments() {
   const list = document.getElementById("appointments-list");
   list.innerHTML = "<p class='text-center text-muted'>Loading...</p>";
 
-  const user = auth.currentUser;
-  if (!user) return;
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      list.innerHTML = `<p class="text-center text-muted">You are not logged in.</p>`;
+      return;
+    }
 
-  const q = query(
-    collection(db, "appointments"),
-    where("patientId", "==", user.uid)
-  );
+    const q = query(
+      collection(db, "appointments"),
+      where("patientId", "==", user.uid)
+    );
 
-  const snap = await getDocs(q);
+    const snap = await getDocs(q);
 
-  if (snap.empty) {
-    list.innerHTML = `<p class="text-center text-muted">No appointments found.</p>`;
-    return;
-  }
+    if (snap.empty) {
+      list.innerHTML = `<p class="text-center text-muted">No appointments found.</p>`;
+      return;
+    }
 
-  list.innerHTML = "";
+    list.innerHTML = "";
 
-  snap.forEach((docSnap) => {
-    const appt = docSnap.data();
+    snap.forEach((docSnap) => {
+      const appt = docSnap.data();
 
-    const div = document.createElement("div");
-    div.className = "col-12 mb-3";
+      const div = document.createElement("div");
+      div.className = "col-12 mb-3";
 
-    div.innerHTML = `
-      <div class="p-3 border rounded shadow-sm">
-        <h5 class="mb-1 text-primary">${appt.day}</h5>
-        <p class="m-0"><strong>Time:</strong> ${appt.slot}</p>
-        <p class="m-0"><strong>With:</strong> ${appt.staffName}</p>
-        <p class="m-0"><strong>Reason:</strong> ${appt.reason}</p>
-      </div>
-    `;
+      // Combine day and weekday for display
+      const dayWithWeekday = `${appt.day} (${appt.weekday})`;
 
-    list.appendChild(div);
+      div.innerHTML = `
+        <div class="p-3 border rounded shadow-sm">
+          <h5 class="mb-1 text-primary">${dayWithWeekday}</h5>
+          <p class="m-0"><strong>Time:</strong> ${appt.slot}</p>
+          <p class="m-0"><strong>With:</strong> ${appt.staffName}</p>
+          <p class="m-0"><strong>Reason:</strong> ${appt.reason}</p>
+        </div>
+      `;
+
+      list.appendChild(div);
+    });
   });
 }
+
+
+// Call the function once at page load
+loadPatientAppointments();

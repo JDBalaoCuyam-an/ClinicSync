@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Schedules</title>
     <script type="module" src="../../firebaseconfig.js"></script>
-    <link rel="stylesheet" href="../../assets/styles/Schedules.css" />
+    <link rel="stylesheet" href="../../assets/styles/Appointments.css" />
     <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
@@ -14,6 +14,10 @@
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+      rel="stylesheet"
     />
   </head>
   <body>
@@ -110,41 +114,30 @@
     </div>
 
     <!-- Main Content -->
-    <div class="schedules-container">
-      <div class="calendar-and-appointments">
-        <!-- Calendar -->
-        <div class="calendar-section">
-          <div class="calendar-header">
-            <button id="prev-month">◀</button>
-            <h2 id="month-year"></h2>
-            <button id="next-month">▶</button>
-          </div>
-          <div class="calendar-weekdays">
-            <div>Sun</div>
-            <div>Mon</div>
-            <div>Tue</div>
-            <div>Wed</div>
-            <div>Thu</div>
-            <div>Fri</div>
-            <div>Sat</div>
-          </div>
-          <div id="calendar" class="calendar-grid"></div>
+    <div class="container my-5">
+      <div class="row">
+        <!-- Appointment Schedule (80%) -->
+        <div class="col-12 col-lg-8 mb-4 bg-light p-4 rounded-3">
+          <h2 class="mb-4 fw-bold">Appointment Schedule</h2>
+          <!-- Scrollable container -->
+          <div
+            id="appointments-container"
+            class="overflow-auto"
+            style="max-height: 80vh"
+          ></div>
         </div>
-        <div class="availability-list-section">
-          <!-- <h2 class="mb-3">Staff Availability</h2> -->
 
-          <div id="staffList" class="staff-list"></div>
-        </div>
-      </div>
-      <!-- Appointments Section -->
-      <div class="appointments-section">
-        <h2>Upcoming Appointments</h2>
-        <div id="appointments-container" class="appointments-grid">
-          <!-- Appointment cards will be injected here via JS -->
+        <!-- Staff Availability (20%) -->
+        <div class="col-12 col-lg-4">
+          <h2 class="mb-3 fw-bold">Staff Availability</h2>
+          <div
+            id="staffList"
+            class="list-group overflow-auto"
+            style="max-height: 80vh"
+          ></div>
         </div>
       </div>
     </div>
-    <!-- Availability Modal -->
 
     <div id="footer-container"></div>
   </body>
