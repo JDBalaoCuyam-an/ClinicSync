@@ -62,7 +62,6 @@ async function loadPatient() {
       nationality: data.nationality || "",
       religion: data.religion || "",
       schoolId: data.schoolId || "",
-      
     };
 
     Object.keys(infoFields).forEach((key) => {
@@ -214,7 +213,8 @@ editBtn.addEventListener("click", async () => {
 
 cancelContactEditBtn.addEventListener("click", () => {
   // Restore original values
-  document.getElementById("phone-number").value = originalContactData.phoneNumber;
+  document.getElementById("phone-number").value =
+    originalContactData.phoneNumber;
   document.getElementById("email-address").value = originalContactData.email;
   document.getElementById("home-address").value = originalContactData.address;
   document.getElementById("guardian-name").value =
@@ -325,12 +325,7 @@ editHistoryBtn.addEventListener("click", async () => {
     };
 
     try {
-      const historyRef = collection(
-        db,
-        "users",
-        patientId,
-        "medicalHistory"
-      );
+      const historyRef = collection(db, "users", patientId, "medicalHistory");
 
       if (currentHistoryId) {
         // ✅ Update existing document
@@ -490,7 +485,6 @@ cancelPatientInfoBtn.addEventListener("click", () => {
 /* -----------------------------------------------
      🔹 CONSULTATION FORM SUBMIT
   ----------------------------------------------- */
-// Load medicine options into the dropdown
 const medsListDiv = document.getElementById("meds-list");
 const addMedBtn = document.getElementById("add-med-btn");
 let medicinesData = []; // stores all medicine objects from inventory
@@ -552,28 +546,136 @@ addMedBtn.addEventListener("click", () => {
 
   medsListDiv.appendChild(container);
 });
+// ============================================================
+// Loading Doctors For Consultation Form
+// ============================================================
+async function loadDoctors() {
+  const doctorSelect = document.getElementById("consult-doctor");
+  doctorSelect.innerHTML = `<option value="">Loading...</option>`;
 
-// ✅ Load complaints into datalist
-async function loadComplaints() {
-  const complaintList = document.getElementById("complaint-list");
-  complaintList.innerHTML = ""; // Clear old options
+  const q = query(collection(db, "users"), where("user_type", "==", "doctor"));
 
-  const querySnapshot = await getDocs(collection(db, "complaints"));
-  querySnapshot.forEach((doc) => {
+  const snap = await getDocs(q);
+
+  doctorSelect.innerHTML = `<option value="">Select Doctor</option>`;
+
+  snap.forEach((doc) => {
+    const data = doc.data();
+
+    const lastName = data.lastName || "";
+    const firstName = data.firstName || "";
+    const middleName = data.middleName || "";
+
+    // Format: LastName, FirstName MiddleName
+    const displayName = `${lastName}, ${firstName} ${middleName}`.trim();
+
     const option = document.createElement("option");
-    option.value = doc.data().name;
-    complaintList.appendChild(option);
+    option.value = doc.id; // store doctor UID
+    option.textContent = displayName;
+
+    doctorSelect.appendChild(option);
   });
 }
+loadDoctors();
+// ============================================================
+// Loading Complaints For Consultation Form
+// ============================================================
+async function loadComplaints() {
+  const select = document.getElementById("consult-complaint");
 
-// ✅ Call this once when page loads
+  // Reset dropdown
+  select.innerHTML = `
+    <option value="">Select Complaint</option>
+    <option value="__add_new__">➕ Add New Complaint</option>
+  `;
+
+  const snap = await getDocs(collection(db, "complaints"));
+
+  snap.forEach((doc) => {
+    const data = doc.data();
+    const option = document.createElement("option");
+    option.value = data.name;
+    option.textContent = data.name;
+    select.appendChild(option);
+  });
+}
+document.getElementById("consult-complaint").addEventListener("change", () => {
+  const select = document.getElementById("consult-complaint");
+  const newInput = document.getElementById("new-complaint-input");
+
+  if (select.value === "__add_new__") {
+    newInput.style.display = "block";
+    newInput.focus();
+  } else {
+    newInput.style.display = "none";
+    newInput.value = "";
+  }
+});
 loadComplaints();
+// ============================================================
+// Loading Diagnoses For Consultation Form
+// ============================================================
+async function loadDiagnoses() {
+  const select = document.getElementById("consult-diagnosis");
 
+  select.innerHTML = `
+    <option value="">Select Diagnosis</option>
+    <option value="__add_new__">➕ Add New Diagnosis</option>
+  `;
+
+  const snap = await getDocs(collection(db, "diagnoses"));
+
+  snap.forEach((doc) => {
+    const data = doc.data();
+    const option = document.createElement("option");
+    option.value = data.name;
+    option.textContent = data.name;
+    select.appendChild(option);
+  });
+}
+document.getElementById("consult-diagnosis").addEventListener("change", () => {
+  const select = document.getElementById("consult-diagnosis");
+  const newInput = document.getElementById("new-diagnosis-input");
+
+  if (select.value === "__add_new__") {
+    newInput.style.display = "block";
+    newInput.focus();
+  } else {
+    newInput.style.display = "none";
+    newInput.value = "";
+  }
+});
+loadDiagnoses();
+// ============================================================
+// Set Default Time/Date For Consultation Form
+// ============================================================
+function setCurrentConsultDateTime() {
+  const now = new Date();
+
+  // Format date (YYYY-MM-DD)
+  const date = now.toISOString().split("T")[0];
+
+  // Format time (HH:MM 24-hour)
+  const time = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  document.getElementById("consult-date").value = date;
+  document.getElementById("consult-time").value = time;
+}
+setCurrentConsultDateTime();
+// ============================================================
+// Consultation Form Submission
+// ============================================================
 document
   .getElementById("consultation-form")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-
+    const doctorSelect = document.getElementById("consult-doctor");
+    const doctorName =
+      doctorSelect.options[doctorSelect.selectedIndex]?.textContent || "";
     const submitBtn = document
       .getElementById("consultation-form")
       .querySelector('button[type="submit"]');
@@ -601,21 +703,6 @@ document
       }))
       .filter((med) => med.name !== "");
 
-    // ✅ Create vitals record
-    // const newVitalEntry = {
-    //   bp: document.getElementById("vital-bp").value,
-    //   temp: document.getElementById("vital-temp").value,
-    //   spo2: document.getElementById("vital-spo2").value,
-    //   pr: document.getElementById("vital-pr").value,
-    //   lmp: document.getElementById("vital-lmp").value,
-    //   takenBy: currentUserName,
-    //   recordedDate: new Date().toISOString().split("T")[0],
-    //   recordedTime: new Date().toLocaleTimeString([], {
-    //     hour: "2-digit",
-    //     minute: "2-digit",
-    //   }),
-    // };
-
     // Capitalize first letter helper
     function capitalizeFirstLetter(text) {
       if (!text) return "";
@@ -623,41 +710,90 @@ document
     }
 
     // Apply capitalization to complaint
-    let complaintInput = document
-      .getElementById("consult-complaint")
+    let complaintValue = document.getElementById("consult-complaint").value;
+    let newComplaintText = document
+      .getElementById("new-complaint-input")
       .value.trim();
 
-    complaintInput = capitalizeFirstLetter(complaintInput);
+    // Capitalize helper
+    function capitalizeFirstLetter(text) {
+      if (!text) return "";
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    }
 
+    // Determine final complaint
+    let finalComplaint = "";
+
+    // If user selected Add New
+    if (complaintValue === "__add_new__") {
+      finalComplaint = capitalizeFirstLetter(newComplaintText);
+
+      if (finalComplaint === "") {
+        alert("Please enter a new complaint.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        return;
+      }
+
+      // Save new complaint to Firestore
+      const complaintsRef = collection(db, "complaints");
+      const q = query(complaintsRef, where("name", "==", finalComplaint));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        await addDoc(complaintsRef, {
+          name: finalComplaint,
+          createdAt: new Date(),
+        });
+      }
+    } else {
+      finalComplaint = capitalizeFirstLetter(complaintValue);
+    }
+    let diagnosisValue = document.getElementById("consult-diagnosis").value;
+    let newDiagnosisText = document
+      .getElementById("new-diagnosis-input")
+      .value.trim();
+
+    let finalDiagnosis = "";
+
+    // If user selected Add New
+    if (diagnosisValue === "__add_new__") {
+      finalDiagnosis = capitalizeFirstLetter(newDiagnosisText);
+
+      if (finalDiagnosis === "") {
+        alert("Please enter a new diagnosis.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        return;
+      }
+
+      // Save new diagnosis to Firestore
+      const diagRef = collection(db, "diagnoses");
+      const q = query(diagRef, where("name", "==", finalDiagnosis));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        await addDoc(diagRef, {
+          name: finalDiagnosis,
+          createdAt: new Date(),
+        });
+      }
+    } else {
+      finalDiagnosis = capitalizeFirstLetter(diagnosisValue);
+    }
     const consultData = {
-      consultingDoctor: document.getElementById("consult-doctor").value,
+      consultingDoctor: doctorName,
       date: document.getElementById("consult-date").value,
       time: document.getElementById("consult-time").value,
-      complaint: complaintInput,
-      diagnosis: document.getElementById("consult-diagnosis").value,
+      complaint: finalComplaint,
+      diagnosis: finalDiagnosis,
       meds: medsDispensed,
-      // vitals: [newVitalEntry],
       notes: document.getElementById("consult-notes").value,
       NurseOnDuty: currentUserName,
       createdAt: new Date(),
     };
 
     try {
-      // ✅ Save new complaint if not existing
-      const complaintValue = complaintInput;
-      if (complaintValue !== "") {
-        const complaintsRef = collection(db, "complaints");
-        const q = query(complaintsRef, where("name", "==", complaintValue));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-          await addDoc(complaintsRef, {
-            name: complaintValue,
-            createdAt: new Date(),
-          });
-          console.log("✅ New complaint saved:", complaintValue);
-        }
-      }
-
       // ✅ Save Consultation Record
       const consultRef = collection(db, "users", patientId, "consultations");
       const newConsultDoc = await addDoc(consultRef, consultData);
@@ -1035,9 +1171,9 @@ nextBtn.addEventListener("click", async () => {
 let isSavingMeds = false; // 🚫 Prevent double submissions
 
 saveMedDetailsBtn.addEventListener("click", async () => {
-  if (isSavingMeds) return; 
+  if (isSavingMeds) return;
   isSavingMeds = true;
-  saveMedDetailsBtn.disabled = true; 
+  saveMedDetailsBtn.disabled = true;
 
   try {
     const qtyInputs = medDetailsContainer.querySelectorAll(".qty-input");
@@ -1233,12 +1369,7 @@ async function loadPhysicalExaminations() {
   tableBody.innerHTML = "";
 
   try {
-    const examRef = collection(
-      db,
-      "users",
-      patientId,
-      "physicalExaminations"
-    );
+    const examRef = collection(db, "users", patientId, "physicalExaminations");
     const snapshot = await getDocs(examRef);
     function getBMICategory(bmi) {
       if (!bmi || isNaN(bmi)) return "-";
@@ -1286,13 +1417,7 @@ window.showExamOverview = async function (patientId, examId) {
     currentPatientId = patientId;
 
     // ✅ Fetch latest data directly from Firestore
-    const examRef = doc(
-      db,
-      "users",
-      patientId,
-      "physicalExaminations",
-      examId
-    );
+    const examRef = doc(db, "users", patientId, "physicalExaminations", examId);
     const examSnap = await getDoc(examRef);
 
     if (!examSnap.exists()) {
@@ -1579,7 +1704,9 @@ loadPatient();
 await loadConsultations();
 await loadPhysicalExaminations();
 
-document.getElementById("exportPDF").addEventListener("click", exportPatientPDF);
+document
+  .getElementById("exportPDF")
+  .addEventListener("click", exportPatientPDF);
 
 // Convert local image to Base64
 function getImageBase64(url) {
@@ -1603,7 +1730,9 @@ async function exportPatientPDF() {
   if (!patientId) return alert("No patient selected!");
 
   try {
-    const headerImageBase64 = await getImageBase64("../../assets/images/KCP header.png");
+    const headerImageBase64 = await getImageBase64(
+      "../../assets/images/KCP header.png"
+    );
 
     const patientRef = doc(db, "users", patientId);
     const patientSnap = await getDoc(patientRef);
@@ -1614,7 +1743,9 @@ async function exportPatientPDF() {
     }
 
     const data = patientSnap.data();
-    const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${data.middleName || ""}`.trim();
+    const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${
+      data.middleName || ""
+    }`.trim();
 
     const historyRef = collection(db, "users", patientId, "medicalHistory");
     const historySnap = await getDocs(historyRef);
@@ -1644,7 +1775,7 @@ async function exportPatientPDF() {
         diagnosis: d.diagnosis || "",
         notes: d.notes || "",
         meds: Array.isArray(d.meds) ? d.meds : [],
-        vitals: Array.isArray(d.vitals) ? d.vitals : []
+        vitals: Array.isArray(d.vitals) ? d.vitals : [],
       });
     });
 
@@ -1652,13 +1783,28 @@ async function exportPatientPDF() {
       table: {
         widths: ["*"],
         body: [
-          [{ text: label, bold: true, fontSize: 8, fillColor: "#E0EFFF", margin: [1, 1, 1, 0] }],
-          [{ text: value || "", fontSize: 8, margin: [1, 1, 1, 0] }]
+          [
+            {
+              text: label,
+              bold: true,
+              fontSize: 8,
+              fillColor: "#E0EFFF",
+              margin: [1, 1, 1, 0],
+            },
+          ],
+          [{ text: value || "", fontSize: 8, margin: [1, 1, 1, 0] }],
         ],
-        heights: autoHeight ? (row) => (row === 0 ? 13 : "auto") : [13, 13]
+        heights: autoHeight ? (row) => (row === 0 ? 13 : "auto") : [13, 13],
       },
-      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => "#999", vLineColor: () => "#999", paddingLeft: () => 2, paddingRight: () => 2 },
-      width: "*"
+      layout: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => "#999",
+        vLineColor: () => "#999",
+        paddingLeft: () => 2,
+        paddingRight: () => 2,
+      },
+      width: "*",
     });
 
     const createRows = (fields) => {
@@ -1667,9 +1813,13 @@ async function exportPatientPDF() {
         rows.push({
           columns: [
             createField(fields[i][0], fields[i][1]),
-            fields[i+1] ? createField(fields[i+1][0], fields[i+1][1]) : createField("", ""),
-            fields[i+2] ? createField(fields[i+2][0], fields[i+2][1]) : createField("", "")
-          ]
+            fields[i + 1]
+              ? createField(fields[i + 1][0], fields[i + 1][1])
+              : createField("", ""),
+            fields[i + 2]
+              ? createField(fields[i + 2][0], fields[i + 2][1])
+              : createField("", ""),
+          ],
         });
       }
       return rows;
@@ -1678,60 +1828,121 @@ async function exportPatientPDF() {
     const createBorderedSection = (title, fieldsOrContent) => ({
       table: {
         widths: ["*"],
-        body: [[{
-          stack: [
-            { text: title, style: "sectionHeader", margin: [0, 2, 0, 4], alignment: "center" },
-            ...fieldsOrContent
+        body: [
+          [
+            {
+              stack: [
+                {
+                  text: title,
+                  style: "sectionHeader",
+                  margin: [0, 2, 0, 4],
+                  alignment: "center",
+                },
+                ...fieldsOrContent,
+              ],
+              margin: [2, 2, 2, 2],
+            },
           ],
-          margin: [2, 2, 2, 2]
-        }]]
+        ],
       },
-      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => "#999", vLineColor: () => "#999" },
-      margin: [0, 5, 0, 5]
+      layout: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => "#999",
+        vLineColor: () => "#999",
+      },
+      margin: [0, 5, 0, 5],
     });
 
     function buildConsultationRecord(item) {
       const vitalsRows = item.vitals.length
-  ? item.vitals.map(v => [
-      {
-        stack: [
-          { text: v.recordedDate || "", fontSize: 8 },
-          { text: v.recordedTime || "", fontSize: 8 }
-        ]
-      },
-      { text: v.bp || "", fontSize: 8 },
-      { text: v.temp || "", fontSize: 8 },
-      { text: v.spo2 || "", fontSize: 8 },
-      { text: v.pr || "", fontSize: 8 },
-      { text: v.lmp || "", fontSize: 8 }
-    ])
-  : [["", "", "", "", "", ""]];
-
+        ? item.vitals.map((v) => [
+            {
+              stack: [
+                { text: v.recordedDate || "", fontSize: 8 },
+                { text: v.recordedTime || "", fontSize: 8 },
+              ],
+            },
+            { text: v.bp || "", fontSize: 8 },
+            { text: v.temp || "", fontSize: 8 },
+            { text: v.spo2 || "", fontSize: 8 },
+            { text: v.pr || "", fontSize: 8 },
+            { text: v.lmp || "", fontSize: 8 },
+          ])
+        : [["", "", "", "", "", ""]];
 
       const medsRows = item.meds.length
-  ? item.meds.map(m => [
-      {
-        stack: [
-          { text: m.date || "", fontSize: 8 },
-          { text: m.time || "", fontSize: 8 } // assuming you have a separate time field
-        ]
-      },
-      { text: m.name || "", fontSize: 8 },
-      { text: m.quantity || "", fontSize: 8 }
-    ])
-  : [["", "", ""]];
-
+        ? item.meds.map((m) => [
+            {
+              stack: [
+                { text: m.date || "", fontSize: 8 },
+                { text: m.time || "", fontSize: 8 }, // assuming you have a separate time field
+              ],
+            },
+            { text: m.name || "", fontSize: 8 },
+            { text: m.quantity || "", fontSize: 8 },
+          ])
+        : [["", "", ""]];
 
       return {
         table: {
-          widths: ["auto","auto","auto","auto","auto","auto","*","*","*","auto","*","auto"],
+          widths: [
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "*",
+            "*",
+            "*",
+            "auto",
+            "*",
+            "auto",
+          ],
           body: [
             [
-              { text: "Vitals", bold: true, fillColor: "#E0EFFF", colSpan: 6, alignment: "center", fontSize: 8 }, {}, {}, {}, {}, {},
-              { text: "Chief Complaint", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-              { text: "Diagnosis", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-              { text: "Notes/Intervention", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-              { text: "Medications", bold: true, fillColor: "#E0EFFF", colSpan: 3, alignment: "center", fontSize: 8 }, {}, {}
+              {
+                text: "Vitals",
+                bold: true,
+                fillColor: "#E0EFFF",
+                colSpan: 6,
+                alignment: "center",
+                fontSize: 8,
+              },
+              {},
+              {},
+              {},
+              {},
+              {},
+              {
+                text: "Chief Complaint",
+                bold: true,
+                fillColor: "#E0EFFF",
+                fontSize: 8,
+              },
+              {
+                text: "Diagnosis",
+                bold: true,
+                fillColor: "#E0EFFF",
+                fontSize: 8,
+              },
+              {
+                text: "Notes/Intervention",
+                bold: true,
+                fillColor: "#E0EFFF",
+                fontSize: 8,
+              },
+              {
+                text: "Medications",
+                bold: true,
+                fillColor: "#E0EFFF",
+                colSpan: 3,
+                alignment: "center",
+                fontSize: 8,
+              },
+              {},
+              {},
             ],
             [
               {
@@ -1740,18 +1951,53 @@ async function exportPatientPDF() {
                   widths: ["auto", "auto", "auto", "auto", "auto", "auto"],
                   body: [
                     [
-                      { text: "Date/Time", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-                      { text: "BP", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-                      { text: "T", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-                      { text: "Spo2", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-                      { text: "PR", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-                      { text: "LMP", bold: true, fillColor: "#E0EFFF", fontSize: 8 }
+                      {
+                        text: "Date/Time",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
+                      {
+                        text: "BP",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
+                      {
+                        text: "T",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
+                      {
+                        text: "Spo2",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
+                      {
+                        text: "PR",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
+                      {
+                        text: "LMP",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
                     ],
-                    ...vitalsRows
-                  ]
+                    ...vitalsRows,
+                  ],
                 },
-                layout: "lightHorizontalLines"
-              }, {}, {}, {}, {}, {},
+                layout: "lightHorizontalLines",
+              },
+              {},
+              {},
+              {},
+              {},
+              {},
               { text: item.complaint || "", fontSize: 8 },
               { text: item.diagnosis || "", fontSize: 8 },
               { text: item.notes || "", fontSize: 8 },
@@ -1761,41 +2007,74 @@ async function exportPatientPDF() {
                   widths: ["auto", "*", "auto"],
                   body: [
                     [
-                      { text: "Date/Time", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-                      { text: "Name", bold: true, fillColor: "#E0EFFF", fontSize: 8 },
-                      { text: "qty", bold: true, fillColor: "#E0EFFF", fontSize: 8 }
+                      {
+                        text: "Date/Time",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
+                      {
+                        text: "Name",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
+                      {
+                        text: "qty",
+                        bold: true,
+                        fillColor: "#E0EFFF",
+                        fontSize: 8,
+                      },
                     ],
-                    ...medsRows
-                  ]
+                    ...medsRows,
+                  ],
                 },
-                layout: "lightHorizontalLines"
-              }, {}, {}
-            ]
-          ]
+                layout: "lightHorizontalLines",
+              },
+              {},
+              {},
+            ],
+          ],
         },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => "#999", vLineColor: () => "#999" },
-        margin: [0, 2, 0, 2]
+        layout: {
+          hLineWidth: () => 0.5,
+          vLineWidth: () => 0.5,
+          hLineColor: () => "#999",
+          vLineColor: () => "#999",
+        },
+        margin: [0, 2, 0, 2],
       };
     }
 
     const personalFields = [
-      ["Last Name", data.lastName], ["First Name", data.firstName], ["Middle Name", data.middleName],
-      ["Extension Name", data.extName], ["Gender", data.gender], ["Birthdate", data.birthdate],
-      ["Age", data.age], ["Civil Status", data.civilStatus], ["Nationality", data.nationality],
-      ["Religion", data.religion], ["School ID", data.schoolId], ["Role", data.role],
-      ["Department", data.department], ["Course/Strand/Gen. Educ.", data.course], ["Year Level", data.year]
+      ["Last Name", data.lastName],
+      ["First Name", data.firstName],
+      ["Middle Name", data.middleName],
+      ["Extension Name", data.extName],
+      ["Gender", data.gender],
+      ["Birthdate", data.birthdate],
+      ["Age", data.age],
+      ["Civil Status", data.civilStatus],
+      ["Nationality", data.nationality],
+      ["Religion", data.religion],
+      ["School ID", data.schoolId],
+      ["Role", data.role],
+      ["Department", data.department],
+      ["Course/Strand/Gen. Educ.", data.course],
+      ["Year Level", data.year],
     ];
 
     const medicalFields = [
       ["Past Medical History", pastMedicalHistory],
       ["Family History", familyHistory],
-      ["Past Surgical History", pastSurgicalHistory]
+      ["Past Surgical History", pastSurgicalHistory],
     ];
 
     // Prepare consultation content
-    const consultationContent = consultations.length === 0
-      ? [{ text: "No consultation records found.", italics: true }]
-      : consultations.map(c => buildConsultationRecord(c));
+    const consultationContent =
+      consultations.length === 0
+        ? [{ text: "No consultation records found.", italics: true }]
+        : consultations.map((c) => buildConsultationRecord(c));
 
     const content = [
       { image: headerImageBase64, width: 515, alignment: "center" },
@@ -1806,23 +2085,50 @@ async function exportPatientPDF() {
       {
         table: {
           widths: ["*"],
-          body: [[{
-            stack: [
-              { text: "Contact Information", style: "sectionHeader", margin: [0, 2, 0, 4], alignment: "center" },
-              { columns: [ createField("Phone", data.phoneNumber), createField("Email", data.email) ] },
-              { columns: [ createField("Address", data.address) ] },
-              { columns: [ createField("Guardian Name", data.guardianName), createField("Guardian Phone", data.guardianPhone) ] }
+          body: [
+            [
+              {
+                stack: [
+                  {
+                    text: "Contact Information",
+                    style: "sectionHeader",
+                    margin: [0, 2, 0, 4],
+                    alignment: "center",
+                  },
+                  {
+                    columns: [
+                      createField("Phone", data.phoneNumber),
+                      createField("Email", data.email),
+                    ],
+                  },
+                  { columns: [createField("Address", data.address)] },
+                  {
+                    columns: [
+                      createField("Guardian Name", data.guardianName),
+                      createField("Guardian Phone", data.guardianPhone),
+                    ],
+                  },
+                ],
+                margin: [2, 2, 2, 2],
+              },
             ],
-            margin: [2, 2, 2, 2]
-          }]]
+          ],
         },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => "#999", vLineColor: () => "#999" },
-        margin: [0, 5, 0, 5]
+        layout: {
+          hLineWidth: () => 0.5,
+          vLineWidth: () => 0.5,
+          hLineColor: () => "#999",
+          vLineColor: () => "#999",
+        },
+        margin: [0, 5, 0, 5],
       },
 
       createBorderedSection("Medical History", createRows(medicalFields)),
 
-      createBorderedSection("Medical Consultation Records", consultationContent)
+      createBorderedSection(
+        "Medical Consultation Records",
+        consultationContent
+      ),
     ];
 
     const docDefinition = {
@@ -1831,13 +2137,12 @@ async function exportPatientPDF() {
       content,
       styles: {
         subheader: { fontSize: 14, bold: true, alignment: "center" },
-        sectionHeader: { fontSize: 10, bold: true }
+        sectionHeader: { fontSize: 10, bold: true },
       },
-      defaultStyle: { fontSize: 9 }
+      defaultStyle: { fontSize: 9 },
     };
 
     pdfMake.createPdf(docDefinition).open();
-
   } catch (err) {
     console.error("PDF export error:", err);
   }

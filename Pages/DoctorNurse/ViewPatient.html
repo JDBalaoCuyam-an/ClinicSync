@@ -289,14 +289,6 @@
               <label
                 >School ID : <input id="schoolId" type="text" disabled
               /></label>
-              <!-- <label
-                >Patient Type :
-                <select id="role" disabled required>
-                  <option value="Student">Student</option>
-                  <option value="Employee">Employee</option>
-                  <option value="Visitor">Visitor</option>
-                </select></label
-              > -->
               <label>
                 Department :
                 <select id="department" disabled required>
@@ -597,24 +589,48 @@
             <h2>New Consultation Record</h2>
 
             <form id="consultation-form">
-              <label
-                >Consulting Doctor:<input type="text" id="consult-doctor"
-              /></label>
+              <label>
+                Consulting Doctor:
+                <select id="consult-doctor" class="form-control">
+                  <option value="">Select Doctor</option>
+                </select>
+              </label>
               <label
                 >Date:<input type="date" id="consult-date" required
               /></label>
               <label
                 >Time:<input type="time" id="consult-time" required
               /></label>
-              <label
-                >Chief Complaint:
-                <input list="complaint-list" id="consult-complaint" required />
-                <datalist id="complaint-list"></datalist>
-              </label>
+              <label>Chief Complaint:</label>
+              <select id="consult-complaint" class="form-control mb-2">
+                <option value="">Select Complaint</option>
+                <option value="__add_new__">➕ Add New Complaint</option>
+              </select>
 
-              <label
-                >Diagnosis:<input type="text" id="consult-diagnosis"
-              /></label>
+              <!-- Hidden new complaint input -->
+              <input
+                type="text"
+                id="new-complaint-input"
+                class="form-control mt-2"
+                placeholder="Enter new complaint"
+                style="display: none"
+              />
+
+              <label>Diagnosis:</label>
+              <select id="consult-diagnosis" class="form-control mb-2">
+                <option value="">Select Diagnosis</option>
+                <option value="__add_new__">➕ Add New Diagnosis</option>
+              </select>
+
+              <!-- Hidden new diagnosis input -->
+              <input
+                type="text"
+                id="new-diagnosis-input"
+                class="form-control mt-2"
+                placeholder="Enter new diagnosis"
+                style="display: none"
+              />
+
               <label>Medications Dispensed:</label>
               <div id="meds-list"></div>
               <button type="button" id="add-med-btn">+ Add Medicine</button>
