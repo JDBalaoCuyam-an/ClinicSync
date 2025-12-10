@@ -441,8 +441,9 @@ function loadPatientAppointments() {
         <div class="p-3 border rounded shadow-sm">
           <h5 class="mb-1 text-primary">${dayWithWeekday}</h5>
           <p class="m-0"><strong>Time:</strong> ${appt.slot}</p>
-          <p class="m-0"><strong>With:</strong> ${appt.staffName}</p>
+          <p class="m-0"><strong>Doc./Nurse:</strong> ${appt.staffName}</p>
           <p class="m-0"><strong>Reason:</strong> ${appt.reason}</p>
+          <pclass="m-0"><strong>Status:</strong>In Queue</pclass=>
         </div>
       `;
 

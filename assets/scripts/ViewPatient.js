@@ -38,7 +38,7 @@ async function loadPatient() {
     const data = patientSnap.data();
 
     /* 🧾 Header Name */
-    document.querySelector(".patient-contacts h2").textContent = `${
+    document.querySelector(".view-patient-controls h2").textContent = `${
       data.lastName ? data.lastName + "," : ""
     } ${data.firstName || ""}`.trim();
 
@@ -602,19 +602,19 @@ document
       .filter((med) => med.name !== "");
 
     // ✅ Create vitals record
-    const newVitalEntry = {
-      bp: document.getElementById("vital-bp").value,
-      temp: document.getElementById("vital-temp").value,
-      spo2: document.getElementById("vital-spo2").value,
-      pr: document.getElementById("vital-pr").value,
-      lmp: document.getElementById("vital-lmp").value,
-      takenBy: currentUserName,
-      recordedDate: new Date().toISOString().split("T")[0],
-      recordedTime: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
+    // const newVitalEntry = {
+    //   bp: document.getElementById("vital-bp").value,
+    //   temp: document.getElementById("vital-temp").value,
+    //   spo2: document.getElementById("vital-spo2").value,
+    //   pr: document.getElementById("vital-pr").value,
+    //   lmp: document.getElementById("vital-lmp").value,
+    //   takenBy: currentUserName,
+    //   recordedDate: new Date().toISOString().split("T")[0],
+    //   recordedTime: new Date().toLocaleTimeString([], {
+    //     hour: "2-digit",
+    //     minute: "2-digit",
+    //   }),
+    // };
 
     // Capitalize first letter helper
     function capitalizeFirstLetter(text) {
@@ -636,7 +636,7 @@ document
       complaint: complaintInput,
       diagnosis: document.getElementById("consult-diagnosis").value,
       meds: medsDispensed,
-      vitals: [newVitalEntry],
+      // vitals: [newVitalEntry],
       notes: document.getElementById("consult-notes").value,
       NurseOnDuty: currentUserName,
       createdAt: new Date(),
@@ -807,35 +807,6 @@ window.showConsultationDetails = async function (data, consultId) {
       `;
     });
   }
-
-  /* ============================
-     🩺 VITALS
-  ============================ */
-  const vitals = Array.isArray(data.vitals) ? data.vitals : [];
-  const vitalsContainer = document.getElementById("cons-vitals-list");
-  vitalsContainer.innerHTML = "";
-
-  if (!vitals.length) {
-    vitalsContainer.innerHTML = `
-      <tr><td colspan="8">No vitals recorded.</td></tr>
-    `;
-  } else {
-    vitals.forEach((v, i) => {
-      vitalsContainer.innerHTML += `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${v.recordedDate || "-"} ${v.recordedTime || "-"}</td>
-          <td>${v.bp || "-"}</td>
-          <td>${v.temp || "-"}</td>
-          <td>${v.spo2 || "-"}</td>
-          <td>${v.pr || "-"}</td>
-          <td>${v.lmp || "-"}</td>
-          <td>${v.takenBy || "-"}</td>
-        </tr>
-      `;
-    });
-  }
-
   /* ============================
      ✅ SHOW MODAL
   ============================ */
@@ -865,7 +836,7 @@ editOverviewBtn.addEventListener("click", async () => {
     editableInputs.forEach((input) => input.removeAttribute("disabled"));
 
     // Show add buttons
-    document.getElementById("addVitalsBtn").style.display = "inline-block";
+    // document.getElementById("addVitalsBtn").style.display = "inline-block";
     document.getElementById("addMedBtn").style.display = "inline-block";
 
     // Show Cancel button
@@ -931,7 +902,7 @@ function exitEditMode() {
   editableInputs.forEach((input) => input.setAttribute("disabled", true));
 
   // Hide add buttons
-  document.getElementById("addVitalsBtn").style.display = "none";
+  // document.getElementById("addVitalsBtn").style.display = "none";
   document.getElementById("addMedBtn").style.display = "none";
 
   // Hide Cancel button
@@ -1064,9 +1035,9 @@ nextBtn.addEventListener("click", async () => {
 let isSavingMeds = false; // 🚫 Prevent double submissions
 
 saveMedDetailsBtn.addEventListener("click", async () => {
-  if (isSavingMeds) return; // ⛔ Ignore double-click
+  if (isSavingMeds) return; 
   isSavingMeds = true;
-  saveMedDetailsBtn.disabled = true; // lock button
+  saveMedDetailsBtn.disabled = true; 
 
   try {
     const qtyInputs = medDetailsContainer.querySelectorAll(".qty-input");
@@ -1165,120 +1136,6 @@ saveMedDetailsBtn.addEventListener("click", async () => {
 
 window.openMedDetailsModal = openMedDetailsModal;
 window.closeMedDetailsModal = closeMedDetailsModal;
-
-/* ============================================================
-   ADD VITALS (arrayUnion pending) — same logic as meds
-============================================================ */
-const vitalsModal = document.getElementById("vitalsModal");
-const saveVitalsBtn = document.getElementById("saveVitalsBtn");
-const cancelVitalsBtn = document.getElementById("cancelVitalsBtn");
-
-function openVitalsModal() {
-  vitalsModal.style.display = "flex";
-}
-
-function closeVitalsModal() {
-  vitalsModal.style.display = "none";
-  // Clear fields after closing
-  document.getElementById("vital-bp").value = "";
-  document.getElementById("vital-temp").value = "";
-  document.getElementById("vital-spo2").value = "";
-  document.getElementById("vital-pr").value = "";
-  document.getElementById("vital-lmp").value = "";
-}
-
-/* ✅ Make accessible to window for inline calls */
-window.openVitalsModal = openVitalsModal;
-window.closeVitalsModal = closeVitalsModal;
-
-/* ============================================================
-   ADD VITALS BUTTON CLICK → OPEN MODAL
-============================================================ */
-document.addEventListener("click", (e) => {
-  if (e.target && e.target.id === "addVitalsBtn") {
-    if (!currentConsultationId) {
-      alert("No consultation selected!");
-      return;
-    }
-    openVitalsModal();
-  }
-});
-
-/* ============================================================
-   SAVE VITALS → PENDING ONLY
-============================================================ */
-let isSavingVitals = false; // 🚫 Prevent double-click submissions
-
-saveVitalsBtn.addEventListener("click", async () => {
-  if (isSavingVitals) return; // ⛔ STOP if already saving
-  isSavingVitals = true;
-  saveVitalsBtn.disabled = true; // disable button during save
-
-  try {
-    const bp = document.getElementById("new-vital-bp").value;
-    const temp = document.getElementById("new-vital-temp").value;
-    const spo2 = document.getElementById("new-vital-spo2").value;
-    const pr = document.getElementById("new-vital-pr").value;
-    const lmp = document.getElementById("new-vital-lmp").value;
-
-    const now = new Date();
-    const newVital = {
-      bp,
-      temp,
-      spo2,
-      pr,
-      lmp,
-      takenBy: currentUserName,
-      recordedDate: now.toISOString().split("T")[0],
-      recordedTime: now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-
-    const consultRef = doc(
-      db,
-      "users",
-      patientId,
-      "consultations",
-      currentConsultationId
-    );
-
-    // 🔥 Add directly to Firestore
-    await updateDoc(consultRef, {
-      vitals: arrayUnion(newVital),
-    });
-
-    alert("✅ Vitals saved!");
-
-    closeVitalsModal();
-
-    // 🔥 Refresh table
-    await loadConsultations();
-
-    // 🔥 Reload updated consultation info in modal
-    const updatedSnap = await getDoc(consultRef);
-
-    if (updatedSnap.exists()) {
-      showConsultationDetails(updatedSnap.data(), currentConsultationId);
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ Failed to save vitals.");
-  } finally {
-    // 🔓 Re-enable button after operation completes
-    isSavingVitals = false;
-    saveVitalsBtn.disabled = false;
-  }
-});
-
-/* ============================================================
-   CANCEL BUTTON
-============================================================ */
-cancelVitalsBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  closeVitalsModal();
-});
 
 /* -----------------------------------------------
  🔹 SAVE PHYSICAL EXAMINATION RECORD

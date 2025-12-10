@@ -110,50 +110,36 @@
    🔹 PATIENT CONTACTS - CONSISTENT DESIGN
 ====================================================== */
 .patient-contacts {
-  width: 100%;
-  background: white;
   border: 2px solid #3498db;
   border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.patient-contacts input:disabled,
-.patient-info-content input:disabled,
-.patient-info-content select:disabled {
-  width: 100%;
-  padding: 10px 12px;
+/* Ensure buttons are always clickable */
+.patient-contacts button {
+  z-index: 1001;
+}
+
+/* Disabled input */
+.patient-contacts input:disabled {
   background-color: #f8f9fa;
-  border: 1px solid #ecf0f1;
-  border-radius: 6px;
-  font-size: 14px;
+  border-color: #ecf0f1;
   color: #2c3e50;
-  transition: all 0.2s ease;
 }
 
-.patient-contacts input:enabled,
-.patient-info-content input:enabled,
-.patient-info-content select:enabled {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #3498db;
-  border-radius: 6px;
-  font-size: 14px;
-  color: #2c3e50;
+/* Enabled input */
+.patient-contacts input:enabled {
+  border-color: #3498db;
   background: white;
-  transition: all 0.2s ease;
 }
 
-.patient-contacts input:enabled:focus,
-.patient-info-content input:enabled:focus,
-.patient-info-content select:enabled:focus {
+/* Focus state */
+.patient-contacts input:enabled:focus {
   outline: none;
   border-color: #2980b9;
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
+
 
 /* ======================================================
    🔹 PATIENT RECORDS (Tabs) - CONSISTENT DESIGN
@@ -218,7 +204,10 @@
 #patient-info:checked~.patient-info-content,
 #medical-history:checked~.medical-history-content,
 #medical-consultation:checked~.medical-consultation-content,
-#physical-examination:checked~.physical-examination-content {
+#physical-examination:checked~.physical-examination-content,
+#vital-signs:checked~.vital-signs-content,
+#doctor-notes:checked~.doctor-notes-content,
+#nurse-notes:checked~.nurse-notes-content {
   display: block;
   border-top: 2px solid #3498db;
 }
@@ -1173,7 +1162,7 @@
    🔹 BUTTONS, ICONS, AND FONT SIZE - CONSISTENT DESIGN
 ====================================================== */
 /* ===== CONSISTENT SECTION HEADER STYLING ===== */
-.patient-contacts h2,
+/* .patient-contacts h2,
 .patient-contacts h3,
 .patient-documents h3,
 .tab-content h2,
@@ -1184,10 +1173,10 @@
   color: #2c3e50;
   margin-bottom: 20px;
   font-weight: 600;
-}
+} */
 
 /* Standardize icon size and color */
-.patient-contacts h2 i,
+/* .patient-contacts h2 i,
 .patient-contacts h3 i,
 .patient-documents h3 i,
 .tab-content h2 i,
@@ -1196,7 +1185,7 @@
   color: #3498db;
   width: 24px;
   text-align: center;
-}
+} */
 
 /* ===== IMPROVED UPLOAD BUTTON ===== */
 .upload-btn {
@@ -1311,134 +1300,6 @@
   gap: 25px;
 }
 
-/* ===== IMPROVED APPOINTMENT FORM - HORIZONTAL LAYOUT ===== */
-.appointment-modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  max-width: 600px;
-  width: 90%;
-  margin: 50px auto;
-  border: none;
-}
-
-.appointment-modal-content h2 {
-  color: #2c3e50;
-  margin-bottom: 25px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  justify-content: center;
-}
-
-.appointment-modal-content h2 i {
-  color: #3498db;
-}
-
-/* Horizontal form layout */
-#appointment-form {
-  background: transparent;
-  padding: 0;
-  border: none;
-  margin-bottom: 0;
-}
-
-#appointment-form .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-#appointment-form .form-full-width {
-  grid-column: 1 / -1;
-}
-
-#appointment-form label {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 0;
-  font-weight: 500;
-  color: #2c3e50;
-  font-size: 14px;
-  gap: 8px;
-}
-
-#appointment-form input,
-#appointment-form select,
-#appointment-form textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background: white;
-}
-
-#appointment-form input:focus,
-#appointment-form select:focus,
-#appointment-form textarea:focus {
-  border-color: #3498db;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-#appointment-form textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-/* Horizontal form buttons */
-#appointment-form .form-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px solid #ecf0f1;
-}
-
-#appointment-form .save-btn,
-#appointment-form .cancel-btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  min-width: 120px;
-  justify-content: center;
-}
-
-#appointment-form .save-btn {
-  background: #3498db;
-  color: white;
-}
-
-#appointment-form .save-btn:hover {
-  background: #2980b9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
-#appointment-form .cancel-btn {
-  background: #95a5a6;
-  color: white;
-}
-
-#appointment-form .cancel-btn:hover {
-  background: #ff5757;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
-}
 
 #consultation-form .form-buttons {
   display: flex;
@@ -1447,38 +1308,7 @@
   margin-top: 25px;
 }
 
-/* Responsive adjustments for horizontal form */
-@media (max-width: 768px) {
-  #appointment-form .form-row {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
 
-  #appointment-form .form-buttons {
-    flex-direction: column;
-  }
-
-  #appointment-form .save-btn,
-  #appointment-form .cancel-btn {
-    width: 100%;
-  }
-
-  .appointment-modal-content {
-    padding: 20px;
-    max-width: 90%;
-  }
-}
-
-@media (max-width: 480px) {
-  .appointment-modal-content {
-    padding: 15px;
-    max-width: 95%;
-  }
-
-  #appointment-form .form-buttons {
-    gap: 10px;
-  }
-}
 
 /* ===== BUTTON STYLING CONSISTENCY ===== */
 .primary-btn,
@@ -1512,7 +1342,7 @@
   box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
 }
 
-.cancel-btn {
+/* .cancel-btn {
   background: #95a5a6;
   color: white;
   border: none;
@@ -1525,13 +1355,13 @@
   gap: 8px;
   transition: all 0.2s ease;
   font-size: 14px;
-}
+} */
 
-.cancel-btn:hover {
+/* .cancel-btn:hover {
   background: #ff5757;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
-}
+} */
 
 /* ===== MEDICATION LIST STYLING ===== */
 #meds-list {
@@ -1585,7 +1415,7 @@
     grid-template-columns: 1fr;
   }
 
-  .patient-contacts h2,
+  /* .patient-contacts h2,
   .patient-contacts h3,
   .patient-documents h3,
   .tab-content h2,
@@ -1593,7 +1423,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
-  }
+  } */
 }
 
 .med-modal-content {

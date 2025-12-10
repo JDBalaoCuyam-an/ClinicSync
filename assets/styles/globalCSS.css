@@ -206,11 +206,6 @@ body {
   cursor: pointer;
   transition: background-color var(--transition-fast);
 }
-#cancel-contact-edit-btn {
-  position: absolute;
-  top: 15px;
-  right: 0;
-}
 
 .edit-btn:hover {
   background-color: #3a6d9b;
