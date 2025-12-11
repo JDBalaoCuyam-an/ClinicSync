@@ -350,3 +350,114 @@ document
 
 // Initial load
 document.addEventListener("DOMContentLoaded", loadUsers);
+
+
+// Bulk User Upload Handling
+/* ============================================================
+   📌 OPEN / CLOSE MODAL
+============================================================ */
+document.getElementById("open-user-bulk-upload").onclick = () => {
+  document.getElementById("user-bulk-modal").classList.remove("d-none");
+};
+
+document.getElementById("close-user-bulk-btn").onclick = () => {
+  document.getElementById("user-bulk-modal").classList.add("d-none");
+  document.getElementById("user-bulk-preview").classList.add("d-none");
+  document.getElementById("user-upload-btn").classList.add("d-none");
+};
+
+
+/* ============================================================
+   📌 CSV PARSER (same as before)
+============================================================ */
+function parseCSV(text) {
+  return text
+    .trim()
+    .split("\n")
+    .map((line) => line.split(",").map((value) => value.trim()));
+}
+
+
+/* ============================================================
+   📌 PREVIEW USERS CSV
+============================================================ */
+document.getElementById("user-preview-btn").onclick = () => {
+  const file = document.getElementById("user-bulk-file").files[0];
+  if (!file) return alert("⚠ Please choose a CSV file!");
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const rows = parseCSV(e.target.result);
+    const table = document.getElementById("user-bulk-preview");
+    const tbody = table.querySelector("tbody");
+    tbody.innerHTML = "";
+
+    rows.forEach((row) => {
+      const [firstName, middleName, lastName, extName, schoolId, email] = row;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${firstName}</td>
+        <td>${middleName}</td>
+        <td>${lastName}</td>
+        <td>${extName}</td>
+        <td>${schoolId}</td>
+        <td>${email}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    table.classList.remove("d-none");
+    document.getElementById("user-upload-btn").classList.remove("d-none");
+  };
+
+  reader.readAsText(file);
+};
+
+
+/* ============================================================
+   📌 UPLOAD USERS TO FIREBASE
+============================================================ */
+document.getElementById("user-upload-btn").onclick = async () => {
+  const file = document.getElementById("user-bulk-file").files[0];
+  if (!file) return alert("⚠ Please choose a CSV file!");
+
+  const reader = new FileReader();
+
+  reader.onload = async (e) => {
+    const rows = parseCSV(e.target.result);
+
+    try {
+      for (const row of rows) {
+        const [firstName, middleName, lastName, extName, schoolId, email] = row;
+
+        const password = schoolId; // ⭐ default password
+
+        // Create Firebase Auth account
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const newUser = userCredential.user;
+
+        // Create Firestore user document
+        await setDoc(doc(db, "users", newUser.uid), {
+          uid: newUser.uid,
+          firstName,
+          middleName,
+          lastName,
+          extName,
+          schoolId,
+          user_type: "student",
+          email,
+          createdAt: new Date(),
+        });
+      }
+
+      alert("✅ Bulk User Upload Complete!");
+      document.getElementById("user-bulk-modal").classList.add("d-none");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error uploading users: " + err.message);
+    }
+  };
+
+  reader.readAsText(file);
+};
