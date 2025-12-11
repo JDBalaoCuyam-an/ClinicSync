@@ -9,12 +9,12 @@ import {
   collection,
   addDoc,
   getDocs,
-  serverTimestamp,
   query,
   where,
   arrayUnion,
   orderBy,
   limit,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -839,6 +839,30 @@ document
         }
       }
 
+      // ✅ Save edit log in subcollection
+      const editLogRef = collection(
+        db,
+        "users",
+        patientId,
+        "editLogs"
+      );
+      await addDoc(editLogRef, {
+        message: `Edited by ${currentUserName} at ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
+        timestamp: new Date(),
+        editor: currentUserName,
+        section: "Medical Consultation Record",
+      });
+
       alert("✅ Consultation Record Saved + Visit Logged + Medicine Deducted!");
       closeButtonOverlay();
       loadConsultations();
@@ -1006,7 +1030,30 @@ editOverviewBtn.addEventListener("click", async () => {
     );
 
     await updateDoc(consultRef, updatedData);
-
+    
+      // ✅ Save edit log in subcollection
+      const editLogRef = collection(
+        db,
+        "users",
+        patientId,
+        "editLogs"
+      );
+      await addDoc(editLogRef, {
+        message: `Edited by ${currentUserName} at ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
+        timestamp: new Date(),
+        editor: currentUserName,
+        section: "Medical Consultation Record",
+      });
     alert("✅ Consultation updated!");
 
     exitEditMode();
@@ -2147,3 +2194,56 @@ async function exportPatientPDF() {
     console.error("PDF export error:", err);
   }
 }
+
+
+ // Load and listen to user-level edit logs in real-time
+  // Load and listen to user-level edit logs in real-time
+function loadMedicalConsultationLogs(patientId) {
+  const logsRef = collection(db, "users", patientId, "editLogs");
+
+  const logsList = document.getElementById("action-history");
+  const countBadge = document.getElementById("medical-consultation-logs-count");
+
+  onSnapshot(logsRef, (snapshot) => {
+    logsList.innerHTML = ""; // Clear previous list
+
+    if (snapshot.empty) {
+      logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+      countBadge.textContent = 0;
+      return;
+    }
+
+    let logs = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      // ✅ Only include logs with section "Medical Consultation Record"
+      if (data.section === "Medical Consultation Record") {
+        logs.push(data);
+      }
+    });
+
+    if (logs.length === 0) {
+      logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+      countBadge.textContent = 0;
+      return;
+    }
+
+    // Sort by timestamp descending (latest first)
+    logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+    // Populate the list
+    logs.forEach((log) => {
+      const li = document.createElement("li");
+      li.classList.add("list-group-item");
+      li.textContent = log.message;
+      logsList.appendChild(li);
+    });
+
+    // Update badge count
+    countBadge.textContent = logs.length;
+  });
+}
+
+
+  // Example call after page load or after creating a new log
+  loadMedicalConsultationLogs(patientId);

@@ -583,6 +583,33 @@
                 </tbody>
               </table>
             </div>
+            <div class="mt-4">
+              <a
+                class="text-decoration-none"
+                data-bs-toggle="collapse"
+                href="#actionHistory"
+                role="button"
+                aria-expanded="true"
+                aria-controls="actionHistory"
+              >
+                <h5
+                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                >
+                  Action History
+                  <span
+                    id="medical-consultation-logs-count"
+                    class="badge bg-primary rounded-pill"
+                    >0</span
+                  >
+                </h5>
+              </a>
+
+              <div class="collapse show mt-2" id="actionHistory">
+                <ul id="action-history" class="list-group">
+                  <li class="list-group-item text-muted">No actions yet</li>
+                </ul>
+              </div>
+            </div>
           </div>
           <!-- New Consultation Record -->
           <div id="add-consultation-record">
@@ -751,7 +778,6 @@
                   </div>
                 </div>
               </div>
-              
             </div>
           </div>
 
@@ -763,25 +789,26 @@
             </button>
 
             <div class="table-responsive">
-  <table class="table table-bordered table-striped align-middle text-center">
-    <thead class="table-primary">
-      <tr>
-        <th>Date</th>
-        <th>BP</th>
-        <th>PR</th>
-        <th>Weight (kg)</th>
-        <th>Height (cm)</th>
-        <th>BMI</th>
-        <th>BMI Category</th>
-      </tr>
-    </thead>
+              <table
+                class="table table-bordered table-striped align-middle text-center"
+              >
+                <thead class="table-primary">
+                  <tr>
+                    <th>Date</th>
+                    <th>BP</th>
+                    <th>PR</th>
+                    <th>Weight (kg)</th>
+                    <th>Height (cm)</th>
+                    <th>BMI</th>
+                    <th>BMI Category</th>
+                  </tr>
+                </thead>
 
-    <tbody id="physical-exam-list">
-      <!-- Records will load here -->
-    </tbody>
-  </table>
-</div>
-
+                <tbody id="physical-exam-list">
+                  <!-- Records will load here -->
+                </tbody>
+              </table>
+            </div>
 
             <div id="add-physical-exam">
               <h2>Physical Examination</h2>
@@ -987,6 +1014,7 @@
   <script src="../../assets/scripts/modal.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <script src="../../assets/scripts/ViewPatient.js" type="module"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Wait for the DOM to fully load
     document.addEventListener("DOMContentLoaded", () => {
