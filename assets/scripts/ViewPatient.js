@@ -1373,6 +1373,29 @@ document
         "physicalExaminations"
       );
       await addDoc(examRef, physicalData);
+      // ✅ Save edit log in subcollection
+      const editLogRef = collection(
+        db,
+        "users",
+        patientId,
+        "editLogs"
+      );
+      await addDoc(editLogRef, {
+        message: `Edited by ${currentUserName} at ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
+        timestamp: new Date(),
+        editor: currentUserName,
+        section: "Physical Examination",
+      });
       alert("Physical Examination Record Saved!");
       loadPhysicalExaminations();
       closeButtonOverlay();
@@ -1382,6 +1405,7 @@ document
       alert("Failed to save Physical Examination.");
     }
   });
+
 // ===== AUTO COMPUTE BMI ON TYPING =====
 const weightInput = document.getElementById("exam-weight");
 const heightInput = document.getElementById("exam-height");
@@ -1601,7 +1625,29 @@ editExamBtn.addEventListener("click", async () => {
     );
 
     await updateDoc(examRef, updatedExam);
-
+    // ✅ Save edit log in subcollection
+      const editLogRef = collection(
+        db,
+        "users",
+        patientId,
+        "editLogs"
+      );
+      await addDoc(editLogRef, {
+        message: `Edited by ${currentUserName} at ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
+        timestamp: new Date(),
+        editor: currentUserName,
+        section: "Physical Examination",
+      });
     alert("✅ Physical examination updated successfully!");
 
     // 🔒 Disable again
@@ -2196,8 +2242,9 @@ async function exportPatientPDF() {
 }
 
 
- // Load and listen to user-level edit logs in real-time
-  // Load and listen to user-level edit logs in real-time
+/* -----------------------------------------------
+   Logs Loading Functions
+------------------------------------------------ */
 function loadMedicalConsultationLogs(patientId) {
   const logsRef = collection(db, "users", patientId, "editLogs");
 
@@ -2244,6 +2291,55 @@ function loadMedicalConsultationLogs(patientId) {
   });
 }
 
+
+  function loadPhysicalExaminationLogs(patientId) {
+    const logsRef = collection(db, "users", patientId, "editLogs");
+
+    const logsList = document.getElementById("physical-examination-history");
+    const countBadge = document.getElementById("physical-examination-logs-count");
+
+    onSnapshot(logsRef, (snapshot) => {
+      logsList.innerHTML = ""; // Clear previous list
+
+      if (snapshot.empty) {
+        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+        countBadge.textContent = 0;
+        return;
+      }
+
+      let logs = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        // ✅ Only include logs with section "Physical Examination"
+        if (data.section === "Physical Examination") {
+          logs.push(data);
+        }
+      });
+
+      if (logs.length === 0) {
+        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+        countBadge.textContent = 0;
+        return;
+      }
+
+      // Sort by timestamp descending (latest first)
+      logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+      // Populate the list
+      logs.forEach((log) => {
+        const li = document.createElement("li");
+        li.classList.add("list-group-item");
+        li.textContent = log.message;
+        logsList.appendChild(li);
+      });
+
+      // Update badge count
+      countBadge.textContent = logs.length;
+    });
+  }
+
+  // Example call after page load or after adding a new Physical Exam log
+  loadPhysicalExaminationLogs(patientId);
 
   // Example call after page load or after creating a new log
   loadMedicalConsultationLogs(patientId);
