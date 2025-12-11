@@ -337,7 +337,29 @@ editHistoryBtn.addEventListener("click", async () => {
         await addDoc(historyRef, historyData);
         console.log("New medical history created.");
       }
-
+      // ✅ Save edit log in subcollection
+      const editLogRef = collection(
+        db,
+        "users",
+        patientId,
+        "editLogs"
+      );
+      await addDoc(editLogRef, {
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
+        timestamp: new Date(),
+        editor: currentUserName,
+        section: "Medical History",
+      });
       alert("Medical History saved successfully!");
       editableFields.forEach((el) => el.setAttribute("disabled", "true"));
       editHistoryBtn.textContent = "✏️ Edit";
@@ -847,7 +869,7 @@ document
         "editLogs"
       );
       await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} at ${new Date().toLocaleString(
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
           "en-US",
           {
             month: "long",
@@ -880,7 +902,7 @@ document
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
 ------------------------------------------------ */
-let currentConsultationId = null; // 🔹 Store current consultation ID globally
+let currentConsultationId = null; 
 
 async function loadConsultations() {
   const tableBody = document.querySelector(
@@ -1039,7 +1061,7 @@ editOverviewBtn.addEventListener("click", async () => {
         "editLogs"
       );
       await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} at ${new Date().toLocaleString(
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
           "en-US",
           {
             month: "long",
@@ -1381,7 +1403,7 @@ document
         "editLogs"
       );
       await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} at ${new Date().toLocaleString(
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
           "en-US",
           {
             month: "long",
@@ -1633,7 +1655,7 @@ editExamBtn.addEventListener("click", async () => {
         "editLogs"
       );
       await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} at ${new Date().toLocaleString(
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
           "en-US",
           {
             month: "long",
@@ -2245,6 +2267,53 @@ async function exportPatientPDF() {
 /* -----------------------------------------------
    Logs Loading Functions
 ------------------------------------------------ */
+// Load and listen to user-level edit logs for Medical History
+  function loadMedicalHistoryLogs(patientId) {
+    const logsRef = collection(db, "users", patientId, "editLogs");
+
+    const logsList = document.getElementById("medical-history-logs");
+    const countBadge = document.getElementById("medical-history-logs-count");
+
+    onSnapshot(logsRef, (snapshot) => {
+      logsList.innerHTML = ""; // Clear previous list
+
+      if (snapshot.empty) {
+        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+        countBadge.textContent = 0;
+        return;
+      }
+
+      let logs = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        // ✅ Only include logs with section "Medical History"
+        if (data.section === "Medical History") {
+          logs.push(data);
+        }
+      });
+
+      if (logs.length === 0) {
+        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+        countBadge.textContent = 0;
+        return;
+      }
+
+      // Sort by timestamp descending (latest first)
+      logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+      // Populate the list
+      logs.forEach((log) => {
+        const li = document.createElement("li");
+        li.classList.add("list-group-item");
+        li.textContent = log.message;
+        logsList.appendChild(li);
+      });
+
+      // Update badge count
+      countBadge.textContent = logs.length;
+    });
+  }
+
 function loadMedicalConsultationLogs(patientId) {
   const logsRef = collection(db, "users", patientId, "editLogs");
 
@@ -2343,3 +2412,6 @@ function loadMedicalConsultationLogs(patientId) {
 
   // Example call after page load or after creating a new log
   loadMedicalConsultationLogs(patientId);
+  
+  // Example call after page load or after adding a new Medical History log
+  loadMedicalHistoryLogs(patientId);
