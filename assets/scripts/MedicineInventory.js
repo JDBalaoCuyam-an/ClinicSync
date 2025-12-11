@@ -197,52 +197,6 @@ function renderMedicines() {
 ============================================================ */
 searchBar.addEventListener("input", renderMedicines);
 
-/* ============================================================
-   ✅ DISPENSE MEDICINE
-============================================================ */
-// const dispenseForm = document.getElementById("dispense-medicine-form");
-// dispenseForm.addEventListener("submit", async (e) => {
-//   e.preventDefault();
-
-//   const popup = document.getElementById("dispense-medicine");
-//   const medicineId = popup.getAttribute("data-id");
-//   const qtyToGive = parseInt(
-//     document.getElementById("medicine-quantity").value
-//   );
-
-//   if (!medicineId || isNaN(qtyToGive) || qtyToGive <= 0) {
-//     alert("⚠️ Invalid quantity!");
-//     return;
-//   }
-
-//   const med = medicines.find((m) => m.id === medicineId);
-//   if (!med) {
-//     alert("⚠️ Medicine not found");
-//     return;
-//   }
-
-//   if (qtyToGive > med.stock) {
-//     alert("⚠️ Not enough stock!");
-//     return;
-//   }
-
-//   try {
-//     const newStock = med.stock - qtyToGive;
-//     const newDispensed = (med.dispensed || 0) + qtyToGive;
-
-//     await updateDoc(doc(db, "MedicineInventory", medicineId), {
-//       stock: newStock,
-//       dispensed: newDispensed,
-//     });
-
-//     alert(`✅ Dispensed ${qtyToGive} of ${med.name}`);
-//     dispenseForm.reset();
-//     closeButtonOverlay();
-//     loadMedicines();
-//   } catch (error) {
-//     console.error("Error dispensing:", error);
-//   }
-// });
 
 /* ============================================================
    ✅ RESET MODAL STATE WHEN CLOSED
@@ -264,3 +218,104 @@ window.closeButtonOverlay = function () {
    ✅ INITIAL LOAD
 ============================================================ */
 loadMedicines();
+
+
+/* ============================================================
+   📌 BULK UPLOAD MODAL OPEN/CLOSE
+============================================================ */
+document.getElementById("open-bulk-upload").onclick = () => {
+  document.getElementById("bulk-upload-modal").classList.remove("d-none");
+};
+
+document.getElementById("close-bulk-btn").onclick = () => {
+  document.getElementById("bulk-upload-modal").classList.add("d-none");
+  document.getElementById("bulk-preview-table").classList.add("d-none");
+  document.getElementById("upload-bulk-btn").classList.add("d-none");
+};
+
+
+/* ============================================================
+   📌 SIMPLE CSV PARSER
+============================================================ */
+function parseCSV(text) {
+  return text
+    .trim()
+    .split("\n")
+    .map((line) => line.split(",").map((value) => value.trim()));
+}
+
+
+/* ============================================================
+   📌 PREVIEW CSV BEFORE UPLOAD
+============================================================ */
+document.getElementById("preview-bulk-btn").onclick = () => {
+  const file = document.getElementById("bulk-file").files[0];
+  if (!file) return alert("⚠ Please select a CSV file!");
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const rows = parseCSV(e.target.result);
+    const previewTable = document.getElementById("bulk-preview-table");
+    const tbody = previewTable.querySelector("tbody");
+
+    tbody.innerHTML = "";
+
+    rows.forEach((row) => {
+      const [name, stock, expiry, perPack, datePurchased] = row;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td>${stock}</td>
+        <td>${expiry}</td>
+        <td>${perPack}</td>
+        <td>${datePurchased}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    previewTable.classList.remove("d-none");
+    document.getElementById("upload-bulk-btn").classList.remove("d-none");
+  };
+
+  reader.readAsText(file);
+};
+
+
+/* ============================================================
+   📌 UPLOAD ALL ROWS TO FIRESTORE
+============================================================ */
+document.getElementById("upload-bulk-btn").onclick = async () => {
+  const file = document.getElementById("bulk-file").files[0];
+  if (!file) return alert("⚠ Please select a CSV file!");
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const rows = parseCSV(e.target.result);
+
+    try {
+      for (const row of rows) {
+        const [name, stock, expiry, perPack, datePurchased] = row;
+
+        await addDoc(collection(db, "MedicineInventory"), {
+          name,
+          stock: Number(stock),
+          expiry,
+          perPack: Number(perPack),
+          datePurchased,
+          dispensed: 0,
+          createdAt: new Date(),
+        });
+      }
+
+      alert("✅ Bulk upload completed!");
+      document.getElementById("bulk-upload-modal").classList.add("d-none");
+      loadMedicines(); // refresh table
+    } catch (err) {
+      console.error(err);
+      alert("⚠ Error uploading medicines. Check console.");
+    }
+  };
+
+  reader.readAsText(file);
+};

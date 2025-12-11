@@ -334,93 +334,7 @@
   box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
 }
 
-/* Dispense Medicine Form */
-.dispense-medicine {
-  display: none;
-  width: 90%;
-  max-width: 450px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border: none;
-  border-radius: 12px;
-  padding: 30px;
-  background-color: #fff;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1001;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
 
-.dispense-medicine.show {
-  display: block;
-}
-
-.dispense-medicine h2 {
-  color: #2c3e50;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-#dispense-medicine-name {
-  color: #3498db;
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 20px;
-  text-align: center;
-  font-style: italic;
-}
-
-#dispense-medicine-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-#dispense-medicine-form label {
-  font-weight: 500;
-  color: #2c3e50;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 14px;
-}
-
-#dispense-medicine-form input {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background-color: white;
-}
-
-#dispense-medicine-form input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-.dispense-btn-modal {
-  background: #27ae60;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  margin-top: 10px;
-}
-
-.dispense-btn-modal:hover {
-  background: #219a52;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -477,3 +391,4 @@
     padding: 8px 6px;
   }
 }
+

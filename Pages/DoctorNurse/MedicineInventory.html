@@ -69,6 +69,8 @@
         <button class="add-btn" onclick="addMedicineOverlay()">
           + Add Medicine
         </button>
+        <button id="open-bulk-upload" class="btn btn-secondary mt-2">Bulk Upload</button>
+
         <form id="search-medicine">
           <input
             type="text"
@@ -96,6 +98,58 @@
         </tbody>
       </table>
     </div>
+
+    <!-- ========== BULK UPLOAD MODAL ========== -->
+<div id="bulk-upload-modal" class="d-none">
+  <div style="
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+    ">
+  </div>
+
+  <div style="
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      width: 600px;
+      border-radius: 8px;
+      max-height: 80vh;
+      overflow-y: auto;
+    ">
+
+    <h2 class="mb-3">Bulk Upload Medicines</h2>
+
+    <input type="file" id="bulk-file" accept=".csv" class="form-control mb-3" />
+
+    <button id="preview-bulk-btn" class="btn btn-primary mb-3">
+      Preview CSV
+    </button>
+
+    <table id="bulk-preview-table" class="table table-bordered d-none">
+      <thead class="table-secondary">
+        <tr>
+          <th>Name</th>
+          <th>Stock</th>
+          <th>Expiry</th>
+          <th>Per Pack</th>
+          <th>Date Purchased</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button id="upload-bulk-btn" class="btn btn-success d-none mt-2">
+      Upload All
+    </button>
+
+    <button id="close-bulk-btn" class="btn btn-danger mt-3">Close</button>
+  </div>
+</div>
+
 
     <!-- Add Medicine Form -->
     <div class="add-medicine" id="add-medicine">
