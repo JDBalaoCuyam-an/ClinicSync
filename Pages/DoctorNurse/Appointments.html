@@ -114,30 +114,92 @@
     </div>
 
     <!-- Main Content -->
-    <div class="container my-5">
-      <div class="row">
-        <!-- Appointment Schedule (80%) -->
-        <div class="col-12 col-lg-8 mb-4 bg-light p-4 rounded-3">
-          <h2 class="mb-4 fw-bold">Appointment Schedule</h2>
-          <!-- Scrollable container -->
-          <div
-            id="appointments-container"
-            class="overflow-auto"
-            style="max-height: 80vh"
-          ></div>
-        </div>
+<div class="container my-5">
 
-        <!-- Staff Availability (20%) -->
-        <div class="col-12 col-lg-4">
-          <h2 class="mb-3 fw-bold">Staff Availability</h2>
-          <div
-            id="staffList"
-            class="list-group overflow-auto"
-            style="max-height: 80vh"
-          ></div>
-        </div>
+  <div class="row">
+    <!-- Appointment Schedule (Pending) -->
+    <div class="col-12 col-lg-8 bg-light p-4 rounded-3">
+      <h2 class="mb-4 fw-bold">Appointment Schedule</h2>
+      <div
+        id="appointments-container"
+        class="overflow-auto"
+        style="max-height: 80vh"
+      ></div>
+    </div>
+
+    <!-- Staff Availability -->
+    <div class="col-12 col-lg-4">
+      <h2 class="mb-3 fw-bold">Staff Availability</h2>
+      <div
+        id="staffList"
+        class="list-group overflow-auto"
+        style="max-height: 80vh"
+      ></div>
+    </div>
+  </div>
+
+  <!-- Accepted Appointments (Ongoing Cards) -->
+  <div class="row mt-4">
+    <div class="col-12 col-lg-8 bg-primary bg-opacity-10 p-4 rounded-3">
+      <h2 class="fw-bold text-primary mb-3">Accepted Appointments</h2>
+      <div
+        id="accepted-appointments-container"
+        class="row gx-3 gy-3 overflow-auto"
+        style="max-height: 40vh"
+      >
+        <!-- JS will insert card divs here -->
+        <p class="text-center text-muted">No accepted appointments yet</p>
       </div>
     </div>
+  </div>
+
+  <!-- Finished Appointments (Table) -->
+  <div class="row mt-4">
+    <div class="col-12 col-lg-8 bg-success bg-opacity-10 p-4 rounded-3">
+
+      <div
+        class="d-flex justify-content-between align-items-center"
+        style="cursor:pointer;"
+        data-bs-toggle="collapse"
+        data-bs-target="#finishedAppointmentsCollapse"
+        aria-expanded="true"
+      >
+        <h2 class="fw-bold text-success mb-0">Finished Appointments</h2>
+        <i class="bi bi-chevron-down fs-4"></i>
+      </div>
+
+      <div class="collapse show mt-3" id="finishedAppointmentsCollapse">
+        <div
+          id="finished-appointments-container"
+          class="overflow-auto"
+          style="max-height: 40vh"
+        >
+          <table class="table table-striped table-hover table-sm">
+            <thead class="table-success">
+              <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="finished-appointments-body">
+              <tr>
+                <td colspan="5" class="text-center text-muted p-3">
+                  Loading...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
 
     <div id="footer-container"></div>
   </body>

@@ -567,7 +567,7 @@
               <table
                 class="table table-striped table-bordered table-hover align-middle"
               >
-                <thead class="table-dark">
+                <thead class="table-primary">
                   <tr>
                     <th>Cons. Dr.</th>
                     <th>NoD</th>
@@ -751,47 +751,7 @@
                   </div>
                 </div>
               </div>
-              <!-- <div id="vitalsModal" class="modal" style="display: none">
-                <div class="vitals-modal-content">
-                  <h3>Add Vitals</h3>
-
-                  <label>BP</label>
-                  <input
-                    type="text"
-                    id="new-vital-bp"
-                    placeholder="e.g. 120/80"
-                  />
-
-                  <label>Temperature (°C)</label>
-                  <input
-                    type="text"
-                    id="new-vital-temp"
-                    placeholder="e.g. 37.0"
-                  />
-
-                  <label>SpO2</label>
-                  <input
-                    type="text"
-                    id="new-vital-spo2"
-                    placeholder="e.g. 98%"
-                  />
-
-                  <label>Pulse Rate</label>
-                  <input type="text" id="new-vital-pr" placeholder="e.g. 72" />
-
-                  <label>LMP</label>
-                  <input
-                    type="date"
-                    id="new-vital-lmp"
-                    placeholder="e.g. 2024-10-05"
-                  />
-
-                  <div class="vitals-modal-actions">
-                    <button id="saveVitalsBtn">Save</button>
-                    <button id="cancelVitalsBtn">Cancel</button>
-                  </div>
-                </div>
-              </div> -->
+              
             </div>
           </div>
 
@@ -802,21 +762,26 @@
               + New
             </button>
 
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>BP</th>
-                  <th>PR</th>
-                  <th>Weight (kg)</th>
-                  <th>Height (cm)</th>
-                  <th>BMI</th>
-                  <!-- <th>Findings</th> -->
-                  <th>BMI Category</th>
-                </tr>
-              </thead>
-              <tbody id="physical-exam-list"></tbody>
-            </table>
+            <div class="table-responsive">
+  <table class="table table-bordered table-striped align-middle text-center">
+    <thead class="table-primary">
+      <tr>
+        <th>Date</th>
+        <th>BP</th>
+        <th>PR</th>
+        <th>Weight (kg)</th>
+        <th>Height (cm)</th>
+        <th>BMI</th>
+        <th>BMI Category</th>
+      </tr>
+    </thead>
+
+    <tbody id="physical-exam-list">
+      <!-- Records will load here -->
+    </tbody>
+  </table>
+</div>
+
 
             <div id="add-physical-exam">
               <h2>Physical Examination</h2>

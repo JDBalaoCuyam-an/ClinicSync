@@ -390,6 +390,7 @@ document.getElementById("saveAppointment").addEventListener("click", async () =>
       staffName: selectedStaffName,
       patientId: user.uid,
       patientName: patientName,
+      status: "in queue",
       createdAt: new Date().toISOString()
     });
 

@@ -164,11 +164,18 @@ async function removeAvailability(userId, index) {
   await setDoc(ref, { availability }, { merge: true });
   loadAvailability(userId);
 }
+
+/* ===================================== */
+/*        APPOINTMENTS LOGIC            */
+/* ===================================== */
 async function loadPatientAppointments() {
   const container = document.getElementById("appointments-container");
   container.innerHTML = `<p class="text-center text-muted my-3">Loading...</p>`;
 
-  const q = query(collection(db, "appointments"));
+  const q = query(
+    collection(db, "appointments"),
+    where("status", "==", "in queue")
+  );
   const snap = await getDocs(q);
 
   if (snap.empty) {
@@ -208,7 +215,9 @@ async function loadPatientAppointments() {
            aria-controls="${collapseId}">
         <h4 class="fw-bold mb-0">${day}</h4>
         <div class="d-flex align-items-center">
-          <span class="badge bg-secondary me-2">${events.length} Event${events.length > 1 ? "s" : ""}</span>
+          <span class="badge bg-secondary me-2">${events.length} Event${
+      events.length > 1 ? "s" : ""
+    }</span>
           <i class="bi bi-chevron-down rotate-icon"></i>
         </div>
       </div>
@@ -241,13 +250,25 @@ async function loadPatientAppointments() {
       `;
 
       const acceptBtn = card.querySelector(".accept-btn");
-      acceptBtn.addEventListener("click", () => {
-        alert(`Accepted appointment of ${appt.patientName} on ${appt.day}`);
-      });
+      acceptBtn.addEventListener("click", async () => {
+        try {
+          const confirmAccept = confirm(
+            `Are you sure you want to accept ${appt.patientName}'s appointment?`
+          );
+          if (!confirmAccept) return; // Stop if user cancels
 
-      const rescheduleBtn = card.querySelector(".reschedule-btn");
-      rescheduleBtn.addEventListener("click", () => {
-        alert(`Reschedule appointment of ${appt.patientName} on ${appt.day}`);
+          const ref = doc(db, "appointments", appt.id);
+          await updateDoc(ref, { status: "accepted" });
+
+          // Remove card from pending list
+          col.remove();
+
+          // Reload accepted appointments
+          loadAcceptedAppointments();
+        } catch (error) {
+          console.error(error);
+          alert("Error accepting appointment.");
+        }
       });
 
       col.appendChild(card);
@@ -257,6 +278,125 @@ async function loadPatientAppointments() {
     container.appendChild(daySection);
   });
 }
+async function loadAcceptedAppointments() {
+  const container = document.getElementById("accepted-appointments-container");
+  container.innerHTML = `<p class="text-center text-muted">Loading...</p>`;
 
+  const q = query(
+    collection(db, "appointments"),
+    where("status", "==", "accepted")
+  );
+  const snap = await getDocs(q);
+
+  container.innerHTML = "";
+
+  if (snap.empty) {
+    container.innerHTML = `<p class="text-center text-muted">No accepted appointments yet</p>`;
+    return;
+  }
+
+  snap.forEach((docSnap) => {
+    const appt = docSnap.data();
+    const acceptedCol = document.createElement("div");
+    acceptedCol.className = "col-12 col-md-6 col-lg-4";
+
+    const acceptedCard = document.createElement("div");
+    acceptedCard.className = "card p-3 border-primary shadow-sm h-100";
+
+    acceptedCard.innerHTML = `
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title">${appt.patientName}</h5>
+        <p class="card-text mb-1"><i class="bi bi-calendar"></i> ${appt.day} (${appt.weekday})</p>
+        <p class="card-text mb-1"><i class="bi bi-clock"></i> ${appt.slot}</p>
+        <p class="card-text mb-1"><strong>With:</strong> ${appt.staffName}</p>
+        <p class="card-text mb-1"><strong>Reason:</strong> ${appt.reason}</p>
+        <div class="mt-auto d-flex justify-content-end pt-2">
+          <button class="btn btn-success btn-sm done-btn">Done</button>
+        </div>
+      </div>
+    `;
+
+    acceptedCol.appendChild(acceptedCard);
+    container.appendChild(acceptedCol);
+
+    // Done button
+    const doneBtn = acceptedCard.querySelector(".done-btn");
+    doneBtn.addEventListener("click", async () => {
+      try {
+        const confirmDone = confirm(
+          `Mark ${appt.patientName}'s appointment as finished?`
+        );
+        if (!confirmDone) return; // Stop if user cancels
+
+        const ref = doc(db, "appointments", docSnap.id); // docSnap from accepted appt
+        await updateDoc(ref, { status: "finished" });
+
+        // Remove card from accepted appointments
+        acceptedCol.remove();
+
+        // Reload finished appointments table
+        loadFinishedAppointments();
+      } catch (error) {
+        console.error(error);
+        alert("Error marking appointment as done.");
+      }
+    });
+  });
+}
+async function loadFinishedAppointments() {
+  const tbody = document.getElementById("finished-appointments-body");
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" class="text-center text-muted p-3">Loading...</td>
+    </tr>
+  `;
+
+  try {
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "finished")
+    );
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted p-3">
+            No finished appointments yet
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = ""; // Clear loading
+
+    snap.forEach((docSnap) => {
+      const appt = docSnap.data();
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${appt.patientName}</td>
+        <td>${appt.staffName}</td>
+        <td>${appt.day} (${appt.weekday})</td>
+        <td>${appt.slot}</td>
+        <td>${appt.reason}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error(error);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-danger p-3">
+          Error loading finished appointments
+        </td>
+      </tr>
+    `;
+  }
+}
+
+loadFinishedAppointments();
+loadAcceptedAppointments();
 loadPatientAppointments();
-
