@@ -555,32 +555,32 @@
               </div>
             </div>
             <div class="mt-4">
-  <a
-    class="text-decoration-none"
-    data-bs-toggle="collapse"
-    href="#medicalHistoryLogs"
-    role="button"
-    aria-expanded="true"
-    aria-controls="medicalHistoryLogs"
-  >
-    <h5
-      class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
-    >
-      Action History
-      <span
-        id="medical-history-logs-count"
-        class="badge bg-primary rounded-pill"
-        >0</span
-      >
-    </h5>
-  </a>
+              <a
+                class="text-decoration-none"
+                data-bs-toggle="collapse"
+                href="#medicalHistoryLogs"
+                role="button"
+                aria-expanded="true"
+                aria-controls="medicalHistoryLogs"
+              >
+                <h5
+                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                >
+                  Action History
+                  <span
+                    id="medical-history-logs-count"
+                    class="badge bg-primary rounded-pill"
+                    >0</span
+                  >
+                </h5>
+              </a>
 
-  <div class="collapse show mt-2" id="medicalHistoryLogs">
-    <ul id="medical-history-logs" class="list-group">
-      <li class="list-group-item text-muted">No actions yet</li>
-    </ul>
-  </div>
-</div>
+              <div class="collapse show mt-2" id="medicalHistoryLogs">
+                <ul id="medical-history-logs" class="list-group">
+                  <li class="list-group-item text-muted">No actions yet</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <div class="tab-content medical-consultation-content">
@@ -1056,7 +1056,144 @@
               </div>
             </div>
           </div>
-          <div class="tab-content vital-signs-content"></div>
+          <div class="tab-content vital-signs-content">
+            <h2>Vitals Records :</h2>
+
+            <button
+              class="new-btn btn btn-primary mb-3"
+              data-bs-toggle="modal"
+              data-bs-target="#vitalsModal"
+            >
+              + New
+            </button>
+
+            <div class="table-responsive">
+              <table
+                class="table table-striped table-bordered table-hover align-middle"
+              >
+                <thead class="table-primary">
+                  <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Taken By</th>
+                    <th>Temp (°C)</th>
+                    <th>BP</th>
+                    <th>PR</th>
+                    <th>SpO2 (%)</th>
+                    <th>LMP</th>
+                  </tr>
+                </thead>
+                <tbody id="vitals-list">
+                  <!-- Vitals data will load here -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Action History -->
+            <div class="mt-4">
+              <a
+                class="text-decoration-none"
+                data-bs-toggle="collapse"
+                href="#vitalsActionHistory"
+                role="button"
+                aria-expanded="true"
+                aria-controls="vitalsActionHistory"
+              >
+                <h5
+                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                >
+                  Action History
+                  <span
+                    id="vitals-logs-count"
+                    class="badge bg-primary rounded-pill"
+                  >
+                    0
+                  </span>
+                </h5>
+              </a>
+
+              <div class="collapse show mt-2" id="vitalsActionHistory">
+                <ul id="vitals-action-history" class="list-group">
+                  <li class="list-group-item text-muted">No actions yet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div
+  class="modal fade"
+  id="vitalsModal"
+  tabindex="-1"
+  aria-labelledby="vitalsModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="vitalsModalLabel">Add Vitals</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <form id="addVitalsForm">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Date</label>
+              <input type="date" id="v-date" class="form-control" required />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Time</label>
+              <input type="time" id="v-time" class="form-control" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Temp (°C)</label>
+              <input type="number" step="0.1" id="v-temp" class="form-control" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">BP</label>
+              <input type="text" id="v-bp" class="form-control" placeholder="120/80" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Pulse Rate</label>
+              <input type="number" id="v-pr" class="form-control" required />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">SpO2 (%)</label>
+              <input type="number" id="v-spo2" class="form-control" required />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">LMP (Optional)</label>
+              <input type="date" id="v-lmp" class="form-control" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
           <div class="tab-content doctor-notes-content"></div>
           <div class="tab-content nurse-notes-content"></div>
         </div>

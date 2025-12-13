@@ -1018,7 +1018,7 @@ editOverviewBtn.addEventListener("click", async () => {
     editableInputs.forEach((input) => input.removeAttribute("disabled"));
 
     // Show add buttons
-    // document.getElementById("addVitalsBtn").style.display = "inline-block";
+
     document.getElementById("addMedBtn").style.display = "inline-block";
 
     // Show Cancel button
@@ -1107,7 +1107,7 @@ function exitEditMode() {
   editableInputs.forEach((input) => input.setAttribute("disabled", true));
 
   // Hide add buttons
-  // document.getElementById("addVitalsBtn").style.display = "none";
+
   document.getElementById("addMedBtn").style.display = "none";
 
   // Hide Cancel button
@@ -1684,6 +1684,127 @@ editExamBtn.addEventListener("click", async () => {
     alert("Failed to update physical examination record.");
   }
 });
+/* -----------------------------------------------
+   🔹 Vitals
+------------------------------------------------ */
+document
+  .getElementById("addVitalsForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const data = {
+      date: document.getElementById("v-date").value,
+      time: document.getElementById("v-time").value,
+      takenBy: currentUserName,
+      temp: document.getElementById("v-temp").value,
+      bp: document.getElementById("v-bp").value,
+      pr: document.getElementById("v-pr").value,
+      spo2: document.getElementById("v-spo2").value,
+      lmp: document.getElementById("v-lmp").value || null,
+    };
+
+    try {
+      await addDoc(
+        collection(db, "users", patientId, "vitals"),
+        data
+      );
+
+      const editLogRef = collection(db, "users", patientId, "editLogs");
+      await addDoc(editLogRef, {
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
+        timestamp: new Date(),
+        editor: currentUserName,
+        section: "Vitals",
+      });
+
+      alert("✅ Vitals Saved!");
+
+      // ✅ Close modal
+      const modalEl = document.getElementById("vitalsModal");
+      bootstrap.Modal.getInstance(modalEl).hide();
+
+      // ✅ Reset form
+      e.target.reset();
+
+      loadVitals();
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save vitals");
+    }
+  });
+
+
+/* -----------------------------------------------
+   Load Vitals
+------------------------------------------------ */
+
+async function loadVitals() {
+  console.log("Patient ID:", patientId);
+
+  const tbody = document.getElementById("vitals-list");
+  if (!tbody) return;
+
+  // Clear table
+  tbody.innerHTML = "";
+
+  try {
+    const vitalsRef = collection(db, "users", patientId, "vitals");
+    const snapshot = await getDocs(vitalsRef);
+
+    if (snapshot.empty) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td colspan="8" class="text-center text-muted">No vitals recorded</td>
+      `;
+      tbody.appendChild(tr);
+      return;
+    }
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${data.date || "-"}</td>
+        <td>${data.time || "-"}</td>
+        <td>${data.takenBy || "-"}</td>
+        <td>${data.temp ? data.temp + " °C" : "-"}</td>
+        <td>${data.bp || "-"}</td>
+        <td>${data.pr || "-"}</td>
+        <td>${data.spo2 ? data.spo2 + " %" : "-"}</td>
+        <td>${data.lmp || "-"}</td>
+      `;
+
+      // Optional: Add click event to show a detailed overview
+      tr.addEventListener("click", () =>
+        showVitalsOverview(patientId, docSnap.id)
+      );
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error loading vitals:", err);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td colspan="8" class="text-center text-danger">Failed to load vitals</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+loadVitals();
+
 
 /* -----------------------------------------------
      🔹 INITIAL LOAD
@@ -1890,7 +2011,7 @@ async function exportPatientPDF() {
         diagnosis: d.diagnosis || "",
         notes: d.notes || "",
         meds: Array.isArray(d.meds) ? d.meds : [],
-        vitals: Array.isArray(d.vitals) ? d.vitals : [],
+        // vitals: Array.isArray(d.vitals) ? d.vitals : [],
       });
     });
 
@@ -2406,7 +2527,51 @@ function loadMedicalConsultationLogs(patientId) {
       countBadge.textContent = logs.length;
     });
   }
+function loadVitalsLogs(patientId) {
+    const logsRef = collection(db, "users", patientId, "editLogs");
 
+    const logsList = document.getElementById("vitals-action-history");
+    const countBadge = document.getElementById("vitals-logs-count");
+
+    onSnapshot(logsRef, (snapshot) => {
+      logsList.innerHTML = ""; // Clear previous list
+
+      if (snapshot.empty) {
+        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+        countBadge.textContent = 0;
+        return;
+      }
+
+      let logs = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        // ✅ Only include logs with section "Physical Examination"
+        if (data.section === "Vitals") {
+          logs.push(data);
+        }
+      });
+
+      if (logs.length === 0) {
+        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+        countBadge.textContent = 0;
+        return;
+      }
+
+      // Sort by timestamp descending (latest first)
+      logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+      // Populate the list
+      logs.forEach((log) => {
+        const li = document.createElement("li");
+        li.classList.add("list-group-item");
+        li.textContent = log.message;
+        logsList.appendChild(li);
+      });
+
+      // Update badge count
+      countBadge.textContent = logs.length;
+    });
+  }
   // Example call after page load or after adding a new Physical Exam log
   loadPhysicalExaminationLogs(patientId);
 
@@ -2415,3 +2580,5 @@ function loadMedicalConsultationLogs(patientId) {
   
   // Example call after page load or after adding a new Medical History log
   loadMedicalHistoryLogs(patientId);
+
+  loadVitalsLogs(patientId);
