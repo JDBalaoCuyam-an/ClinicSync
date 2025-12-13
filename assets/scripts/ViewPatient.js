@@ -503,67 +503,61 @@ cancelPatientInfoBtn.addEventListener("click", () => {
 /* -----------------------------------------------
      🔹 CONSULTATION FORM SUBMIT
   ----------------------------------------------- */
-const medsListDiv = document.getElementById("meds-list");
-const addMedBtn = document.getElementById("add-med-btn");
-let medicinesData = []; // stores all medicine objects from inventory
+const medsContainers = document.querySelectorAll(".meds-list");
+const addMedBtns = document.querySelectorAll(".add-med-btn");
+let medicinesData = []; 
 
-/* ============================================================
-   FETCH MEDICINES (with stock)
-============================================================ */
+// Load medicines once
 async function loadMedicineOptions() {
   const querySnapshot = await getDocs(collection(db, "MedicineInventory"));
   medicinesData = querySnapshot.docs.map((doc) => ({
     name: doc.data().name,
-    availableQty: doc.data().stock || 0, // ✅ Use 'stock' instead of 'quantity'
+    availableQty: doc.data().stock || 0,
   }));
 }
-
-/* ✅ Load medicines on page load */
 loadMedicineOptions();
 
-/* ============================================================
-   ADD NEW MEDICINE ROW
-============================================================ */
-addMedBtn.addEventListener("click", () => {
-  const container = document.createElement("div");
-  container.classList.add("med-row");
+// Add medicine to each container
+addMedBtns.forEach((btn, index) => {
+  const containerDiv = medsContainers[index];
+  btn.addEventListener("click", () => {
+    const container = document.createElement("div");
+    container.classList.add("med-row");
 
-  // Build dropdown options with available stock
-  const optionsHTML = medicinesData
-    .map(
-      (m) =>
-        `<option value="${m.name}" data-qty="${m.availableQty}">
-          ${m.name} (Available: ${m.availableQty})
-        </option>`
-    )
-    .join("");
+    const optionsHTML = medicinesData
+      .map(
+        (m) =>
+          `<option value="${m.name}" data-qty="${m.availableQty}">${m.name} (Available: ${m.availableQty})</option>`
+      )
+      .join("");
 
-  container.innerHTML = `
-    <select class="med-name" required>
-      <option value="" disabled selected>Select Medicine</option>
-      ${optionsHTML}
-    </select>
+    container.innerHTML = `
+      <select class="med-name" required>
+        <option value="" disabled selected>Select Medicine</option>
+        ${optionsHTML}
+      </select>
 
-    <input type="number" class="med-qty" min="1" placeholder="Qty" />
+      <input type="number" class="med-qty" min="1" placeholder="Qty" />
 
-    <select class="med-type" required>
-      <option value="" disabled selected>Type</option>
-      <option value="Administered">Administered</option>
-      <option value="Dispensed">Dispensed</option>
-    </select>
+      <select class="med-type" required>
+        <option value="" disabled selected>Type</option>
+        <option value="Administered">Administered</option>
+        <option value="Dispensed">Dispensed</option>
+      </select>
 
-    <input type="text" class="med-remarks" placeholder="Remarks" />
+      <input type="text" class="med-remarks" placeholder="Remarks" />
 
-    <button type="button" class="remove-med">X</button>
-  `;
+      <button type="button" class="remove-med btn-danger">X</button>
+    `;
 
-  // 🧹 Remove row handler
-  container.querySelector(".remove-med").addEventListener("click", () => {
-    container.remove();
+    container.querySelector(".remove-med").addEventListener("click", () => {
+      container.remove();
+    });
+
+    containerDiv.appendChild(container);
   });
-
-  medsListDiv.appendChild(container);
 });
+
 // ============================================================
 // Loading Doctors For Consultation Form
 // ============================================================
@@ -932,6 +926,7 @@ async function loadConsultations() {
         showConsultationDetails(data, consultId)
       );
       tableBody.appendChild(tr);
+     
     });
   } catch (err) {
     console.error("Error loading consultations:", err);
@@ -1066,6 +1061,7 @@ editOverviewBtn.addEventListener("click", async () => {
 
     exitEditMode();
     loadConsultations();
+    
   } catch (err) {
     console.error(err);
     alert("Failed to update consultation.");
@@ -1110,7 +1106,7 @@ function exitEditMode() {
 /* ============================================================
    MED SELECTION MODAL
 ============================================================ */
-const selectMedModal = document.getElementById("selectMedModal");
+const selectMedModal = document.getElementById(".selectMedModal");
 const medSelect = document.getElementById("medSelect");
 const nextBtn = document.getElementById("selectMedNextBtn");
 
@@ -1873,7 +1869,7 @@ document
     e.preventDefault();
 
     const note = document.getElementById("nurse-note-text").value;
-
+    
     try {
       await addDoc(collection(db, "users", patientId, "nurseNotes"), {
         note,
@@ -1955,74 +1951,171 @@ async function loadNurseNotes() {
 }
 loadNurseNotes();
 /* -----------------------------------------------
-     Dental records
-  ----------------------------------------------- */
+   🔹 Dental Records
+------------------------------------------------ */
 document
   .getElementById("addDentalForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const submitBtn = document
+      .getElementById("addDentalForm")
+      .querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = "Saving...";
+
     const teeth = Array.from(
       document.getElementById("d-teeth").selectedOptions
     ).map((opt) => Number(opt.value));
 
-    const data = {
-      procedure: document.getElementById("d-procedure").value,
-      teeth,
-      notes: document.getElementById("d-notes").value || null,
-      dentist: currentUserName,
-      createdAt: new Date(),
-    };
+    const medications = Array.from(document.querySelectorAll(".med-row"))
+      .map((row) => ({
+        name: row.querySelector(".med-name").value,
+        quantity: parseInt(row.querySelector(".med-qty").value) || 0,
+        type: row.querySelector(".med-type").value,
+        remarks: row.querySelector(".med-remarks").value || "",
+        NurseOnDuty: currentUserName,
+        date: new Date().toISOString().split("T")[0],
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      }))
+      .filter((med) => med.name !== "");
+
+    const procedure = document.getElementById("d-procedure").value;
+    const notes = document.getElementById("d-notes").value || null;
 
     try {
-      await addDoc(collection(db, "users", patientId, "dentalRecords"), data);
+      // 1️⃣ Save Dental Record
+      const dentalRef = collection(db, "users", patientId, "dentalRecords");
+      await addDoc(dentalRef, {
+        procedure,
+        teeth,
+        notes,
+        dentist: currentUserName,
+        medications,
+        createdAt: new Date(),
+      });
 
-      bootstrap.Modal.getInstance(
-        document.getElementById("dentalModal")
-      ).hide();
+      // 2️⃣ Deduct medicine stock
+      for (const med of medications) {
+        if (med.name && med.quantity > 0) {
+          const invRef = collection(db, "MedicineInventory");
+          const q = query(invRef, where("name", "==", med.name));
+          const snapshot = await getDocs(q);
 
+          if (!snapshot.empty) {
+            const medDoc = snapshot.docs[0];
+            const data = medDoc.data();
+            const newStock = Math.max((data.stock || 0) - med.quantity, 0);
+            const newDispensed = (data.dispensed || 0) + med.quantity;
+
+            await updateDoc(medDoc.ref, {
+              stock: newStock,
+              dispensed: newDispensed,
+            });
+
+            console.log(
+              `✅ ${med.name} stock updated: ${data.stock || 0} → ${newStock}, dispensed: ${data.dispensed || 0} → ${newDispensed}`
+            );
+          } else {
+            console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
+          }
+        }
+      }
+
+      // 3️⃣ Log edit action
+      const editLogRef = collection(db, "users", patientId, "editLogs");
+      await addDoc(editLogRef, {
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
+        timestamp: new Date(),
+        editor: currentUserName,
+        section: "Dental Records",
+      });
+
+      // 4️⃣ Close modal & reset
+      bootstrap.Modal.getInstance(document.getElementById("dentalModal")).hide();
       e.target.reset();
+
+      // 5️⃣ Reload records & medicine options
       loadDentalRecords();
+      loadMedicineOptions();
+
+      alert("✅ Dental record saved and medicines updated!");
     } catch (err) {
       console.error(err);
       alert("Failed to save dental record");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
     }
   });
+
 
 async function loadDentalRecords() {
   const container = document.getElementById("dental-records-container");
   if (!container) return;
 
   container.innerHTML = "";
+  container.className = "d-flex flex-wrap gap-3"; // flex container
 
   try {
     const ref = collection(db, "users", patientId, "dentalRecords");
     const snap = await getDocs(ref);
 
     if (snap.empty) {
-      container.innerHTML = `
-        <div class="text-muted">No dental records found</div>
-      `;
+      container.innerHTML = `<div class="text-muted">No dental records found</div>`;
       return;
     }
 
-    snap.forEach((docSnap) => {
-      const d = docSnap.data();
+    // Sort by createdAt descending
+    const records = snap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => new Date(b.createdAt?.toDate?.() || b.createdAt) - new Date(a.createdAt?.toDate?.() || a.createdAt));
+
+    records.forEach((d) => {
+      const medsHTML = d.medications?.length
+        ? d.medications
+            .map(
+              (m) => `
+          <li>
+            ${m.name} (${m.quantity}) – ${m.type}
+            <br />
+            <small class="text-muted">${m.remarks || "No remarks"}</small>
+          </li>`
+            )
+            .join("")
+        : "<li>No medications</li>";
 
       const card = document.createElement("div");
-      card.className = "card shadow-sm";
-      card.style.width = "18rem";
+      card.className = "card shadow-sm p-2";
+      card.style.width = "300px";
 
       card.innerHTML = `
         <div class="card-body">
           <h5 class="card-title">🦷 ${d.procedure}</h5>
-          <p class="mb-1"><strong>Teeth:</strong> ${d.teeth?.join(", ")}</p>
+          <p class="mb-1"><strong>Teeth:</strong> ${d.teeth?.join(", ") || "-"}</p>
           <p class="mb-1"><strong>Dentist:</strong> ${d.dentist}</p>
           <p class="mb-2"><strong>Date:</strong> ${
             d.createdAt?.toDate
               ? d.createdAt.toDate().toLocaleDateString()
-              : "-"
+              : new Date(d.createdAt).toLocaleDateString()
           }</p>
+          <hr />
+          <strong>Medications:</strong>
+          <ul class="ps-3 mb-2">${medsHTML}</ul>
           <p class="card-text text-muted">${d.notes || "No notes"}</p>
         </div>
       `;
@@ -2034,6 +2127,7 @@ async function loadDentalRecords() {
     container.innerHTML = `<div class="text-danger">Failed to load records</div>`;
   }
 }
+
 loadDentalRecords();
 
 /* -----------------------------------------------

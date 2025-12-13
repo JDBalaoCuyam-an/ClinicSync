@@ -236,7 +236,7 @@
 
           <input type="radio" id="dental-records" name="tab" />
           <label class="radio-tabs" for="dental-records">Dental Records</label>
-          
+
           <input type="radio" id="physical-examination" name="tab" />
           <label class="radio-tabs" for="physical-examination"
             >Physical Examination</label
@@ -687,9 +687,9 @@
                 style="display: none"
               />
 
-              <label>Medications Dispensed:</label>
-              <div id="meds-list"></div>
-              <button type="button" id="add-med-btn">+ Add Medicine</button>
+              <label>Medications:</label>
+              <div class="meds-list"></div>
+              <button type="button" class="add-med-btn">+ Add Medicine</button>
 
               <label for="consult-notes">Notes/Intervention:</label>
               <textarea
@@ -1351,92 +1351,135 @@
             </div>
           </div>
           <div class="tab-content dental-records-content">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Dental Records</h2>
-    <button
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#dentalModal"
-    >
-      + New Dental Record
-    </button>
-  </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2>Dental Records</h2>
+              <button
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#dentalModal"
+              >
+                + New Dental Record
+              </button>
+            </div>
 
-  <div
-    id="dental-records-container"
-    class="d-flex flex-wrap gap-3"
-  >
-    <!-- Dental cards load here -->
-  </div>
+            <div id="dental-records-container" class="d-flex flex-wrap gap-3">
+              <!-- Dental cards load here -->
+            </div>
+          </div>
+          <div class="modal fade" id="dentalModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+              <div class="modal-content">
+                <form id="addDentalForm">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Add Dental Record</h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                    ></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <!-- Procedure -->
+                    <div class="mb-3">
+                      <label class="form-label">Dental Procedure</label>
+                      <select class="form-select" id="d-procedure" required>
+                        <option value="">Select Procedure</option>
+                        <option>Dental Filling</option>
+                        <option>Tooth Extraction</option>
+                        <option>Oral Prophylaxis</option>
+                      </select>
+                    </div>
+
+                    <!-- Teeth -->
+                    <div class="mb-3">
+                      <label class="form-label">Teeth Affected</label>
+                      <select
+                        class="form-select"
+                        id="d-teeth"
+                        multiple
+                        required
+                      >
+                        <optgroup label="Upper Right">
+                          <option>11</option>
+                          <option>12</option>
+                          <option>13</option>
+                          <option>14</option>
+                          <option>15</option>
+                          <option>16</option>
+                          <option>17</option>
+                          <option>18</option>
+                        </optgroup>
+                        <optgroup label="Upper Left">
+                          <option>21</option>
+                          <option>22</option>
+                          <option>23</option>
+                          <option>24</option>
+                          <option>25</option>
+                          <option>26</option>
+                          <option>27</option>
+                          <option>28</option>
+                        </optgroup>
+                        <optgroup label="Lower Left">
+                          <option>31</option>
+                          <option>32</option>
+                          <option>33</option>
+                          <option>34</option>
+                          <option>35</option>
+                          <option>36</option>
+                          <option>37</option>
+                          <option>38</option>
+                        </optgroup>
+                        <optgroup label="Lower Right">
+                          <option>41</option>
+                          <option>42</option>
+                          <option>43</option>
+                          <option>44</option>
+                          <option>45</option>
+                          <option>46</option>
+                          <option>47</option>
+                          <option>48</option>
+                        </optgroup>
+                      </select>
+                      <!-- <small class="text-muted">Hold Ctrl / Cmd to select multiple teeth</small> -->
+                    </div>
+                    <hr />
+                    <!-- Medications Section -->
+<div class="mt-4">
+  <label class="form-label">Medications:</label>
+  <div class="d-flex flex-column gap-2 meds-list"></div>
+  <button type="button" class="btn bg-primary text-white btn-sm mt-2 add-med-btn">
+    + Add Medicine
+  </button>
 </div>
-<div class="modal fade" id="dentalModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <form id="addDentalForm">
-        <div class="modal-header">
-          <h5 class="modal-title">Add Dental Record</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
 
-        <div class="modal-body">
-          <!-- Procedure -->
-          <div class="mb-3">
-            <label class="form-label">Dental Procedure</label>
-            <select class="form-select" id="d-procedure" required>
-              <option value="">Select Procedure</option>
-              <option>Dental Filling</option>
-              <option>Tooth Extraction</option>
-              <option>Oral Prophylaxis</option>
-            </select>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                      <label class="form-label">Notes</label>
+                      <textarea
+                        class="form-control"
+                        id="d-notes"
+                        rows="3"
+                        placeholder="Additional details (optional)"
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
-
-          <!-- Teeth -->
-          <div class="mb-3">
-            <label class="form-label">Teeth Affected</label>
-            <select class="form-select" id="d-teeth" multiple required>
-              <optgroup label="Upper Right">
-                <option>11</option><option>12</option><option>13</option><option>14</option>
-                <option>15</option><option>16</option><option>17</option><option>18</option>
-              </optgroup>
-              <optgroup label="Upper Left">
-                <option>21</option><option>22</option><option>23</option><option>24</option>
-                <option>25</option><option>26</option><option>27</option><option>28</option>
-              </optgroup>
-              <optgroup label="Lower Left">
-                <option>31</option><option>32</option><option>33</option><option>34</option>
-                <option>35</option><option>36</option><option>37</option><option>38</option>
-              </optgroup>
-              <optgroup label="Lower Right">
-                <option>41</option><option>42</option><option>43</option><option>44</option>
-                <option>45</option><option>46</option><option>47</option><option>48</option>
-              </optgroup>
-            </select>
-            <small class="text-muted">Hold Ctrl / Cmd to select multiple teeth</small>
-          </div>
-
-          <!-- Notes -->
-          <div class="mb-3">
-            <label class="form-label">Notes</label>
-            <textarea
-              class="form-control"
-              id="d-notes"
-              rows="3"
-              placeholder="Additional details (optional)"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Save</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
         </div>
       </div>
     </div>

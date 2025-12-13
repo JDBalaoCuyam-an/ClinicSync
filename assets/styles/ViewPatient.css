@@ -77,30 +77,9 @@
   transform: translateY(0) !important;
 }
 
-/* Style the delete button for uploaded files */
-.delete-btn {
-  background-color: #7f8c8d;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.delete-btn:hover {
-  background-color: #c0392b;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
-}
 
 .modal-buttons .cancel-btn:hover {
-  background-color: #e74c3c !important;
+  /* background-color: #e74c3c !important; */
   color: white !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3) !important;
@@ -802,7 +781,7 @@
 }
 
 #consultation-form button:not(.save-btn):hover {
-  background-color: #ff5757;
+  /* background-color: #ff5757; */
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
 }
@@ -1320,7 +1299,7 @@
 }
 
 /* ===== MEDICATION LIST STYLING ===== */
-#meds-list {
+.meds-list {
   margin: 15px 0;
   border: 1px solid #e9ecef;
   border-radius: 6px;

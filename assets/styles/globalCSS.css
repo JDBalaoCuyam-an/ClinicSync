@@ -224,7 +224,7 @@ body {
 }
 
 .close-button:hover {
-  background-color: red;
+  /* background-color: red; */
   color: var(--text-light);
 }
 
