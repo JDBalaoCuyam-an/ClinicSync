@@ -14,7 +14,8 @@ import {
   arrayUnion,
   orderBy,
   limit,
-  onSnapshot
+  onSnapshot,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -1805,7 +1806,190 @@ async function loadVitals() {
 
 loadVitals();
 
+/* -----------------------------------------------
+     Doctor's Notes
+  ----------------------------------------------- */
+document
+  .getElementById("addDoctorNoteForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
 
+    const data = {
+      date: document.getElementById("dn-date").value,
+      time: document.getElementById("dn-time").value,
+      doctor: currentUserName,
+      note: document.getElementById("dn-note").value,
+      createdAt: new Date(),
+    };
+
+    try {
+      await addDoc(
+        collection(db, "users", patientId, "doctorNotes"),
+        data
+      );
+
+      bootstrap.Modal.getInstance(
+        document.getElementById("doctorNotesModal")
+      ).hide();
+
+      e.target.reset();
+      loadDoctorNotes();
+    } catch (err) {
+      console.error("Failed to save doctor note:", err);
+      alert("Failed to save note");
+    }
+  });
+
+  async function loadDoctorNotes() {
+  const container = document.getElementById("doctor-notes-list");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  try {
+    const ref = collection(db, "users", patientId, "doctorNotes");
+    const snapshot = await getDocs(ref);
+
+    if (snapshot.empty) {
+      container.innerHTML = `
+        <div class="text-muted text-center">
+          No doctor notes yet
+        </div>
+      `;
+      return;
+    }
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      const card = document.createElement("div");
+      card.className = "card shadow-sm";
+
+      card.innerHTML = `
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <strong>${data.date || "-"}</strong>
+            <span class="text-muted">${data.time || "-"}</span>
+          </div>
+
+          <div class="mb-2">
+            <span class="badge bg-primary">
+              ${data.doctor || "Doctor"}
+            </span>
+          </div>
+
+          <p class="mb-0">
+            ${data.note || "-"}
+          </p>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Error loading doctor notes:", err);
+    container.innerHTML = `
+      <div class="text-danger text-center">
+        Failed to load doctor notes
+      </div>
+    `;
+  }
+}
+loadDoctorNotes();
+
+/* -----------------------------------------------
+     Nurse Notes
+  ----------------------------------------------- */
+  document
+  .getElementById("addNurseNoteForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const note = document.getElementById("nurse-note-text").value;
+
+    try {
+      await addDoc(
+        collection(db, "users", patientId, "nurseNotes"),
+        {
+          note,
+          nurseName: currentUserName,
+          createdAt: serverTimestamp(),
+        }
+      );
+
+      bootstrap.Modal
+        .getInstance(document.getElementById("nurseNoteModal"))
+        .hide();
+
+      e.target.reset();
+      loadNurseNotes();
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save nurse note");
+    }
+  });
+async function loadNurseNotes() {
+  const container = document.getElementById("nurse-notes-container");
+  if (!container) return;
+
+  container.innerHTML = `
+    <p class="text-muted text-center w-100">Loading nurse notes...</p>
+  `;
+
+  try {
+    const notesRef = collection(db, "users", patientId, "nurseNotes");
+    const snapshot = await getDocs(notesRef);
+
+    container.innerHTML = "";
+
+    if (snapshot.empty) {
+      container.innerHTML = `
+        <p class="text-muted text-center w-100">
+          No nurse notes recorded
+        </p>
+      `;
+      return;
+    }
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      const card = document.createElement("div");
+      card.className = "card shadow-sm";
+      card.style.width = "320px";
+
+      card.innerHTML = `
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2 text-muted">
+            ${data.nurseName || "Nurse"}
+          </h6>
+
+          <p class="card-text">
+            ${data.note || "No note provided"}
+          </p>
+
+          <small class="text-muted">
+            ${data.createdAt?.toDate
+              ? data.createdAt.toDate().toLocaleString()
+              : ""}
+          </small>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Error loading nurse notes:", err);
+    container.innerHTML = `
+      <p class="text-danger text-center w-100">
+        Failed to load nurse notes
+      </p>
+    `;
+  }
+}
+loadNurseNotes();
 /* -----------------------------------------------
      🔹 INITIAL LOAD
   ----------------------------------------------- */

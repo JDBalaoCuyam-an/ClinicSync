@@ -1120,71 +1120,211 @@
             </div>
           </div>
           <div
-  class="modal fade"
-  id="vitalsModal"
-  tabindex="-1"
-  aria-labelledby="vitalsModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+            class="modal fade"
+            id="vitalsModal"
+            tabindex="-1"
+            aria-labelledby="vitalsModalLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="vitalsModalLabel">Add Vitals</h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+
+                <form id="addVitalsForm">
+                  <div class="modal-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Date</label>
+                        <input
+                          type="date"
+                          id="v-date"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Time</label>
+                        <input
+                          type="time"
+                          id="v-time"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">Temp (°C)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          id="v-temp"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">BP</label>
+                        <input
+                          type="text"
+                          id="v-bp"
+                          class="form-control"
+                          placeholder="120/80"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">Pulse Rate</label>
+                        <input
+                          type="number"
+                          id="v-pr"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">SpO2 (%)</label>
+                        <input
+                          type="number"
+                          id="v-spo2"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">LMP (Optional)</label>
+                        <input type="date" id="v-lmp" class="form-control" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content doctor-notes-content">
+  <h2>Doctor's Notes</h2>
+
+  <button
+    class="btn btn-primary mb-3"
+    data-bs-toggle="modal"
+    data-bs-target="#doctorNotesModal"
+  >
+    + New Note
+  </button>
+
+  <!-- Cards Container -->
+  <div
+    id="doctor-notes-list"
+    class="d-flex flex-column gap-3"
+  >
+    <!-- Doctor note cards will load here -->
+  </div>
+</div>
+<div class="modal fade" id="doctorNotesModal" tabindex="-1">
+  <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="vitalsModalLabel">Add Vitals</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
+      <form id="addDoctorNoteForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Doctor's Note</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
 
-      <form id="addVitalsForm">
         <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Date</label>
-              <input type="date" id="v-date" class="form-control" required />
-            </div>
+          <div class="mb-2">
+            <label>Date</label>
+            <input type="date" id="dn-date" class="form-control" required />
+          </div>
 
-            <div class="col-md-6">
-              <label class="form-label">Time</label>
-              <input type="time" id="v-time" class="form-control" required />
-            </div>
+          <div class="mb-2">
+            <label>Time</label>
+            <input type="time" id="dn-time" class="form-control" required />
+          </div>
 
-            <div class="col-md-4">
-              <label class="form-label">Temp (°C)</label>
-              <input type="number" step="0.1" id="v-temp" class="form-control" required />
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label">BP</label>
-              <input type="text" id="v-bp" class="form-control" placeholder="120/80" required />
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label">Pulse Rate</label>
-              <input type="number" id="v-pr" class="form-control" required />
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">SpO2 (%)</label>
-              <input type="number" id="v-spo2" class="form-control" required />
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">LMP (Optional)</label>
-              <input type="date" id="v-lmp" class="form-control" />
-            </div>
+          <div class="mb-2">
+            <label>Notes</label>
+            <textarea
+              id="dn-note"
+              class="form-control"
+              rows="4"
+              required
+            ></textarea>
           </div>
         </div>
 
         <div class="modal-footer">
+          <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+          <div class="tab-content nurse-notes-content">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Nurse Notes</h2>
+
+    <button
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#nurseNoteModal"
+    >
+      + Add Note
+    </button>
+  </div>
+
+  <div
+    id="nurse-notes-container"
+    class="d-flex flex-wrap gap-3"
+  >
+    <!-- Nurse note cards load here -->
+  </div>
+</div>
+<div class="modal fade" id="nurseNoteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="addNurseNoteForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Nurse Note</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <textarea
+            id="nurse-note-text"
+            class="form-control"
+            rows="4"
+            placeholder="Enter nurse note..."
+            required
+          ></textarea>
+        </div>
+
+        <div class="modal-footer">
           <button type="submit" class="btn btn-primary">Save</button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
-          >
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             Cancel
           </button>
         </div>
@@ -1193,9 +1333,6 @@
   </div>
 </div>
 
-
-          <div class="tab-content doctor-notes-content"></div>
-          <div class="tab-content nurse-notes-content"></div>
         </div>
       </div>
     </div>
