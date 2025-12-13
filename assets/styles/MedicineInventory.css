@@ -13,95 +13,14 @@
   text-align: center;
 }
 
-/* Inventory Controls */
-.inventory-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 25px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
 
-.inventory-controls select,
-.inventory-controls input {
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  width: 200px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background-color: white;
-}
-
-.inventory-controls select:focus,
-.inventory-controls input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-.add-btn {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.add-btn:hover {
-  background: #2980b9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
-.add-btn i {
-  font-size: 1rem;
-}
-
-/* Table Styling */
-.inventory-container table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  margin-top: 20px;
-}
-
-.inventory-container th {
-  background: #4a86c5;
-  color: white;
-  padding: 15px 12px;
-  text-align: left;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.inventory-container td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #ecf0f1;
-  font-size: 14px;
-}
-
-.inventory-container tbody tr {
-  transition: all 0.2s ease;
-}
 
 .inventory-container tbody tr:hover {
   background-color: #E0EFFF;
 }
 
 /* Action Buttons */
-.action-buttons {
+/* .action-buttons {
   display: flex;
   gap: 8px;
 }
@@ -138,7 +57,7 @@
 .delete-btn:hover {
   background: #c0392b;
   transform: scale(1.05);
-}
+} */
 
 /* Modal Overlay */
 .overlay {

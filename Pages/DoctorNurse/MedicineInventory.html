@@ -35,7 +35,7 @@
     <div class="right-header d-flex align-items-center gap-3">
 
       <div class="user-name text-white d-none d-sm-block" id="displayName">
-        Dr. Juan Dela Cruz
+        <!-- User's name will be displayed here -->
       </div>
 
       <div class="rounded-circle" 
@@ -65,90 +65,86 @@
         <h2>Medicine Inventory</h2>
       </div>
 
-      <div class="inventory-controls">
-        <button class="add-btn" onclick="addMedicineOverlay()">
-          + Add Medicine
-        </button>
-        <button id="open-bulk-upload" class="btn btn-secondary mt-2">Bulk Upload</button>
+      <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2 mb-3 inventory-controls">
+  <button class="btn btn-primary" onclick="addMedicineOverlay()">
+    + Add Medicine
+  </button>
+  <button id="open-bulk-upload" class="btn btn-secondary">
+    Bulk Upload
+  </button>
 
-        <form id="search-medicine">
-          <input
-            type="text"
-            class="search-bar"
-            placeholder="Search Medicine..."
-            id="search-bar"
-          />
-        </form>
-      </div>
+  <form id="search-medicine" class="ms-md-auto w-100 w-md-auto">
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Search Medicine..."
+      id="search-bar"
+    />
+  </form>
+</div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Name of Medicine</th>
-            <th>No. Stocks per box/pack</th>
-            <th>Date of Purchased</th>
-            <th>Expiry Date</th>
-            <th>Remaining Stocks</th>
-            <th>Total Dispensed</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="medicine-table-body">
-          <!-- Rows will be loaded from Firestore -->
-        </tbody>
-      </table>
+
+      <div class="table-responsive">
+  <table class="table table-striped table-hover  table-bordered align-middle">
+    <thead class="table-primary">
+      <tr>
+        <th>Name of Medicine</th>
+        <th>No. Stocks per box/pack</th>
+        <th>Date of Purchased</th>
+        <th>Expiry Date</th>
+        <th>Remaining Stocks</th>
+        <th>Total Dispensed</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="medicine-table-body">
+      <!-- Rows will be loaded from Firestore -->
+    </tbody>
+  </table>
+</div>
+
     </div>
 
-    <!-- ========== BULK UPLOAD MODAL ========== -->
-<div id="bulk-upload-modal" class="d-none">
-  <div style="
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-    ">
-  </div>
-
-  <div style="
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      padding: 20px;
-      width: 600px;
-      border-radius: 8px;
-      max-height: 80vh;
-      overflow-y: auto;
-    ">
+  <!-- ========== BULK UPLOAD MODAL ========== -->
+<div id="bulk-upload-modal" class="d-none position-fixed top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.5); z-index:1050;">
+  
+  <div class="position-absolute top-50 start-50 translate-middle bg-white p-4 rounded shadow"
+       style="width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
 
     <h2 class="mb-3">Bulk Upload Medicines</h2>
 
     <input type="file" id="bulk-file" accept=".csv" class="form-control mb-3" />
 
-    <button id="preview-bulk-btn" class="btn btn-primary mb-3">
+    <button id="preview-bulk-btn" class="btn btn-primary mb-3 w-100 w-md-auto">
       Preview CSV
     </button>
 
-    <table id="bulk-preview-table" class="table table-bordered d-none">
-      <thead class="table-secondary">
-        <tr>
-          <th>Name</th>
-          <th>Stock</th>
-          <th>Expiry</th>
-          <th>Per Pack</th>
-          <th>Date Purchased</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="table-responsive">
+      <table id="bulk-preview-table" class="table table-bordered d-none">
+        <thead class="table-secondary">
+          <tr>
+            <th>Name</th>
+            <th>Stock</th>
+            <th>Expiry</th>
+            <th>Per Pack</th>
+            <th>Date Purchased</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-    <button id="upload-bulk-btn" class="btn btn-success d-none mt-2">
+    <button id="upload-bulk-btn" class="btn btn-success d-none mt-2 w-100 w-md-auto">
       Upload All
     </button>
 
-    <button id="close-bulk-btn" class="btn btn-danger mt-3">Close</button>
+    <button id="close-bulk-btn" class="btn btn-danger mt-3 w-100 w-md-auto">
+      Close
+    </button>
+    
   </div>
 </div>
+
 
 
     <!-- Add Medicine Form -->

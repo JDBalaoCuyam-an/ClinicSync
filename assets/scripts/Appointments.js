@@ -43,15 +43,17 @@ async function loadStaff() {
         : '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
 
       const card = document.createElement("div");
-      card.className = "card mb-3 shadow-sm staff-card w-100"; // full width
-      card.style.cursor = "pointer";
+      card.className = "card mb-3 shadow-sm staff-card w-100";
 
       card.innerHTML = `
-        <div class="card-body p-3">
-          <p class="fw-bold mb-1">${fullName}</p>
-          <p class="text-secondary mb-1">${
-            role === "doctor" ? "Doctor" : "Nurse"
-          }</p>
+        <div class="card-body p-3 d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <p class="fw-bold mb-0">${fullName}</p>
+            <button class="btn btn-sm btn-primary open-modal-btn">Schedule</button>
+          </div>
+
+          <p class="text-secondary mb-1">${role === "doctor" ? "Doctor" : "Nurse"}</p>
+
           ${
             role === "doctor"
               ? `<p class="text-primary mb-2">Specialization: ${
@@ -59,11 +61,13 @@ async function loadStaff() {
                 }</p>`
               : ""
           }
+
           <div class="availability-container">${availabilityHtml}</div>
         </div>
       `;
 
-      card.addEventListener("click", () => {
+      // Only the button triggers the modal
+      card.querySelector(".open-modal-btn").addEventListener("click", () => {
         openAvailabilityModal(id, fullName);
       });
 
@@ -230,54 +234,79 @@ async function loadPatientAppointments() {
     const row = daySection.querySelector(".day-row");
 
     events.forEach((appt) => {
-      const col = document.createElement("div");
-      col.className = "col-12 col-md-6 col-lg-4";
+  const col = document.createElement("div");
+  col.className = "col-12 col-md-6 col-lg-4";
 
-      const card = document.createElement("div");
-      card.className = "card h-100 shadow-sm";
+  const card = document.createElement("div");
+  card.className = "card h-100 shadow-sm";
 
-      card.innerHTML = `
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">${appt.patientName}</h5>
-          <p class="card-text mb-1"><i class="bi bi-clock"></i> ${appt.slot}</p>
-          <p class="card-text mb-1"><strong>With:</strong> ${appt.staffName}</p>
-          <p class="card-text mb-0"><strong>Reason:</strong> ${appt.reason}</p>
-          <div class="mt-auto d-flex justify-content-between pt-2">
-            <button class="btn btn-success btn-sm accept-btn">Accept</button>
-            <button class="btn btn-warning btn-sm reschedule-btn">Reschedule</button>
-          </div>
-        </div>
-      `;
+  card.innerHTML = `
+    <div class="card-body d-flex flex-column">
+      <h5 class="card-title">${appt.patientName}</h5>
+      <p class="card-text mb-1"><i class="bi bi-clock"></i> ${appt.slot}</p>
+      <p class="card-text mb-1"><strong>With:</strong> ${appt.staffName}</p>
+      <p class="card-text mb-0"><strong>Reason:</strong> ${appt.reason}</p>
+      <div class="mt-auto d-flex justify-content-between pt-2">
+        <button class="btn btn-success btn-sm accept-btn">Accept</button>
+        <button class="btn btn-warning btn-sm reschedule-btn" data-bs-toggle="modal" data-bs-target="#rescheduleModal">Reschedule</button>
+      </div>
+    </div>
+  `;
 
-      const acceptBtn = card.querySelector(".accept-btn");
-      acceptBtn.addEventListener("click", async () => {
-        try {
-          const confirmAccept = confirm(
-            `Are you sure you want to accept ${appt.patientName}'s appointment?`
-          );
-          if (!confirmAccept) return; // Stop if user cancels
+  const rescheduleBtn = card.querySelector(".reschedule-btn");
+  rescheduleBtn.addEventListener("click", () => {
+    document.getElementById("rescheduleApptId").value = appt.id;
+    document.getElementById("newDate").value = appt.day; // default to current date
+    document.getElementById("newSlot").value = appt.slot; // default to current slot
+  });
 
-          const ref = doc(db, "appointments", appt.id);
-          await updateDoc(ref, { status: "accepted" });
+  col.appendChild(card);
+  row.appendChild(col);
+});
 
-          // Remove card from pending list
-          col.remove();
-
-          // Reload accepted appointments
-          loadAcceptedAppointments();
-        } catch (error) {
-          console.error(error);
-          alert("Error accepting appointment.");
-        }
-      });
-
-      col.appendChild(card);
-      row.appendChild(col);
-    });
 
     container.appendChild(daySection);
   });
 }
+
+document.getElementById("rescheduleForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const apptId = document.getElementById("rescheduleApptId").value;
+  const newDate = document.getElementById("newDate").value; // YYYY-MM-DD
+  const newSlot = document.getElementById("newSlot").value;
+
+  // Calculate weekday
+  const dateObj = new Date(newDate);
+  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const newWeekday = weekdays[dateObj.getDay()];
+
+  try {
+    const ref = doc(db, "appointments", apptId);
+    await updateDoc(ref, {
+      day: newDate,
+      slot: newSlot,
+      weekday: newWeekday,
+      status: "in queue" // optional: keep it in queue
+    });
+
+    alert("Appointment rescheduled successfully!");
+
+    // Close the modal
+    const modalEl = document.getElementById("rescheduleModal");
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+
+    // Reload appointments
+    loadPatientAppointments();
+  } catch (error) {
+    console.error(error);
+    alert("Error rescheduling appointment.");
+  }
+});
+
+
+
 async function loadAcceptedAppointments() {
   const container = document.getElementById("accepted-appointments-container");
   container.innerHTML = `<p class="text-center text-muted">Loading...</p>`;
@@ -310,8 +339,9 @@ async function loadAcceptedAppointments() {
         <p class="card-text mb-1"><i class="bi bi-clock"></i> ${appt.slot}</p>
         <p class="card-text mb-1"><strong>With:</strong> ${appt.staffName}</p>
         <p class="card-text mb-1"><strong>Reason:</strong> ${appt.reason}</p>
-        <div class="mt-auto d-flex justify-content-end pt-2">
+        <div class="mt-auto d-flex justify-content-end gap-2 pt-2">
           <button class="btn btn-success btn-sm done-btn">Done</button>
+          <button class="btn btn-warning btn-sm no-show-btn">No Show</button>
         </div>
       </div>
     `;
@@ -326,23 +356,41 @@ async function loadAcceptedAppointments() {
         const confirmDone = confirm(
           `Mark ${appt.patientName}'s appointment as finished?`
         );
-        if (!confirmDone) return; // Stop if user cancels
+        if (!confirmDone) return;
 
-        const ref = doc(db, "appointments", docSnap.id); // docSnap from accepted appt
+        const ref = doc(db, "appointments", docSnap.id);
         await updateDoc(ref, { status: "finished" });
 
-        // Remove card from accepted appointments
         acceptedCol.remove();
-
-        // Reload finished appointments table
         loadFinishedAppointments();
       } catch (error) {
         console.error(error);
         alert("Error marking appointment as done.");
       }
     });
+
+    // No Show button
+    const noShowBtn = acceptedCard.querySelector(".no-show-btn");
+    noShowBtn.addEventListener("click", async () => {
+      try {
+        const confirmNoShow = confirm(
+          `Mark ${appt.patientName}'s appointment as No Show?`
+        );
+        if (!confirmNoShow) return;
+
+        const ref = doc(db, "appointments", docSnap.id);
+        await updateDoc(ref, { status: "no show" });
+
+        acceptedCol.remove();
+        loadNoShowAppointments(); // Reload No Show appointments table
+      } catch (error) {
+        console.error(error);
+        alert("Error marking appointment as no show.");
+      }
+    });
   });
 }
+
 async function loadFinishedAppointments() {
   const tbody = document.getElementById("finished-appointments-body");
   tbody.innerHTML = `
@@ -397,6 +445,115 @@ async function loadFinishedAppointments() {
   }
 }
 
+// 🔹 Load Canceled Appointments
+async function loadCanceledAppointments() {
+  const tbody = document.getElementById("canceled-appointments-body");
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" class="text-center text-muted p-3">Loading...</td>
+    </tr>
+  `;
+
+  try {
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "canceled")
+    );
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted p-3">
+            No canceled appointments yet
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = ""; // Clear loading
+
+    snap.forEach((docSnap) => {
+      const appt = docSnap.data();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${appt.patientName}</td>
+        <td>${appt.staffName}</td>
+        <td>${appt.day} (${appt.weekday})</td>
+        <td>${appt.slot}</td>
+        <td>${appt.reason}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error(error);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-danger p-3">
+          Error loading canceled appointments
+        </td>
+      </tr>
+    `;
+  }
+}
+
+// 🔹 Load No-Show Appointments
+async function loadNoShowAppointments() {
+  const tbody = document.getElementById("no-show-appointments-body");
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" class="text-center text-muted p-3">Loading...</td>
+    </tr>
+  `;
+
+  try {
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "no show")
+    );
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted p-3">
+            No no-show appointments yet
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = ""; // Clear loading
+
+    snap.forEach((docSnap) => {
+      const appt = docSnap.data();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${appt.patientName}</td>
+        <td>${appt.staffName}</td>
+        <td>${appt.day} (${appt.weekday})</td>
+        <td>${appt.slot}</td>
+        <td>${appt.reason}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error(error);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-danger p-3">
+          Error loading no-show appointments
+        </td>
+      </tr>
+    `;
+  }
+}
+
+// 🔹 Call them all at once
 loadFinishedAppointments();
+loadCanceledAppointments();
+loadNoShowAppointments();
 loadAcceptedAppointments();
 loadPatientAppointments();
