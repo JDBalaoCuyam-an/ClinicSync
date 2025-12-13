@@ -251,12 +251,17 @@
                     <div class="col-md-6 col-lg-4">
                       <div class="mb-3">
                         <label class="form-label">Civil Status</label>
-                        <input
-                          type="text"
-                          class="form-control info-field"
+                        <select
+                          class="form-select info-field"
+                          name=""
                           id="civilStatus"
                           disabled
-                        />
+                        >
+                          <option value="Single">Single</option>
+                          <option value="Married">Married</option>
+                          <option value="Widowed">Widowed</option>
+                          <option value="Divorced">Divorced</option>
+                        </select>
                       </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
@@ -314,9 +319,7 @@
                           <option value="">Select Department</option>
                           <option value="CABM">CABM</option>
                           <option value="CCJE">CCJE</option>
-                          <option value="CIT">
-                            CIT
-                          </option>
+                          <option value="CIT">CIT</option>
                           <option value="COT">COT</option>
                           <option value="TTED">TTED</option>
                           <option value="CTE">CTE</option>
@@ -405,12 +408,25 @@
                     <div class="col-md-6 col-lg-4">
                       <div class="mb-3">
                         <label class="form-label">Year Level</label>
-                        <input
-                          type="number"
-                          class="form-control info-field"
+                        <select
+                          class="form-select info-field"
                           id="yearLevel"
                           disabled
-                        />
+                        >
+                          <option value="">Select Year</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                          <option value="5">5</option>
+                          <option value="6">6</option>
+                          <option value="7">7</option>
+                          <option value="8">8</option>
+                          <option value="9">9</option>
+                          <option value="10">10</option>
+                          <option value="11">11</option>
+                          <option value="12">12</option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -631,12 +647,28 @@
           </div>
 
           <div class="card">
-            <div class="card-header">
-              <h2 class="h4 text-primary mb-0">My Appointments</h2>
+            <div
+              class="card-header d-flex justify-content-between align-items-center"
+              style="cursor: pointer"
+              data-bs-toggle="collapse"
+              data-bs-target="#appointmentsCardBody"
+              aria-expanded="true"
+              aria-controls="appointmentsCardBody"
+            >
+              <h2 class="h4 text-primary mb-0">
+                My Appointments
+                <span id="appointments-count" class="badge bg-secondary ms-2"
+                  >0</span
+                >
+              </h2>
+              <span class="collapse-icon">▼</span>
             </div>
-            <div class="card-body">
-              <div class="row" id="appointments-list">
-                <!-- Appointments will be populated by JavaScript -->
+
+            <div class="collapse show" id="appointmentsCardBody">
+              <div class="card-body">
+                <div class="row" id="appointments-list">
+                  <!-- Appointments will be populated by JavaScript -->
+                </div>
               </div>
             </div>
           </div>

@@ -159,6 +159,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 /* Load Staff */
+/* Load Staff */
 async function loadStaff() {
   try {
     const q = query(
@@ -186,25 +187,41 @@ async function loadStaff() {
       colDiv.className = "col-12 col-md-6 col-lg-4 d-flex";
 
       colDiv.innerHTML = `
-        <div class="staff-card p-3 mb-3 shadow-sm rounded flex-fill" style="cursor:pointer;">
-          <p class="mb-1 fw-bold">${fullName}</p>
-          <p class="m-0 text-secondary">${
-            data.user_type === "doctor" ? "Doctor" : "Nurse"
-          }</p>
-          ${
-            data.user_type === "doctor"
-              ? `<p class="m-0 text-primary">Specialization: ${
-                  data.doctor_type ?? "(none yet)"
-                }</p>`
-              : ""
-          }
+        <div class="staff-card p-3 mb-3 border shadow-md rounded flex-fill">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="mb-1 fw-bold">${fullName}</p>
+              <p class="m-0 text-secondary">
+                ${data.user_type === "doctor" ? "Doctor" : "Nurse"}
+              </p>
+              ${
+                data.user_type === "doctor"
+                  ? `<p class="m-0 text-primary">
+                      Specialization: ${data.doctor_type ?? "(none yet)"}
+                    </p>`
+                  : ""
+              }
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-primary book-appt-btn"
+            >
+              Book
+            </button>
+          </div>
+
           ${availabilityHtml}
         </div>
       `;
 
+      // ✅ BUTTON CLICK (THIS IS THE IMPORTANT PART)
       colDiv
-        .querySelector(".staff-card")
-        .addEventListener("click", () => openAppointmentModal(id, fullName));
+        .querySelector(".book-appt-btn")
+        .addEventListener("click", () => {
+          console.log("Opening appointment modal for:", fullName);
+          openAppointmentModal(id, fullName);
+        });
 
       staffList.appendChild(colDiv);
     });
@@ -404,6 +421,29 @@ document.getElementById("saveAppointment").addEventListener("click", async () =>
   }
 });
 
+function getStatusBadge(status) {
+  switch (status) {
+    case "in Queue":
+      return `<span class="badge bg-warning text-dark">In Queue</span>`;
+    case "accepted":
+      return `<span class="badge bg-primary">Accepted</span>`;
+    case "finished":
+      return `<span class="badge bg-success">Finished</span>`;
+    case "canceled":
+      return `<span class="badge bg-danger">Canceled</span>`;
+    case "no Show":
+      return `<span class="badge bg-secondary">No Show</span>`;
+    default:
+      return `<span class="badge bg-light text-dark">${status}</span>`;
+  }
+}
+const STATUS_PRIORITY = {
+  "accepted": 1,
+  "in queue": 2,
+  "finished": 3,
+  "no show": 4,
+  "canceled": 5,
+};
 
 function loadPatientAppointments() {
   const list = document.getElementById("appointments-list");
@@ -427,24 +467,54 @@ function loadPatientAppointments() {
       return;
     }
 
+    // 🔹 Convert snapshot to array
+    const appointments = snap.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+
+    // 🔹 SORT BY STATUS PRIORITY
+    appointments.sort((a, b) => {
+      return (
+        (STATUS_PRIORITY[a.status] || 99) -
+        (STATUS_PRIORITY[b.status] || 99)
+      );
+    });
+const countBadge = document.getElementById("appointments-count");
+countBadge.textContent = appointments.length;
     list.innerHTML = "";
 
-    snap.forEach((docSnap) => {
-      const appt = docSnap.data();
-
+    appointments.forEach((appt) => {
       const div = document.createElement("div");
       div.className = "col-12 mb-3";
 
-      // Combine day and weekday for display
       const dayWithWeekday = `${appt.day} (${appt.weekday})`;
+      const canCancel = ["in queue", "accepted"].includes(appt.status);
 
       div.innerHTML = `
-        <div class="p-3 border rounded shadow-sm">
+        <div class="p-3 border rounded shadow-sm d-flex flex-column gap-1 ">
           <h5 class="mb-1 text-primary">${dayWithWeekday}</h5>
+
           <p class="m-0"><strong>Time:</strong> ${appt.slot}</p>
           <p class="m-0"><strong>Doc./Nurse:</strong> ${appt.staffName}</p>
           <p class="m-0"><strong>Reason:</strong> ${appt.reason}</p>
-          <pclass="m-0"><strong>Status:</strong>In Queue</pclass=>
+
+          <p class="m-0">
+            <strong>Status:</strong> ${getStatusBadge(appt.status)}
+          </p>
+
+          ${
+            canCancel
+              ? `
+                <button
+                  class="btn btn-sm btn-outline-danger mt-2 cancel-appt-btn"
+                  data-id="${appt.id}"
+                >
+                  ❌ Cancel Appointment
+                </button>
+              `
+              : ""
+          }
         </div>
       `;
 
@@ -453,6 +523,33 @@ function loadPatientAppointments() {
   });
 }
 
-
 // Call the function once at page load
 loadPatientAppointments();
+
+document
+  .getElementById("appointments-list")
+  .addEventListener("click", async (e) => {
+    const btn = e.target.closest(".cancel-appt-btn");
+    if (!btn) return;
+
+    const apptId = btn.dataset.id;
+
+    const confirmed = confirm(
+      "Are you sure you want to cancel this appointment?\nThis action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await updateDoc(doc(db, "appointments", apptId), {
+        status: "canceled",
+        canceledAt: new Date(),
+      });
+
+      alert("✅ Appointment successfully canceled");
+      loadPatientAppointments();
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to cancel appointment");
+    }
+  });

@@ -279,8 +279,14 @@
               /></label>
               <label>Age : <input id="age" type="number" disabled /></label>
               <label
-                >Civil Status : <input id="civilStatus" type="text" disabled
-              /></label>
+                >Civil Status :
+                <select name="" id="civilStatus" disabled>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Widowed">Widowed</option>
+                  <option value="Divorced">Divorced</option>
+                </select></label
+              >
               <label
                 >Nationality : <input id="nationality" type="text" disabled
               /></label>
@@ -368,8 +374,23 @@
               </label>
 
               <label
-                >Year Level : <input id="year" type="number" disabled
-              /></label>
+                >Year Level :
+                <select id="year" disabled>
+                  <option value="">Select Year</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="12">12</option>
+                </select></label
+              >
             </div>
 
             <br />
@@ -1445,14 +1466,16 @@
                     </div>
                     <hr />
                     <!-- Medications Section -->
-<div class="mt-4">
-  <label class="form-label">Medications:</label>
-  <div class="d-flex flex-column gap-2 meds-list"></div>
-  <button type="button" class="btn bg-primary text-white btn-sm mt-2 add-med-btn">
-    + Add Medicine
-  </button>
-</div>
-
+                    <div class="mt-4">
+                      <label class="form-label">Medications:</label>
+                      <div class="d-flex flex-column gap-2 meds-list"></div>
+                      <button
+                        type="button"
+                        class="btn bg-primary text-white btn-sm mt-2 add-med-btn"
+                      >
+                        + Add Medicine
+                      </button>
+                    </div>
 
                     <!-- Notes -->
                     <div class="mb-3">
