@@ -15,7 +15,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -339,12 +339,7 @@ editHistoryBtn.addEventListener("click", async () => {
         console.log("New medical history created.");
       }
       // ✅ Save edit log in subcollection
-      const editLogRef = collection(
-        db,
-        "users",
-        patientId,
-        "editLogs"
-      );
+      const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
         message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
           "en-US",
@@ -863,12 +858,7 @@ document
       }
 
       // ✅ Save edit log in subcollection
-      const editLogRef = collection(
-        db,
-        "users",
-        patientId,
-        "editLogs"
-      );
+      const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
         message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
           "en-US",
@@ -903,7 +893,7 @@ document
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
 ------------------------------------------------ */
-let currentConsultationId = null; 
+let currentConsultationId = null;
 
 async function loadConsultations() {
   const tableBody = document.querySelector(
@@ -1053,30 +1043,25 @@ editOverviewBtn.addEventListener("click", async () => {
     );
 
     await updateDoc(consultRef, updatedData);
-    
-      // ✅ Save edit log in subcollection
-      const editLogRef = collection(
-        db,
-        "users",
-        patientId,
-        "editLogs"
-      );
-      await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
-          "en-US",
-          {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }
-        )}`,
-        timestamp: new Date(),
-        editor: currentUserName,
-        section: "Medical Consultation Record",
-      });
+
+    // ✅ Save edit log in subcollection
+    const editLogRef = collection(db, "users", patientId, "editLogs");
+    await addDoc(editLogRef, {
+      message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+        "en-US",
+        {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }
+      )}`,
+      timestamp: new Date(),
+      editor: currentUserName,
+      section: "Medical Consultation Record",
+    });
     alert("✅ Consultation updated!");
 
     exitEditMode();
@@ -1397,12 +1382,7 @@ document
       );
       await addDoc(examRef, physicalData);
       // ✅ Save edit log in subcollection
-      const editLogRef = collection(
-        db,
-        "users",
-        patientId,
-        "editLogs"
-      );
+      const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
         message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
           "en-US",
@@ -1649,28 +1629,23 @@ editExamBtn.addEventListener("click", async () => {
 
     await updateDoc(examRef, updatedExam);
     // ✅ Save edit log in subcollection
-      const editLogRef = collection(
-        db,
-        "users",
-        patientId,
-        "editLogs"
-      );
-      await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
-          "en-US",
-          {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }
-        )}`,
-        timestamp: new Date(),
-        editor: currentUserName,
-        section: "Physical Examination",
-      });
+    const editLogRef = collection(db, "users", patientId, "editLogs");
+    await addDoc(editLogRef, {
+      message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+        "en-US",
+        {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }
+      )}`,
+      timestamp: new Date(),
+      editor: currentUserName,
+      section: "Physical Examination",
+    });
     alert("✅ Physical examination updated successfully!");
 
     // 🔒 Disable again
@@ -1705,10 +1680,7 @@ document
     };
 
     try {
-      await addDoc(
-        collection(db, "users", patientId, "vitals"),
-        data
-      );
+      await addDoc(collection(db, "users", patientId, "vitals"), data);
 
       const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
@@ -1738,13 +1710,11 @@ document
       e.target.reset();
 
       loadVitals();
-
     } catch (err) {
       console.error(err);
       alert("Failed to save vitals");
     }
   });
-
 
 /* -----------------------------------------------
    Load Vitals
@@ -1823,10 +1793,7 @@ document
     };
 
     try {
-      await addDoc(
-        collection(db, "users", patientId, "doctorNotes"),
-        data
-      );
+      await addDoc(collection(db, "users", patientId, "doctorNotes"), data);
 
       bootstrap.Modal.getInstance(
         document.getElementById("doctorNotesModal")
@@ -1840,7 +1807,7 @@ document
     }
   });
 
-  async function loadDoctorNotes() {
+async function loadDoctorNotes() {
   const container = document.getElementById("doctor-notes-list");
   if (!container) return;
 
@@ -1900,7 +1867,7 @@ loadDoctorNotes();
 /* -----------------------------------------------
      Nurse Notes
   ----------------------------------------------- */
-  document
+document
   .getElementById("addNurseNoteForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1908,22 +1875,18 @@ loadDoctorNotes();
     const note = document.getElementById("nurse-note-text").value;
 
     try {
-      await addDoc(
-        collection(db, "users", patientId, "nurseNotes"),
-        {
-          note,
-          nurseName: currentUserName,
-          createdAt: serverTimestamp(),
-        }
-      );
+      await addDoc(collection(db, "users", patientId, "nurseNotes"), {
+        note,
+        nurseName: currentUserName,
+        createdAt: serverTimestamp(),
+      });
 
-      bootstrap.Modal
-        .getInstance(document.getElementById("nurseNoteModal"))
-        .hide();
+      bootstrap.Modal.getInstance(
+        document.getElementById("nurseNoteModal")
+      ).hide();
 
       e.target.reset();
       loadNurseNotes();
-
     } catch (err) {
       console.error(err);
       alert("Failed to save nurse note");
@@ -1970,16 +1933,17 @@ async function loadNurseNotes() {
           </p>
 
           <small class="text-muted">
-            ${data.createdAt?.toDate
-              ? data.createdAt.toDate().toLocaleString()
-              : ""}
+            ${
+              data.createdAt?.toDate
+                ? data.createdAt.toDate().toLocaleString()
+                : ""
+            }
           </small>
         </div>
       `;
 
       container.appendChild(card);
     });
-
   } catch (err) {
     console.error("Error loading nurse notes:", err);
     container.innerHTML = `
@@ -1990,6 +1954,88 @@ async function loadNurseNotes() {
   }
 }
 loadNurseNotes();
+/* -----------------------------------------------
+     Dental records
+  ----------------------------------------------- */
+document
+  .getElementById("addDentalForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const teeth = Array.from(
+      document.getElementById("d-teeth").selectedOptions
+    ).map((opt) => Number(opt.value));
+
+    const data = {
+      procedure: document.getElementById("d-procedure").value,
+      teeth,
+      notes: document.getElementById("d-notes").value || null,
+      dentist: currentUserName,
+      createdAt: new Date(),
+    };
+
+    try {
+      await addDoc(collection(db, "users", patientId, "dentalRecords"), data);
+
+      bootstrap.Modal.getInstance(
+        document.getElementById("dentalModal")
+      ).hide();
+
+      e.target.reset();
+      loadDentalRecords();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save dental record");
+    }
+  });
+
+async function loadDentalRecords() {
+  const container = document.getElementById("dental-records-container");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  try {
+    const ref = collection(db, "users", patientId, "dentalRecords");
+    const snap = await getDocs(ref);
+
+    if (snap.empty) {
+      container.innerHTML = `
+        <div class="text-muted">No dental records found</div>
+      `;
+      return;
+    }
+
+    snap.forEach((docSnap) => {
+      const d = docSnap.data();
+
+      const card = document.createElement("div");
+      card.className = "card shadow-sm";
+      card.style.width = "18rem";
+
+      card.innerHTML = `
+        <div class="card-body">
+          <h5 class="card-title">🦷 ${d.procedure}</h5>
+          <p class="mb-1"><strong>Teeth:</strong> ${d.teeth?.join(", ")}</p>
+          <p class="mb-1"><strong>Dentist:</strong> ${d.dentist}</p>
+          <p class="mb-2"><strong>Date:</strong> ${
+            d.createdAt?.toDate
+              ? d.createdAt.toDate().toLocaleDateString()
+              : "-"
+          }</p>
+          <p class="card-text text-muted">${d.notes || "No notes"}</p>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Error loading dental records:", err);
+    container.innerHTML = `<div class="text-danger">Failed to load records</div>`;
+  }
+}
+loadDentalRecords();
+
 /* -----------------------------------------------
      🔹 INITIAL LOAD
   ----------------------------------------------- */
@@ -2568,56 +2614,55 @@ async function exportPatientPDF() {
   }
 }
 
-
 /* -----------------------------------------------
    Logs Loading Functions
 ------------------------------------------------ */
 // Load and listen to user-level edit logs for Medical History
-  function loadMedicalHistoryLogs(patientId) {
-    const logsRef = collection(db, "users", patientId, "editLogs");
+function loadMedicalHistoryLogs(patientId) {
+  const logsRef = collection(db, "users", patientId, "editLogs");
 
-    const logsList = document.getElementById("medical-history-logs");
-    const countBadge = document.getElementById("medical-history-logs-count");
+  const logsList = document.getElementById("medical-history-logs");
+  const countBadge = document.getElementById("medical-history-logs-count");
 
-    onSnapshot(logsRef, (snapshot) => {
-      logsList.innerHTML = ""; // Clear previous list
+  onSnapshot(logsRef, (snapshot) => {
+    logsList.innerHTML = ""; // Clear previous list
 
-      if (snapshot.empty) {
-        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
-        countBadge.textContent = 0;
-        return;
+    if (snapshot.empty) {
+      logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+      countBadge.textContent = 0;
+      return;
+    }
+
+    let logs = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      // ✅ Only include logs with section "Medical History"
+      if (data.section === "Medical History") {
+        logs.push(data);
       }
-
-      let logs = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        // ✅ Only include logs with section "Medical History"
-        if (data.section === "Medical History") {
-          logs.push(data);
-        }
-      });
-
-      if (logs.length === 0) {
-        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
-        countBadge.textContent = 0;
-        return;
-      }
-
-      // Sort by timestamp descending (latest first)
-      logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
-
-      // Populate the list
-      logs.forEach((log) => {
-        const li = document.createElement("li");
-        li.classList.add("list-group-item");
-        li.textContent = log.message;
-        logsList.appendChild(li);
-      });
-
-      // Update badge count
-      countBadge.textContent = logs.length;
     });
-  }
+
+    if (logs.length === 0) {
+      logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+      countBadge.textContent = 0;
+      return;
+    }
+
+    // Sort by timestamp descending (latest first)
+    logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+    // Populate the list
+    logs.forEach((log) => {
+      const li = document.createElement("li");
+      li.classList.add("list-group-item");
+      li.textContent = log.message;
+      logsList.appendChild(li);
+    });
+
+    // Update badge count
+    countBadge.textContent = logs.length;
+  });
+}
 
 function loadMedicalConsultationLogs(patientId) {
   const logsRef = collection(db, "users", patientId, "editLogs");
@@ -2665,104 +2710,103 @@ function loadMedicalConsultationLogs(patientId) {
   });
 }
 
+function loadPhysicalExaminationLogs(patientId) {
+  const logsRef = collection(db, "users", patientId, "editLogs");
 
-  function loadPhysicalExaminationLogs(patientId) {
-    const logsRef = collection(db, "users", patientId, "editLogs");
+  const logsList = document.getElementById("physical-examination-history");
+  const countBadge = document.getElementById("physical-examination-logs-count");
 
-    const logsList = document.getElementById("physical-examination-history");
-    const countBadge = document.getElementById("physical-examination-logs-count");
+  onSnapshot(logsRef, (snapshot) => {
+    logsList.innerHTML = ""; // Clear previous list
 
-    onSnapshot(logsRef, (snapshot) => {
-      logsList.innerHTML = ""; // Clear previous list
+    if (snapshot.empty) {
+      logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+      countBadge.textContent = 0;
+      return;
+    }
 
-      if (snapshot.empty) {
-        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
-        countBadge.textContent = 0;
-        return;
+    let logs = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      // ✅ Only include logs with section "Physical Examination"
+      if (data.section === "Physical Examination") {
+        logs.push(data);
       }
-
-      let logs = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        // ✅ Only include logs with section "Physical Examination"
-        if (data.section === "Physical Examination") {
-          logs.push(data);
-        }
-      });
-
-      if (logs.length === 0) {
-        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
-        countBadge.textContent = 0;
-        return;
-      }
-
-      // Sort by timestamp descending (latest first)
-      logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
-
-      // Populate the list
-      logs.forEach((log) => {
-        const li = document.createElement("li");
-        li.classList.add("list-group-item");
-        li.textContent = log.message;
-        logsList.appendChild(li);
-      });
-
-      // Update badge count
-      countBadge.textContent = logs.length;
     });
-  }
+
+    if (logs.length === 0) {
+      logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+      countBadge.textContent = 0;
+      return;
+    }
+
+    // Sort by timestamp descending (latest first)
+    logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+    // Populate the list
+    logs.forEach((log) => {
+      const li = document.createElement("li");
+      li.classList.add("list-group-item");
+      li.textContent = log.message;
+      logsList.appendChild(li);
+    });
+
+    // Update badge count
+    countBadge.textContent = logs.length;
+  });
+}
 function loadVitalsLogs(patientId) {
-    const logsRef = collection(db, "users", patientId, "editLogs");
+  const logsRef = collection(db, "users", patientId, "editLogs");
 
-    const logsList = document.getElementById("vitals-action-history");
-    const countBadge = document.getElementById("vitals-logs-count");
+  const logsList = document.getElementById("vitals-action-history");
+  const countBadge = document.getElementById("vitals-logs-count");
 
-    onSnapshot(logsRef, (snapshot) => {
-      logsList.innerHTML = ""; // Clear previous list
+  onSnapshot(logsRef, (snapshot) => {
+    logsList.innerHTML = ""; // Clear previous list
 
-      if (snapshot.empty) {
-        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
-        countBadge.textContent = 0;
-        return;
+    if (snapshot.empty) {
+      logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+      countBadge.textContent = 0;
+      return;
+    }
+
+    let logs = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      // ✅ Only include logs with section "Physical Examination"
+      if (data.section === "Vitals") {
+        logs.push(data);
       }
-
-      let logs = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        // ✅ Only include logs with section "Physical Examination"
-        if (data.section === "Vitals") {
-          logs.push(data);
-        }
-      });
-
-      if (logs.length === 0) {
-        logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
-        countBadge.textContent = 0;
-        return;
-      }
-
-      // Sort by timestamp descending (latest first)
-      logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
-
-      // Populate the list
-      logs.forEach((log) => {
-        const li = document.createElement("li");
-        li.classList.add("list-group-item");
-        li.textContent = log.message;
-        logsList.appendChild(li);
-      });
-
-      // Update badge count
-      countBadge.textContent = logs.length;
     });
-  }
-  // Example call after page load or after adding a new Physical Exam log
-  loadPhysicalExaminationLogs(patientId);
 
-  // Example call after page load or after creating a new log
-  loadMedicalConsultationLogs(patientId);
-  
-  // Example call after page load or after adding a new Medical History log
-  loadMedicalHistoryLogs(patientId);
+    if (logs.length === 0) {
+      logsList.innerHTML = `<li class="list-group-item text-muted">No actions yet</li>`;
+      countBadge.textContent = 0;
+      return;
+    }
 
-  loadVitalsLogs(patientId);
+    // Sort by timestamp descending (latest first)
+    logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+    // Populate the list
+    logs.forEach((log) => {
+      const li = document.createElement("li");
+      li.classList.add("list-group-item");
+      li.textContent = log.message;
+      logsList.appendChild(li);
+    });
+
+    // Update badge count
+    countBadge.textContent = logs.length;
+  });
+}
+// Example call after page load or after adding a new Physical Exam log
+loadPhysicalExaminationLogs(patientId);
+
+// Example call after page load or after creating a new log
+loadMedicalConsultationLogs(patientId);
+
+// Example call after page load or after adding a new Medical History log
+loadMedicalHistoryLogs(patientId);
+
+loadVitalsLogs(patientId);
