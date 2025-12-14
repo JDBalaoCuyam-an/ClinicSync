@@ -818,6 +818,7 @@ document
         patientId,
         complaint: consultData.complaint,
         consultationId: consultationId,
+        date: consultData.date,
       });
 
       // ✅ Deduct medicine stock

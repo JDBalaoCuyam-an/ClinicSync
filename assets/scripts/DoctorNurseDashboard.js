@@ -250,386 +250,126 @@ applyFilterBtn.addEventListener("click", loadVisitsChart);
 loadVisitsChart();
 
 
-
-// Attach all filters
-// [dateFromInput, dateToInput, departmentInput, courseInput, yearLevelInput].forEach(el =>
-//   el.addEventListener("change", loadVisitsChart)
-// );
-
-
 /* ===========================================
 Chief Complaints Chart
 =========================================== */
-let complaintsChart;
-const complaintsCtx = document
-  .getElementById("complaintsChart")
-  .getContext("2d");
+// Set default year range
+const startDateInput = document.getElementById("startDateFilter");
+const endDateInput = document.getElementById("endDateFilter");
 
 const deptFilter = document.getElementById("departmentComplaintFilter");
 const courseFilter = document.getElementById("courseComplaintFilter");
-const startDateFilter = document.getElementById("startDateFilter");
-const endDateFilter = document.getElementById("endDateFilter");
-
 const yearLevelFilter = document.getElementById("yearLevelComplaintFilter");
 
-/* ===============================
-   PRELOAD PATIENTS (1-time only)
-=============================== */
-let patientCache = null;
+const currentYearComplaints = new Date().getFullYear();
+startDateInput.value = `${currentYearComplaints}-01-01`;
+endDateInput.value = `${currentYearComplaints}-12-31`;
 
-async function loadAllPatientsOnce() {
-  if (patientCache) return patientCache;
+// Initial load
+loadChiefComplaintChart();
 
-  const snap = await getDocs(collection(db, "patients"));
+let chiefComplaintChart;
 
-  const map = {};
-  snap.forEach((doc) => {
-    map[doc.id] = doc.data();
-  });
+async function loadChiefComplaintChart() {
+  const startDate = startDateInput.value;
+  const endDate = endDateInput.value;
 
-  patientCache = map;
-  return map;
-}
+  const department = deptFilter.value;
+  const course = courseFilter.value;
+  const yearLevel = yearLevelFilter.value;
 
-/* ===============================
-   LOAD + FILTER COMPLAINTS
-=============================== */
-async function loadComplaints(
-  departmentFilter = "all-dept",
-  courseFilterValue = "all-course-strand-genEduc",
-  yearLevelValue = "all-yearLevel"
-) {
-  try {
-    // ==============================
-    // 1️⃣ Read FROM–TO Date Filters
-    // ==============================
-    const start = startDateFilter.value
-      ? new Date(startDateFilter.value + "T00:00:00")
-      : new Date("1970-01-01");
+  const complaintSnap = await getDocs(collection(db, "complaintRecords"));
 
-    const end = endDateFilter.value
-      ? new Date(endDateFilter.value + "T23:59:59")
-      : new Date();
+  const complaintCounts = {};
 
-    // ==============================
-    // 2️⃣ Load all patients (cached)
-    // ==============================
-    const patients = await loadAllPatientsOnce();
+  for (const docSnap of complaintSnap.docs) {
+    const data = docSnap.data();
 
-    // ==============================
-    // 3️⃣ Load complaints collection
-    // ==============================
-    const complaintSnap = await getDocs(collection(db, "complaintRecords"));
+    if (!data.complaint || !data.date || !data.patientId) continue;
 
-    const complaintCounts = {};
+    // 🔹 Date filter (string-based, safe)
+    if (startDate && data.date < startDate) continue;
+    if (endDate && data.date > endDate) continue;
 
-    for (const rec of complaintSnap.docs) {
-      const { patientId, consultationId } = rec.data();
-      if (!patientId || !consultationId) continue;
+    // 🔹 Get patient (user) data
+    const userRef = doc(db, "users", data.patientId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) continue;
 
-      const patient = patients[patientId] || {};
+    const user = userSnap.data();
 
-      // Department filter
-      if (
-        departmentFilter !== "all-dept" &&
-        patient.department !== departmentFilter
-      )
-        continue;
+    // 🔹 Only students & employees
+    if (!["student", "employee"].includes(user.user_type)) continue;
 
-      // Course filter
-      if (
-        courseFilterValue !== "all-course-strand-genEduc" &&
-        patient.course !== courseFilterValue
-      )
-        continue;
+    // 🔹 Department filter
+    if (department !== "all-dept" && user.department !== department) continue;
 
-      // Year Level filter
-      if (
-        yearLevelValue !== "all-yearLevel" &&
-        String(patient.year) !== String(yearLevelValue)
-      )
-        continue;
+    // 🔹 Course filter
+    if (
+      course !== "all-course-strand-genEduc" &&
+      user.course !== course
+    ) continue;
 
-      // ==============================
-      // 4️⃣ Load consultation document
-      // ==============================
-      const consultRef = doc(
-        db,
-        "patients",
-        patientId,
-        "consultations",
-        consultationId
-      );
-      const consultSnap = await getDoc(consultRef);
-      if (!consultSnap.exists()) continue;
+    // 🔹 Year level filter
+    if (
+      yearLevel !== "all-yearLevel" &&
+      String(user.yearLevel) !== yearLevel
+    ) continue;
 
-      const consultData = consultSnap.data();
+    // 🔹 Count complaint
+    const complaintName = data.complaint.trim();
 
-      const dateStr = consultData.date;
-      const timeStr = consultData.time;
-      if (!dateStr || !timeStr) continue;
-
-      const recordDate = new Date(`${dateStr}T${timeStr}:00`);
-      if (isNaN(recordDate)) continue;
-
-      // ==============================
-      // 5️⃣ Date Range Filter (From – To)
-      // ==============================
-      if (recordDate < start || recordDate > end) continue;
-
-      // ==============================
-      // 6️⃣ Count complaint
-      // ==============================
-      const complaint = (consultData.complaint || "").trim();
-      if (!complaint) continue;
-
-      complaintCounts[complaint] = (complaintCounts[complaint] || 0) + 1;
-    }
-
-    renderComplaintsChart(
-      Object.keys(complaintCounts),
-      Object.values(complaintCounts)
-    );
-  } catch (err) {
-    console.error("❌ Error loading complaints:", err);
-  }
-}
-// ========================
-// ✅ DYNAMIC COMPLAINT FILTER: DEPT → COURSE → YEAR
-// ========================
-const deptComplaint = document.getElementById("departmentComplaintFilter");
-const courseComplaint = document.getElementById("courseComplaintFilter");
-const yearComplaint = document.getElementById("yearLevelComplaintFilter");
-
-// ✅ Store original options
-const allDeptComplaintOptions = Array.from(deptComplaint.options);
-const allCourseComplaintOptions = Array.from(courseComplaint.options);
-const allYearComplaintOptions = Array.from(yearComplaint.options);
-
-// ✅ Department → Courses mapping
-const departmentCoursesComplaint = {
-  basiced: [
-    "Kindergarten",
-    "Elementary",
-    "Junior Highschool",
-    "Accountancy and Business Management",
-    "Science, Technology, Engineering, and Mathematics",
-    "Humanities and Sciences",
-  ],
-  cabm: [
-    "Bachelor of Science in Accountancy",
-    "Bachelor of Science in Office Administration",
-    "Bachelor of Science in Hospitality Management",
-    "Bachelor of Science in Business Administration",
-  ],
-  cte: [
-    "Bachelor of Elementary Education",
-    "Bachelor of Science in Psychology",
-    "Bachelor of Science in Social Work",
-    "Bachelor of Secondary Education",
-    "Technical Vocational Teacher Education",
-  ],
-  cit: ["Bachelor of Science in Information Technology"],
-  tted: ["NC1 NC2 NC3"],
-  cot: ["Bachelor of Theology"],
-  ccje: ["Bachelor of Science in Criminology"],
-  visitor: ["Visitor"],
-};
-
-// ✅ Course → Year Levels mapping
-const courseYearsComplaint = {
-  "Kindergarten": ["1","2"],
-  "Elementary": ["1","2","3","4","5","6"],
-  "Junior Highschool": ["7","8","9","10"],
-  "Accountancy and Business Management": ["11","12"],
-  "Science, Technology, Engineering, and Mathematics": ["11","12"],
-  "Humanities and Sciences": ["11","12"],
-  "Bachelor of Science in Accountancy": ["1","2","3","4"],
-  "Bachelor of Science in Office Administration": ["1","2","3","4"],
-  "Bachelor of Science in Hospitality Management": ["1","2","3","4"],
-  "Bachelor of Science in Business Administration": ["1","2","3","4"],
-  "Bachelor of Elementary Education": ["1","2","3","4"],
-  "Bachelor of Science in Psychology": ["1","2","3","4"],
-  "Bachelor of Science in Social Work": ["1","2","3","4"],
-  "Bachelor of Secondary Education": ["1","2","3","4"],
-  "Technical Vocational Teacher Education": ["1","2","3"],
-  "Bachelor of Science in Information Technology": ["1","2","3","4"],
-  "NC1 NC2 NC3": ["1","2","3"],
-  "Bachelor of Theology": ["1","2","3","4"],
-  "Bachelor of Science in Criminology": ["1","2","3","4"],
-  "Visitor": ["all-yearLevel"]
-};
-// ========================
-// ✅ Update Course List for Complaint Filter
-// ========================
-function updateComplaintCourseList() {
-  const selectedDept = deptComplaint.value; // store current selection
-
-  // Visitor Case → show only Visitor
-  if (selectedDept.toLowerCase() === "visitor") {
-    deptComplaint.innerHTML = "";
-    courseComplaint.innerHTML = "";
-    yearComplaint.innerHTML = "";
-
-    const visitorDept = allDeptComplaintOptions.find(opt => opt.value === "Visitor");
-    const visitorCourse = allCourseComplaintOptions.find(opt => opt.value === "Visitor");
-    const visitorYear = allYearComplaintOptions.find(opt => opt.value === "all-yearLevel");
-
-    if (visitorDept) deptComplaint.appendChild(visitorDept.cloneNode(true));
-    if (visitorCourse) courseComplaint.appendChild(visitorCourse.cloneNode(true));
-    if (visitorYear) yearComplaint.appendChild(visitorYear.cloneNode(true));
-
-    // Disable all dropdowns
-    deptComplaint.disabled = true;
-    courseComplaint.disabled = true;
-    yearComplaint.disabled = true;
-    return;
+    complaintCounts[complaintName] =
+      (complaintCounts[complaintName] || 0) + 1;
   }
 
-  // Restore dropdowns if previously disabled
-  deptComplaint.disabled = false;
-  courseComplaint.disabled = false;
-  yearComplaint.disabled = false;
-
-  // Restore Departments and preserve selection
-  deptComplaint.innerHTML = "";
-  allDeptComplaintOptions.forEach(opt => deptComplaint.appendChild(opt.cloneNode(true)));
-  deptComplaint.value = selectedDept;
-
-  // Update Courses
-  courseComplaint.innerHTML = "";
-  const defaultCourse = allCourseComplaintOptions.find(opt => opt.value === "all-course-strand-genEduc");
-  if (defaultCourse) courseComplaint.appendChild(defaultCourse.cloneNode(true));
-
-  if (selectedDept === "all-dept" || !departmentCoursesComplaint[selectedDept.toLowerCase()]) {
-    allCourseComplaintOptions.forEach(opt => {
-      if (opt.value !== "all-course-strand-genEduc") courseComplaint.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    const deptKey = selectedDept.toLowerCase();
-    departmentCoursesComplaint[deptKey].forEach(courseName => {
-      const match = allCourseComplaintOptions.find(opt => opt.textContent.trim() === courseName);
-      if (match) courseComplaint.appendChild(match.cloneNode(true));
-    });
-  }
-
-  courseComplaint.value = "all-course-strand-genEduc";
-  updateComplaintYearList();
+  renderChiefComplaintChart(complaintCounts);
 }
 
-// ========================
-// ✅ Update Year List for Complaint Filter
-// ========================
-function updateComplaintYearList() {
-  const selectedCourse = courseComplaint.value;
+function renderChiefComplaintChart(complaintCounts) {
+  const labels = Object.keys(complaintCounts);
+  const values = Object.values(complaintCounts);
 
-  yearComplaint.innerHTML = "";
-  const defaultYear = allYearComplaintOptions.find(opt => opt.value === "all-yearLevel");
-  if (defaultYear) yearComplaint.appendChild(defaultYear.cloneNode(true));
+  const ctx = document
+    .getElementById("chiefComplaintChart")
+    .getContext("2d");
 
-  if (selectedCourse === "all-course-strand-genEduc" || !courseYearsComplaint[selectedCourse]) {
-    allYearComplaintOptions.forEach(opt => {
-      if (opt.value !== "all-yearLevel") yearComplaint.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    courseYearsComplaint[selectedCourse].forEach(yearValue => {
-      const match = allYearComplaintOptions.find(opt => opt.value === yearValue);
-      if (match) yearComplaint.appendChild(match.cloneNode(true));
-    });
-  }
+  if (chiefComplaintChart) chiefComplaintChart.destroy();
 
-  yearComplaint.value = "all-yearLevel";
-}
-
-// ========================
-// ✅ Event Listeners
-// ========================
-deptComplaint.addEventListener("change", updateComplaintCourseList);
-courseComplaint.addEventListener("change", updateComplaintYearList);
-
-
-/* ===============================
-   RENDER BAR CHART
-=============================== */
-function renderComplaintsChart(labels, values) {
-  if (complaintsChart) complaintsChart.destroy();
-
-  const total = values.reduce((a, b) => a + b, 0);
-
-  complaintsChart = new Chart(complaintsCtx, {
+  chiefComplaintChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels,
       datasets: [
         {
-          label: "No. of Complaints",
+          label: "Chief Complaint Count",
           data: values,
-          backgroundColor: "rgba(54, 162, 235, 0.7)",
-          borderRadius: 6,
-        },
-      ],
+          borderWidth: 1
+        }
+      ]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
-
       plugins: {
-        legend: { display: false },
-        title: { display: true, text: "Chief Complaints" },
-
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const value = context.raw;
-              const percent =
-                total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-
-              return `Count: ${value} (${percent}%)`;
-            },
-          },
-        },
+        legend: { display: false }
       },
-
       scales: {
-        y: { beginAtZero: true },
-        x: {},
-      },
-    },
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 }
+        }
+      }
+    }
   });
 }
 
-/* ===============================
-   FILTER HANDLERS
-=============================== */
-function applyFilters() {
-  loadComplaints(deptFilter.value, courseFilter.value, yearLevelFilter.value);
-}
+// ✅ Load on page load
+loadChiefComplaintChart();
 
-deptFilter.addEventListener("change", applyFilters);
-courseFilter.addEventListener("change", applyFilters);
-startDateFilter.addEventListener("change", applyFilters);
-endDateFilter.addEventListener("change", applyFilters);
-yearLevelFilter.addEventListener("change", applyFilters);
+document
+  .getElementById("applyComplaintFilterBtn")
+  .addEventListener("click", loadChiefComplaintChart);
 
-/* ===============================
-   DEFAULT LOAD
-=============================== */
-function setDefaultCurrentMonth() {
-  const now = new Date();
-
-  // 1st day of the month
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
-
-  // Today
-  const today = now.toISOString().split("T")[0];
-
-  startDateFilter.value = firstDay;
-  endDateFilter.value = today;
-}
-setDefaultCurrentMonth();
-loadComplaints("all-dept", "all-course-strand-genEduc", "all-yearLevel");
 
 /* ===========================================
    Medicine Chart
