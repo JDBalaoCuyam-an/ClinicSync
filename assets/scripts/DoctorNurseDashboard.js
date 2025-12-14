@@ -9,6 +9,7 @@ import {
   query,
   where,
   orderBy,
+  collectionGroup,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 /* ======================================================
@@ -135,423 +136,126 @@ updateLowStockItems();
 /* ======================================================
    OPTIMIZED & FIXED FETCH VISIT DATA FUNCTION
 ====================================================== */
-async function fetchVisitData({ department, course, yearLevel, dateFilter }) {
-  const now = new Date();
-  const patientsRef = collection(db, "patients");
-  const patientSnap = await getDocs(patientsRef);
-
-  let earliestDate = null;
-  const results = [];
-
-  // Fetch consultations in parallel
-  const promises = patientSnap.docs.map(async (patientDoc) => {
-    const patientData = patientDoc.data();
-    const consultationsRef = collection(
-      db,
-      "patients",
-      patientDoc.id,
-      "consultations"
-    );
-    const consultSnap = await getDocs(consultationsRef);
-
-    consultSnap.forEach((consultDoc) => {
-      const c = consultDoc.data();
-      // if (!c.date || !c.time) return;
-
-      const [year, month, day] = c.date.split("-").map(Number);
-      const [hours, minutes] = c.time.split(":").map(Number);
-      const visitDate = new Date(year, month - 1, day, hours, minutes, 0);
-      if (isNaN(visitDate)) return;
-
-      if (!earliestDate || visitDate < earliestDate) earliestDate = visitDate;
-
-      results.push({
-        ...c,
-        patientId: patientDoc.id,
-        role: patientData.role || "",
-        department: patientData.department || "",
-        course: patientData.course || "",
-        year: patientData.year || "", //this is the year level of the student
-        visitDate,
-      });
-    });
-  });
-
-  await Promise.all(promises);
-
-  // --------------------------
-  // DATE RANGE LOGIC
-  // --------------------------
-  let startDate, endDate;
-  const setDate = (y, m, d, h = 0, min = 0, s = 0) =>
-    new Date(y, m, d, h, min, s);
-
-  if (dateFilter === "day") {
-    startDate = setDate(now.getFullYear(), now.getMonth(), now.getDate());
-    endDate = setDate(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  } else if (dateFilter === "week") {
-    const day = now.getDay(); // 0=Sun
-    startDate = new Date(now);
-    startDate.setDate(now.getDate() - day);
-    startDate.setHours(0, 0, 0, 0);
-    endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 7);
-  } else if (dateFilter === "month") {
-    startDate = new Date(now.getFullYear(), 0, 1); // Jan 1 of current year
-    endDate = new Date(now.getFullYear() + 1, 0, 1); // Jan 1 of next year
-  } else if (dateFilter === "year") {
-    const years = results.map((v) => v.visitDate.getFullYear());
-    const minYear = Math.min(...years);
-    const maxYear = Math.max(...years);
-
-    startDate = new Date(minYear, 0, 1);
-    endDate = new Date(maxYear + 1, 0, 1);
-  }
-
-  // Apply DATE filter
-  const dateFiltered = results.filter(
-    (v) => v.visitDate >= startDate && v.visitDate < endDate
-  );
-
-  // Apply DEPARTMENT + COURSE filter
-  return dateFiltered.filter((v) => {
-    const deptMatch =
-      !department || department === "all-dept" || v.department === department;
-
-    const courseMatch =
-      !course || course === "all-course-strand-genEduc" || v.course === course;
-
-    const yearMatch =
-      !yearLevel || yearLevel === "all-year" || v.year == yearLevel;
-
-    return deptMatch && courseMatch && yearMatch;
-  });
-}
-
-/* ============================
-   VISIT CATEGORY LOGIC
-============================ */
-function categorizeVisit(v) {
-  if (v.role) {
-    const r = v.role.toLowerCase();
-    if (["student", "employee", "visitor"].includes(r)) return r;
-  }
-
-  const knownDepartments = [
-    "BasicEd",
-    "CTE",
-    "CABM",
-    "CIT",
-    "COT",
-    "CCJE",
-    "TTED",
-  ];
-  if (knownDepartments.includes(v.department)) return "student";
-
-  return "visitor";
-}
-// ========================
-// ✅ DYNAMIC CHART FILTER: DEPT → COURSE → YEAR
-// ========================
-const chartDept = document.getElementById("department");
-const chartCourse = document.getElementById("course");
-const chartYear = document.getElementById("yearLevel");
-
-// ✅ Store original options
-const allChartDeptOptions = Array.from(chartDept.options);
-const allChartCourseOptions = Array.from(chartCourse.options);
-const allChartYearOptions = Array.from(chartYear.options);
-
-// ✅ Department → Courses mapping (same as before)
-const chartDepartmentCourses = {
-  basiced: [
-    "Kindergarten",
-    "Elementary",
-    "Junior Highschool",
-    "Accountancy and Business Management",
-    "Science, Technology, Engineering, and Mathematics",
-    "Humanities and Sciences",
-  ],
-  cabm: [
-    "Bachelor of Science in Accountancy",
-    "Bachelor of Science in Office Administration",
-    "Bachelor of Science in Hospitality Management",
-    "Bachelor of Science in Business Administration",
-  ],
-  cte: [
-    "Bachelor of Elementary Education",
-    "Bachelor of Science in Psychology",
-    "Bachelor of Science in Social Work",
-    "Bachelor of Secondary Education",
-    "Technical Vocational Teacher Education",
-  ],
-  cit: ["Bachelor of Science in Information Technology"],
-  tted: ["NC1 NC2 NC3"],
-  cot: ["Bachelor of Theology"],
-  ccje: ["Bachelor of Science in Criminology"],
-  visitor: ["Visitor"],
-};
-
-// ✅ Course → Year Levels mapping (same as before)
-const chartCourseYears = {
-  "Kindergarten": ["1","2"],
-  "Elementary": ["1","2","3","4","5","6"],
-  "Junior Highschool": ["7","8","9","10"],
-  "Accountancy and Business Management": ["11","12"],
-  "Science, Technology, Engineering, and Mathematics": ["11","12"],
-  "Humanities and Sciences": ["11","12"],
-  "Bachelor of Science in Accountancy": ["1","2","3","4"],
-  "Bachelor of Science in Office Administration": ["1","2","3","4"],
-  "Bachelor of Science in Hospitality Management": ["1","2","3","4"],
-  "Bachelor of Science in Business Administration": ["1","2","3","4"],
-  "Bachelor of Elementary Education": ["1","2","3","4"],
-  "Bachelor of Science in Psychology": ["1","2","3","4"],
-  "Bachelor of Science in Social Work": ["1","2","3","4"],
-  "Bachelor of Secondary Education": ["1","2","3","4"],
-  "Technical Vocational Teacher Education": ["1","2","3"],
-  "Bachelor of Science in Information Technology": ["1","2","3","4"],
-  "NC1 NC2 NC3": ["1","2","3"],
-  "Bachelor of Theology": ["1","2","3","4"],
-  "Bachelor of Science in Criminology": ["1","2","3","4"],
-  "Visitor": ["all-year"]
-};
-
-// ========================
-// ✅ Update Chart Course List
-// ========================
-// ========================
-// ✅ Update Chart Course List
-// ========================
-function updateChartCourseList() {
-  const selectedDept = chartDept.value;
-
-  // Visitor Case → show only Visitor
-  if (selectedDept.toLowerCase() === "visitor") {
-    chartDept.innerHTML = "";
-    chartCourse.innerHTML = "";
-    chartYear.innerHTML = "";
-
-    const visitorDept = allChartDeptOptions.find(opt => opt.value === "Visitor");
-    const visitorCourse = allChartCourseOptions.find(opt => opt.value === "Visitor");
-    const visitorYear = allChartYearOptions.find(opt => opt.value === "all-year");
-
-    if (visitorDept) chartDept.appendChild(visitorDept.cloneNode(true));
-    if (visitorCourse) chartCourse.appendChild(visitorCourse.cloneNode(true));
-    if (visitorYear) chartYear.appendChild(visitorYear.cloneNode(true));
-
-    chartDept.disabled = true;
-    chartCourse.disabled = true;
-    chartYear.disabled = true;
-    return;
-  }
-
-  // Restore dropdowns if previously disabled
-  chartDept.disabled = false;
-  chartCourse.disabled = false;
-  chartYear.disabled = false;
-
-  // Restore Departments and preserve selection
-  chartDept.innerHTML = "";
-  allChartDeptOptions.forEach(opt => chartDept.appendChild(opt.cloneNode(true)));
-  chartDept.value = selectedDept;
-
-  // Update Courses
-  chartCourse.innerHTML = "";
-  const defaultCourse = allChartCourseOptions.find(opt => opt.value === "all-course-strand-genEduc");
-  if (defaultCourse) chartCourse.appendChild(defaultCourse.cloneNode(true));
-
-  if (selectedDept === "all-dept" || !chartDepartmentCourses[selectedDept.toLowerCase()]) {
-    allChartCourseOptions.forEach(opt => {
-      if (opt.value !== "all-course-strand-genEduc") chartCourse.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    const deptKey = selectedDept.toLowerCase();
-    chartDepartmentCourses[deptKey].forEach(courseName => {
-      const match = allChartCourseOptions.find(opt => opt.textContent.trim() === courseName);
-      if (match) chartCourse.appendChild(match.cloneNode(true));
-    });
-  }
-
-  chartCourse.value = "all-course-strand-genEduc";
-  updateChartYearList();
-}
-
-// ========================
-// ✅ Update Chart Year List
-// ========================
-function updateChartYearList() {
-  const selectedCourse = chartCourse.value;
-
-  chartYear.innerHTML = "";
-  const defaultYear = allChartYearOptions.find(opt => opt.value === "all-year");
-  if (defaultYear) chartYear.appendChild(defaultYear.cloneNode(true));
-
-  if (selectedCourse === "all-course-strand-genEduc" || !chartCourseYears[selectedCourse]) {
-    allChartYearOptions.forEach(opt => {
-      if (opt.value !== "all-year") chartYear.appendChild(opt.cloneNode(true));
-    });
-  } else {
-    chartCourseYears[selectedCourse].forEach(yearValue => {
-      const match = allChartYearOptions.find(opt => opt.value === yearValue);
-      if (match) chartYear.appendChild(match.cloneNode(true));
-    });
-  }
-
-  chartYear.value = "all-year";
-}
-
-// ========================
-// ✅ Event Listeners
-// ========================
-chartDept.addEventListener("change", updateChartCourseList);
-chartCourse.addEventListener("change", updateChartYearList);
-
-/* ============================
-   FINAL FIXED CHART GROUPING
-============================ */
-function formatChartData(visits, dateFilter) {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const grouping = {};
-
-  let labels = [];
-
-  if (dateFilter === "week") labels = [...weekdays];
-  else if (dateFilter === "month")
-    labels = months; // months as labels for month view
-  else if (dateFilter === "day")
-    labels = Array.from(
-      { length: 24 },
-      (_, i) => i.toString().padStart(2, "0") + ":00"
-    );
-  else if (dateFilter === "year") {
-    // Dynamic year range
-    const years = visits.map((v) => v.visitDate.getFullYear());
-    const minYear = Math.min(...years);
-    const maxYear = new Date().getFullYear();
-    for (let y = minYear; y <= maxYear; y++) labels.push(y.toString());
-  }
-
-  // Pre-populate grouping with zeros
-  labels.forEach((lbl) => {
-    grouping[lbl] = { student: 0, employee: 0, visitor: 0 };
-  });
-
-  // Count visits
-  visits.forEach((v) => {
-    let ts = v.visitDate instanceof Date ? v.visitDate : new Date(v.visitDate);
-    if (isNaN(ts)) return;
-
-    let label;
-    if (dateFilter === "day")
-      label = ts.getHours().toString().padStart(2, "0") + ":00";
-    else if (dateFilter === "week")
-      label = weekdays[(ts.getDay() + 6) % 7]; // Mon=0
-    else if (dateFilter === "month") label = months[ts.getMonth()];
-    else if (dateFilter === "year") label = ts.getFullYear().toString();
-
-    const cat = categorizeVisit(v);
-    grouping[label][cat]++;
-  });
-
-  const student = [],
-    employee = [],
-    visitor = [];
-  labels.forEach((lbl) => {
-    student.push(grouping[lbl].student);
-    employee.push(grouping[lbl].employee);
-    visitor.push(grouping[lbl].visitor);
-  });
-
-  return { labels, student, employee, visitor };
-}
-
-/* ============================
-   CHART INITIALIZATION
-============================ */
 let visitsChart;
-const visitsCtx = document.getElementById("visitsChart").getContext("2d");
 
-async function renderVisitsChart(dateFilter = "week") {
-  const department = document.querySelector("select[name='department']").value;
-  const course = document.querySelector("select[name='course']").value;
-  const yearLevel = document.querySelector("select[name='yearLevel']").value;
+// Default current year
+const dateFromInput = document.getElementById("dateFrom");
+const dateToInput = document.getElementById("dateTo");
+const now = new Date();
+const currentYear = now.getFullYear();
+dateFromInput.value = `${currentYear}-01-01`;
+dateToInput.value = `${currentYear}-12-31`;
 
-  const visits = await fetchVisitData({
-    department,
-    course,
-    yearLevel,
-    dateFilter,
-  });
+const departmentInput = document.getElementById("department");
+const courseInput = document.getElementById("course");
+const yearLevelInput = document.getElementById("yearLevel");
+const applyFilterBtn = document.getElementById("applyFilterBtn");
 
-  const { labels, student, employee, visitor } = formatChartData(
-    visits,
-    dateFilter
-  );
+// Main load function
+async function loadVisitsChart() {
+  const from = dateFromInput.value;
+  const to = dateToInput.value;
+  const department = departmentInput.value;
+  const course = courseInput.value;
+  const yearLevel = yearLevelInput.value;
 
-  const data = {
-    labels,
-    datasets: [
-      { label: "Student", data: student, borderWidth: 2, tension: 0.3 },
-      { label: "Employee", data: employee, borderWidth: 2, tension: 0.3 },
-      { label: "Visitor", data: visitor, borderWidth: 2, tension: 0.3 },
-    ],
-  };
+  const fromDate = from ? new Date(from) : null;
+  const toDate = to ? new Date(to) : null;
+  if (toDate) toDate.setHours(23, 59, 59, 999);
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: { y: { beginAtZero: true } },
-    interaction: { mode: "index", intersect: false },
+  const snap = await getDocs(collectionGroup(db, "consultations"));
 
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            const dataset = context.dataset.data;
-            const total = context.chart.data.datasets.reduce((sum, ds) => {
-              return sum + (ds.data[context.dataIndex] || 0);
-            }, 0);
+  const studentVisits = {};
+  const employeeVisits = {};
 
-            const value = context.raw;
-            const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+  for (const consultDoc of snap.docs) {
+    const data = consultDoc.data();
+    if (!data.date) continue;
 
-            return `${context.dataset.label}: ${value} (${percent}%)`;
-          },
-        },
-      },
-    },
-  };
+    let visitDate;
+    if (data.date.toDate) visitDate = data.date.toDate();
+    else if (data.date instanceof Date) visitDate = data.date;
+    else visitDate = new Date(data.date);
+    if (isNaN(visitDate)) continue;
 
-  if (visitsChart) visitsChart.destroy();
-  visitsChart = new Chart(visitsCtx, { type: "line", data, options });
+    // Date range filter
+    if (fromDate && visitDate < fromDate) continue;
+    if (toDate && visitDate > toDate) continue;
+
+    const label = visitDate.toISOString().split("T")[0];
+
+    // User info
+    const userRef = consultDoc.ref.parent.parent;
+    if (!userRef) continue;
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) continue;
+    const user = userSnap.data();
+
+    // Filter by department, course, yearLevel
+    if (department !== "all-dept" && user.department !== department) continue;
+    if (course !== "all-course-strand-genEduc" && user.course !== course) continue;
+    if (yearLevel !== "all-year" && String(user.yearLevel) !== yearLevel) continue;
+
+    const type = user.user_type;
+    if (type === "student") studentVisits[label] = (studentVisits[label] || 0) + 1;
+    if (type === "employee") employeeVisits[label] = (employeeVisits[label] || 0) + 1;
+  }
+
+  renderVisitsChart(studentVisits, employeeVisits, fromDate, toDate);
 }
 
-/* ============================
-   FILTER TRIGGERS
-============================ */
-document.querySelectorAll(".chart-filter").forEach((sel) => {
-  sel.addEventListener("change", () => {
-    const timeframe = document.querySelector("select[name='time']").value;
-    renderVisitsChart(timeframe);
-  });
-});
+// Render chart
+function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
+  let labels = Array.from(
+    new Set([...Object.keys(studentData), ...Object.keys(employeeData)])
+  ).sort();
 
-/* DEFAULT LOAD */
-renderVisitsChart("week");
+  // If no data, create labels for date range
+  if (labels.length === 0 && fromDate && toDate) {
+    labels = [];
+    const current = new Date(fromDate);
+    while (current <= toDate) {
+      labels.push(current.toISOString().split("T")[0]);
+      current.setDate(current.getDate() + 1);
+    }
+  }
+
+  const studentValues = labels.map(d => studentData[d] || 0);
+  const employeeValues = labels.map(d => employeeData[d] || 0);
+
+  const ctx = document.getElementById("visitsChart");
+  if (visitsChart) visitsChart.destroy();
+
+  visitsChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        { label: "Student Visits", data: studentValues, tension: 0.3, borderColor: "blue", fill: false },
+        { label: "Employee Visits", data: employeeValues, tension: 0.3, borderColor: "green", fill: false },
+      ],
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: "index", intersect: false },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+    },
+  });
+}
+
+// ✅ Only trigger chart on button click
+applyFilterBtn.addEventListener("click", loadVisitsChart);
+
+// Initial load on page
+loadVisitsChart();
+
+
+
+// Attach all filters
+// [dateFromInput, dateToInput, departmentInput, courseInput, yearLevelInput].forEach(el =>
+//   el.addEventListener("change", loadVisitsChart)
+// );
+
 
 /* ===========================================
 Chief Complaints Chart

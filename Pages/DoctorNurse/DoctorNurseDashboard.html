@@ -108,63 +108,68 @@
             <div class="chart-header">
               <div class="chart-title"><i class="fas fa-chart-line"></i> Patient Visits</div>
               <div class="chart-controls">
-                <select class="chart-filter" name="department" id="department">
-                  <option value="all-dept">All Department</option>
-                  <option value="CABM">CABM</option>
-                  <option value="CCJE">CCJE</option>
-                  <option value="CIT">CIT</option>
-                  <option value="COT">COT</option>
-                  <option value="TTED">TTED</option>
-                  <option value="CTE">CTE</option>
-                  <option value="BasicEd">BasicEd</option>
-                  <option value="Visitor">Visitor</option>
-                </select>
-                <select class="chart-filter" name="course" id="course">
-                  <option value="all-course-strand-genEduc">All Course/Strand/GenEduc</option>
-                  <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
-                  <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
-                  <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
-                  <option value="Bachelor of Science in Office Administration">Bachelor of Science in Office Administration</option>
-                  <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business Administration</option>
-                  <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
-                  <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
-                  <option value="Bachelor of Science in Social Work">Bachelor of Science in Social Work</option>
-                  <option value="Bachelor of Secondary Education">Bachelor of Secondary Education</option>
-                  <option value="Technical Vocational Teacher Education">Technical Vocational Teacher Education</option>
-                  <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
-                  <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
-                  <option value="Bachelor of Theology">Bachelor of Theology</option>
-                  <option value="Accountancy and Business Management">Accountancy and Business Management</option>
-                  <option value="Science, Technology, Engineering, and Mathematics">Science, Technology, Engineering, and Mathematics</option>
-                  <option value="Humanities and Sciences">Humanities and Sciences</option>
-                  <option value="Junior Highschool">Junior Highschool</option>
-                  <option value="Elementary">Elementary</option>
-                  <option value="Kindergarten">Kindergarten</option>
-                  <option value="Visitor">Visitor</option>
-                </select>
-                <select class="chart-filter" name="yearLevel" id="yearLevel">
-                  <option value="all-year">All Year Levels</option>
-                  <option value="1">1st Year</option>
-                  <option value="2">2nd Year</option>
-                  <option value="3">3rd Year</option>
-                  <option value="4">4th Year</option>
-                  <option value="5">5th Year</option>
-                  <option value="6">6th Year</option>
-                  <option value="7">7th Year</option>
-                  <option value="8">8th Year</option>
-                  <option value="9">9th Year</option>
-                  <option value="10">10th Year</option>
-                  <option value="11">11th Year</option>
-                  <option value="12">12th Year</option>
-                </select>
-                <select class="chart-filter" name="time" id="time">
-                  <option value="day">Today</option>
-                  <option value="week" selected>Week</option>
-                  <option value="month">Month</option>
-                  <option value="year">Year</option>
-                </select>
-                
-              </div>
+  <select class="chart-filter" name="department" id="department">
+    <option value="all-dept">All Department</option>
+    <option value="CABM">CABM</option>
+    <option value="CCJE">CCJE</option>
+    <option value="CIT">CIT</option>
+    <option value="COT">COT</option>
+    <option value="TTED">TTED</option>
+    <option value="CTE">CTE</option>
+    <option value="BasicEd">BasicEd</option>
+    <option value="Visitor">Visitor</option>
+  </select>
+
+  <select class="chart-filter" name="course" id="course">
+    <option value="all-course-strand-genEduc">All Course/Strand/GenEduc</option>
+    <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
+    <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
+    <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
+    <option value="Bachelor of Science in Office Administration">Bachelor of Science in Office Administration</option>
+    <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business Administration</option>
+    <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
+    <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
+    <option value="Bachelor of Science in Social Work">Bachelor of Science in Social Work</option>
+    <option value="Bachelor of Secondary Education">Bachelor of Secondary Education</option>
+    <option value="Technical Vocational Teacher Education">Technical Vocational Teacher Education</option>
+    <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
+    <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+    <option value="Bachelor of Theology">Bachelor of Theology</option>
+    <option value="Accountancy and Business Management">Accountancy and Business Management</option>
+    <option value="Science, Technology, Engineering, and Mathematics">Science, Technology, Engineering, and Mathematics</option>
+    <option value="Humanities and Sciences">Humanities and Sciences</option>
+    <option value="Junior Highschool">Junior Highschool</option>
+    <option value="Elementary">Elementary</option>
+    <option value="Kindergarten">Kindergarten</option>
+    <option value="Visitor">Visitor</option>
+  </select>
+
+  <select class="chart-filter" name="yearLevel" id="yearLevel">
+    <option value="all-year">All Year Levels</option>
+    <option value="1">1st Year</option>
+    <option value="2">2nd Year</option>
+    <option value="3">3rd Year</option>
+    <option value="4">4th Year</option>
+    <option value="5">5th Year</option>
+    <option value="6">6th Year</option>
+    <option value="7">7th Year</option>
+    <option value="8">8th Year</option>
+    <option value="9">9th Year</option>
+    <option value="10">10th Year</option>
+    <option value="11">11th Year</option>
+    <option value="12">12th Year</option>
+  </select>
+
+  <div class="d-flex gap-2 align-items-center">
+    <input type="date" id="dateFrom" class="chart-filter" />
+    <span>to</span>
+    <input type="date" id="dateTo" class="chart-filter" />
+  </div>
+  <button id="applyFilterBtn" class="btn btn-primary">
+  Apply Filter
+</button>
+
+</div>
             </div>
             <canvas id="visitsChart">
               
