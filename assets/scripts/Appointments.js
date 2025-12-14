@@ -11,6 +11,11 @@ import {
   where,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+(function () {
+  emailjs.init("e30TrJHG9V9Mp1D-_");
+})();
+
+
 /* ===================================== */
 /*            STAFF LIST                 */
 /* ===================================== */
@@ -253,6 +258,54 @@ async function loadPatientAppointments() {
     </div>
   `;
 
+  const acceptBtn = card.querySelector(".accept-btn");
+acceptBtn.addEventListener("click", async () => {
+  const confirmAccept = confirm(`Are you sure you want to accept the appointment for ${appt.patientName}?`);
+  if (!confirmAccept) return;
+
+  try {
+    // 1️⃣ Update Firestore
+    const ref = doc(db, "appointments", appt.id);
+    await updateDoc(ref, { status: "accepted" });
+
+    // 2️⃣ Get patient's email from users collection
+    const userRef = doc(db, "users", appt.patientId);
+    const userSnap = await getDoc(userRef);
+    const patientEmail = userSnap.exists() ? userSnap.data().email : null;
+
+    if (!patientEmail) {
+      alert("Patient email not found. Email notification will not be sent.");
+    } else {
+      // 3️⃣ Send Email via EmailJS
+      emailjs.send(
+        "service_rfw77oo",       // Your EmailJS Service ID
+        "template_n37ttab",      // Your EmailJS Template ID
+        {
+          to_email: patientEmail,
+          patient_name: appt.patientName,
+          day: appt.day,
+          weekday: appt.weekday,
+          slot: appt.slot,
+          status: "accepted",
+          message: `Your appointment has been accepted! See you on ${appt.day} (${appt.weekday}) at ${appt.slot}. Please arrive 10 minutes early.`
+        }
+      )
+      .then(() => console.log("Appointment email sent successfully"))
+      .catch(err => console.error("Email sending failed:", err));
+    }
+
+    alert("Appointment accepted successfully!");
+
+    // 4️⃣ Remove the card immediately
+    col.remove();
+
+  } catch (err) {
+    console.error("Error updating appointment:", err);
+    alert("Failed to accept appointment. Try again.");
+  }
+});
+
+
   const rescheduleBtn = card.querySelector(".reschedule-btn");
   rescheduleBtn.addEventListener("click", () => {
     document.getElementById("rescheduleApptId").value = appt.id;
@@ -263,6 +316,7 @@ async function loadPatientAppointments() {
   col.appendChild(card);
   row.appendChild(col);
 });
+
 
 
     container.appendChild(daySection);
@@ -290,6 +344,35 @@ document.getElementById("rescheduleForm").addEventListener("submit", async (e) =
       status: "in queue" // optional: keep it in queue
     });
 
+    // ✅ Get patient email from users collection
+    const apptSnap = await getDoc(ref);
+    const patientId = apptSnap.data().patientId;
+    const userRef = doc(db, "users", patientId);
+    const userSnap = await getDoc(userRef);
+    const patientEmail = userSnap.exists() ? userSnap.data().email : null;
+    const patientFullName = userSnap.exists() ? `${userSnap.data().firstName} ${userSnap.data().middleName || ""} ${userSnap.data().lastName}`.trim() : "";
+
+    if (patientEmail) {
+      // ✅ Send reschedule email via EmailJS
+      emailjs.send(
+        "service_rfw77oo",      // Your EmailJS Service ID
+        "template_tpgmqni",     // Your EmailJS Template ID
+        {
+          to_email: patientEmail,
+          patient_name: patientFullName,
+          day: newDate,
+          weekday: newWeekday,
+          slot: newSlot,
+          status: "rescheduled",
+          message: `Your appointment has been rescheduled to ${newDate} (${newWeekday}) at ${newSlot}. Please be on time.`
+        }
+      )
+      .then(() => console.log("Reschedule email sent successfully"))
+      .catch(err => console.error("Email sending failed:", err));
+    } else {
+      console.warn("Patient email not found. Email notification not sent.");
+    }
+
     alert("Appointment rescheduled successfully!");
 
     // Close the modal
@@ -299,11 +382,13 @@ document.getElementById("rescheduleForm").addEventListener("submit", async (e) =
 
     // Reload appointments
     loadPatientAppointments();
+
   } catch (error) {
     console.error(error);
     alert("Error rescheduling appointment.");
   }
 });
+
 
 
 
