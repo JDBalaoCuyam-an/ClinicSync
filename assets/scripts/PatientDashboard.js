@@ -135,6 +135,74 @@ saveBtn.addEventListener("click", async () => {
   cancelBtn.style.display = "none";
   saveBtn.style.display = "none";
 });
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  loadMedicalRecords(user.uid);
+});
+
+/* -----------------------------------------------
+   Load Medical Records
+----------------------------------------------- */
+async function loadMedicalRecords(patientId) {
+  const tableBody = document.getElementById("records-table-body");
+
+  tableBody.innerHTML = `
+    <tr>
+      <td colspan="6" class="text-center text-muted">Loading records...</td>
+    </tr>
+  `;
+
+  try {
+    const recordsRef = collection(db, "users", patientId, "consultations");
+    const snapshot = await getDocs(recordsRef);
+
+    if (snapshot.empty) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center text-muted">
+            No medical records found
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tableBody.innerHTML = "";
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      let prescription = "-";
+      if (Array.isArray(data.meds) && data.meds.length > 0) {
+        prescription = data.meds
+          .map((m) => `${m.name} (${m.quantity})`)
+          .join(", ");
+      }
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${data.date || "-"}</td>
+        <td>${data.consultingDoctor || "-"}</td>
+        <td>${data.NurseOnDuty || "-"}</td>
+        <td>${data.complaint || "-"}</td>
+        <td>${data.diagnosis || "-"}</td>
+        <td>${prescription}</td>
+      `;
+
+      tableBody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error loading medical records:", err);
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center text-danger">
+          Failed to load records
+        </td>
+      </tr>
+    `;
+  }
+}
 
 /* -----------------------------------------------
    Appointment Functions (FULLY FIXED VERSION)
