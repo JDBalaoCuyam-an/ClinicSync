@@ -82,15 +82,21 @@
     <div class="container-fluid mt-4">
       <div class="row">
         <div class="col-12">
-          <div class="d-flex justify-content-between align-items-center mb-4">
+          <div
+            class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2"
+          >
             <h2 class="mb-0">User Management</h2>
-            <button id="open-user-bulk-upload" class="btn btn-secondary mt-2">
-              Bulk Upload Users
-            </button>
-
-            <button class="btn btn-primary" id="createNewUserBtn">
-              <i class="bi bi-person-plus me-1"></i> Create New User
-            </button>
+            <div class="d-flex gap-2">
+              <button
+                id="open-user-bulk-upload"
+                class="btn btn-outline-secondary"
+              >
+                Bulk Upload Users
+              </button>
+              <button class="btn btn-primary" id="createNewUserBtn">
+                <i class="bi bi-person-plus me-1"></i> Create New User
+              </button>
+            </div>
           </div>
 
           <!-- User Table -->
@@ -98,7 +104,7 @@
             <div class="card-body">
               <div class="table-responsive">
                 <table class="table table-hover" id="usersTable">
-                  <thead class="table-light">
+                  <thead class="text-nowrap table-primary">
                     <tr>
                       <th>Name</th>
                       <th>School ID</th>
@@ -338,55 +344,68 @@
       </div>
     </div>
     <!-- ===================== BULK USER UPLOAD MODAL ===================== -->
-<div id="user-bulk-modal" class="d-none">
-  <div style="
-        position: fixed; top:0; left:0;
-        width:100%; height:100%;
-        background:rgba(0,0,0,0.5);
-      ">
-  </div>
+    <div id="user-bulk-modal" class="d-none">
+      <div
+        style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+        "
+      ></div>
 
-  <div style="
-        position: fixed;
-        top:50%; left:50%;
-        transform:translate(-50%, -50%);
-        background:#fff;
-        padding:20px;
-        width:600px;
-        border-radius:8px;
-        max-height:80vh;
-        overflow-y:auto;
-      ">
+      <div
+        style="
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: #fff;
+          padding: 20px;
+          width: 600px;
+          border-radius: 8px;
+          max-height: 80vh;
+          overflow-y: auto;
+        "
+      >
+        <h2>Bulk Upload Users</h2>
 
-    <h2>Bulk Upload Users</h2>
+        <input
+          type="file"
+          id="user-bulk-file"
+          accept=".csv"
+          class="form-control mb-3"
+        />
 
-    <input type="file" id="user-bulk-file" accept=".csv" class="form-control mb-3" />
+        <button id="user-preview-btn" class="btn btn-primary mb-3">
+          Preview CSV
+        </button>
 
-    <button id="user-preview-btn" class="btn btn-primary mb-3">
-      Preview CSV
-    </button>
+        <table id="user-bulk-preview" class="table table-bordered d-none">
+          <thead class="table-secondary">
+            <tr>
+              <th>First Name</th>
+              <th>Middle</th>
+              <th>Last Name</th>
+              <th>Ext</th>
+              <th>School ID</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
 
-    <table id="user-bulk-preview" class="table table-bordered d-none">
-      <thead class="table-secondary">
-        <tr>
-          <th>First Name</th>
-          <th>Middle</th>
-          <th>Last Name</th>
-          <th>Ext</th>
-          <th>School ID</th>
-          <th>Email</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+        <button id="user-upload-btn" class="btn btn-success d-none mt-2">
+          Upload All Users
+        </button>
 
-    <button id="user-upload-btn" class="btn btn-success d-none mt-2">
-      Upload All Users
-    </button>
-
-    <button id="close-user-bulk-btn" class="btn btn-danger mt-3">Close</button>
-  </div>
-</div>
+        <button id="close-user-bulk-btn" class="btn btn-danger mt-3">
+          Close
+        </button>
+      </div>
+    </div>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

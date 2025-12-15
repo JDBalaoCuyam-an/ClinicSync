@@ -505,7 +505,7 @@ cancelPatientInfoBtn.addEventListener("click", () => {
   ----------------------------------------------- */
 const medsContainers = document.querySelectorAll(".meds-list");
 const addMedBtns = document.querySelectorAll(".add-med-btn");
-let medicinesData = []; 
+let medicinesData = [];
 
 // Load medicines once
 async function loadMedicineOptions() {
@@ -520,9 +520,19 @@ loadMedicineOptions();
 // Add medicine to each container
 addMedBtns.forEach((btn, index) => {
   const containerDiv = medsContainers[index];
+
   btn.addEventListener("click", () => {
     const container = document.createElement("div");
-    container.classList.add("med-row");
+    container.classList.add(
+      "med-row",
+      "d-flex",
+      "flex-wrap",
+      "gap-2",
+      "align-items-center",
+      "p-2",
+      "border",
+      "rounded"
+    );
 
     const optionsHTML = medicinesData
       .map(
@@ -532,24 +542,25 @@ addMedBtns.forEach((btn, index) => {
       .join("");
 
     container.innerHTML = `
-      <select class="med-name" required>
+      <select class="form-select form-select-sm med-name" required style="min-width: 200px;">
         <option value="" disabled selected>Select Medicine</option>
         ${optionsHTML}
       </select>
 
-      <input type="number" class="med-qty" min="1" placeholder="Qty" />
+      <input type="number" class="form-control form-control-sm med-qty" min="1" placeholder="Qty" style="width: 80px;" />
 
-      <select class="med-type" required>
+      <select class="form-select form-select-sm med-type" required style="width: 140px;">
         <option value="" disabled selected>Type</option>
         <option value="Administered">Administered</option>
         <option value="Dispensed">Dispensed</option>
       </select>
 
-      <input type="text" class="med-remarks" placeholder="Remarks" />
+      <input type="text" class="form-control form-control-sm med-remarks" placeholder="Remarks" style="flex: 1;" />
 
-      <button type="button" class="remove-med btn-danger">X</button>
+      <button type="button" class="btn btn-sm btn-danger remove-med">X</button>
     `;
 
+    // Remove button
     container.querySelector(".remove-med").addEventListener("click", () => {
       container.remove();
     });
@@ -557,6 +568,7 @@ addMedBtns.forEach((btn, index) => {
     containerDiv.appendChild(container);
   });
 });
+
 
 // ============================================================
 // Loading Doctors For Consultation Form
