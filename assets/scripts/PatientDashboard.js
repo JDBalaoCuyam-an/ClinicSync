@@ -173,7 +173,7 @@ async function loadMedicalRecords(patientId) {
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
 
-      let prescription = "-";
+      let prescription = "No Prescriptions";
       if (Array.isArray(data.meds) && data.meds.length > 0) {
         prescription = data.meds
           .map((m) => `${m.name} (${m.quantity})`)
@@ -186,7 +186,7 @@ async function loadMedicalRecords(patientId) {
         <td>${data.consultingDoctor || "-"}</td>
         <td>${data.NurseOnDuty || "-"}</td>
         <td>${data.complaint || "-"}</td>
-        <td>${data.diagnosis || "-"}</td>
+        <td>${data.diagnosis || "Not Diagnosed"}</td>
         <td>${prescription}</td>
       `;
 

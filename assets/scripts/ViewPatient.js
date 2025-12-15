@@ -904,7 +904,7 @@ async function loadConsultations() {
       const data = docSnap.data();
       const consultId = docSnap.id; // ✅ get consultation ID
 
-      let medsDisplay = "-";
+      let medsDisplay = "No Prescriptions";
       if (Array.isArray(data.meds) && data.meds.length > 0) {
         medsDisplay = data.meds
           .map((m) => `${m.name} (${m.quantity})`)
@@ -918,7 +918,7 @@ async function loadConsultations() {
         <td>${data.date}</td>
         <td>${data.time}</td>
         <td>${data.complaint}</td>
-        <td>${data.diagnosis || "-"}</td>
+        <td>${data.diagnosis || "Not Diagnosed"}</td>
         <td>${medsDisplay}</td>
         
       `;
