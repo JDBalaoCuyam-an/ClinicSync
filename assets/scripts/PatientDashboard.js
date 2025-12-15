@@ -465,6 +465,39 @@ document.getElementById("saveAppointment").addEventListener("click", async () =>
   const patient = patientSnap.data();
   const patientName = `${patient.lastName}, ${patient.firstName}`;
 
+  // ✅ Check last appointment date
+  const apptQuery = query(
+    collection(db, "appointments"),
+    where("patientId", "==", user.uid)
+  );
+  const apptSnap = await getDocs(apptQuery);
+
+  // Find latest appointment
+  let latestApptDate = null;
+  apptSnap.forEach(doc => {
+    const apptDate = new Date(doc.data().day);
+    if (!latestApptDate || apptDate > latestApptDate) {
+      latestApptDate = apptDate;
+    }
+  });
+
+  const selectedDate = new Date(day);
+
+  if (latestApptDate) {
+    const diffTime = selectedDate - latestApptDate;
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    const showBookingError = (message) => {
+  document.getElementById("bookingErrorMessage").textContent = message;
+  new bootstrap.Modal(document.getElementById("bookingErrorModal")).show();
+};
+
+    if (diffDays < 3) {
+  showBookingError("You cannot book an appointment within 3 days of your latest appointment.");
+  return;
+}
+
+  }
+
   try {
     await addDoc(collection(db, "appointments"), {
       day,               // "2025-12-08"
@@ -488,6 +521,8 @@ document.getElementById("saveAppointment").addEventListener("click", async () =>
     console.error(err);
   }
 });
+
+
 
 function getStatusBadge(status) {
   switch (status) {
