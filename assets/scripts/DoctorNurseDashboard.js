@@ -28,7 +28,7 @@ async function updateMonthlyVisitsComparison() {
     lastMonthYear -= 1;
   }
 
-  const patientsRef = collection(db, "patients");
+  const patientsRef = collection(db, "users");
   const patientSnap = await getDocs(patientsRef);
 
   let currentMonthCount = 0;
@@ -37,7 +37,7 @@ async function updateMonthlyVisitsComparison() {
   const promises = patientSnap.docs.map(async (patientDoc) => {
     const consultationsRef = collection(
       db,
-      "patients",
+      "users",
       patientDoc.id,
       "consultations"
     );
@@ -51,10 +51,16 @@ async function updateMonthlyVisitsComparison() {
       const [hours, minutes] = c.time.split(":").map(Number);
       const visitDate = new Date(year, month - 1, day, hours, minutes, 0);
 
-      if (visitDate.getFullYear() === currentYear && visitDate.getMonth() === currentMonth) {
+      if (
+        visitDate.getFullYear() === currentYear &&
+        visitDate.getMonth() === currentMonth
+      ) {
         currentMonthCount++;
       }
-      if (visitDate.getFullYear() === lastMonthYear && visitDate.getMonth() === lastMonth) {
+      if (
+        visitDate.getFullYear() === lastMonthYear &&
+        visitDate.getMonth() === lastMonth
+      ) {
         lastMonthCount++;
       }
     });
@@ -68,12 +74,16 @@ async function updateMonthlyVisitsComparison() {
 
   // Calculate % change
   let changePercent = 0;
-  let changeText = '';
+  let changeText = "";
   if (lastMonthCount === 0) {
-    changeText = currentMonthCount === 0 ? '0%' : '+100%';
+    changeText = currentMonthCount === 0 ? "0%" : "+100%";
   } else {
-    changePercent = ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100;
-    changeText = changePercent > 0 ? `+${changePercent.toFixed(1)}%` : `${changePercent.toFixed(1)}%`;
+    changePercent =
+      ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100;
+    changeText =
+      changePercent > 0
+        ? `+${changePercent.toFixed(1)}%`
+        : `${changePercent.toFixed(1)}%`;
   }
 
   // Optional: Add comparison text under the card
@@ -193,35 +203,53 @@ async function loadVisitsChart() {
 
     // Filter by department, course, yearLevel
     if (department !== "all-dept" && user.department !== department) continue;
-    if (course !== "all-course-strand-genEduc" && user.course !== course) continue;
-    if (yearLevel !== "all-year" && String(user.yearLevel) !== yearLevel) continue;
+    if (course !== "all-course-strand-genEduc" && user.course !== course)
+      continue;
+    if (yearLevel !== "all-year" && String(user.yearLevel) !== yearLevel)
+      continue;
 
     const type = user.user_type;
-    if (type === "student") studentVisits[label] = (studentVisits[label] || 0) + 1;
-    if (type === "employee") employeeVisits[label] = (employeeVisits[label] || 0) + 1;
+    if (type === "student")
+      studentVisits[label] = (studentVisits[label] || 0) + 1;
+    if (type === "employee")
+      employeeVisits[label] = (employeeVisits[label] || 0) + 1;
   }
 
   renderVisitsChart(studentVisits, employeeVisits, fromDate, toDate);
 }
 
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 // Render chart
 function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
-  let labels = Array.from(
+  // 🔹 Raw date keys (YYYY-MM-DD)
+  let rawLabels = Array.from(
     new Set([...Object.keys(studentData), ...Object.keys(employeeData)])
   ).sort();
 
-  // If no data, create labels for date range
-  if (labels.length === 0 && fromDate && toDate) {
-    labels = [];
+  // 🔹 If no data, generate date range
+  if (rawLabels.length === 0 && fromDate && toDate) {
+    rawLabels = [];
     const current = new Date(fromDate);
     while (current <= toDate) {
-      labels.push(current.toISOString().split("T")[0]);
+      rawLabels.push(current.toISOString().split("T")[0]);
       current.setDate(current.getDate() + 1);
     }
   }
 
-  const studentValues = labels.map(d => studentData[d] || 0);
-  const employeeValues = labels.map(d => employeeData[d] || 0);
+  // 🔹 Chart values must use RAW keys
+  const studentValues = rawLabels.map((d) => studentData[d] || 0);
+  const employeeValues = rawLabels.map((d) => employeeData[d] || 0);
+
+  // 🔹 Display labels (formatted)
+  const displayLabels = rawLabels.map(formatDateLabel);
 
   const ctx = document.getElementById("visitsChart");
   if (visitsChart) visitsChart.destroy();
@@ -229,16 +257,33 @@ function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
   visitsChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels,
+      labels: displayLabels, // 👈 formatted labels
       datasets: [
-        { label: "Student Visits", data: studentValues, tension: 0.3, borderColor: "blue", fill: false },
-        { label: "Employee Visits", data: employeeValues, tension: 0.3, borderColor: "green", fill: false },
+        {
+          label: "Student Visits",
+          data: studentValues,
+          tension: 0.3,
+          borderColor: "blue",
+          fill: false,
+        },
+        {
+          label: "Employee Visits",
+          data: employeeValues,
+          tension: 0.3,
+          borderColor: "green",
+          fill: false,
+        },
       ],
     },
     options: {
       responsive: true,
       interaction: { mode: "index", intersect: false },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 },
+        },
+      },
     },
   });
 }
@@ -248,7 +293,62 @@ applyFilterBtn.addEventListener("click", loadVisitsChart);
 
 // Initial load on page
 loadVisitsChart();
+// ===========================================================
+// Export Visits Chart as PDF
+// ===========================================================
+document.getElementById("exportImageBtn").addEventListener("click", () => {
+  if (!visitsChart) {
+    alert("No chart to export.");
+    return;
+  }
+  // Map values to display-friendly text
+  const departmentLabel =
+    departmentInput.value === "all-dept"
+      ? "All Departments"
+      : departmentInput.value;
+  const courseLabel =
+    courseInput.value === "all-course-strand-genEduc"
+      ? "All Course, Strand, and General Education"
+      : courseInput.value;
+  const yearLevelLabel =
+    yearLevelInput.value === "all-year"
+      ? "All Year Levels"
+      : yearLevelInput.value;
+  // Create a temporary canvas
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = visitsChart.canvas.width;
+  tempCanvas.height = visitsChart.canvas.height + 40; // extra space for filter text
+  const tempCtx = tempCanvas.getContext("2d");
 
+  // Draw the chart onto the temp canvas
+  tempCtx.drawImage(visitsChart.canvas, 0, 40);
+
+  // Draw filter text above the chart
+  tempCtx.font = "bold 14px Arial";
+  tempCtx.fillStyle = "#444";
+  tempCtx.textAlign = "center";
+
+  const filterText =
+    `Date: ${formatDateLabel(dateFromInput.value)} → ${formatDateLabel(
+      dateToInput.value
+    )} | ` +
+    `Department: ${departmentLabel} | ` +
+    `Course: ${courseLabel} | ` +
+    `Year Level: ${yearLevelLabel}`;
+
+  tempCtx.fillText(filterText, tempCanvas.width / 2, 20);
+
+  // Export temp canvas as image
+  const imageURL = tempCanvas.toDataURL("image/png");
+
+  // Create download link
+  const link = document.createElement("a");
+  link.href = imageURL;
+  link.download = "Patient_Visits_Chart.png";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
 
 /* ===========================================
 Chief Complaints Chart
@@ -305,22 +405,17 @@ async function loadChiefComplaintChart() {
     if (department !== "all-dept" && user.department !== department) continue;
 
     // 🔹 Course filter
-    if (
-      course !== "all-course-strand-genEduc" &&
-      user.course !== course
-    ) continue;
+    if (course !== "all-course-strand-genEduc" && user.course !== course)
+      continue;
 
     // 🔹 Year level filter
-    if (
-      yearLevel !== "all-yearLevel" &&
-      String(user.yearLevel) !== yearLevel
-    ) continue;
+    if (yearLevel !== "all-yearLevel" && String(user.yearLevel) !== yearLevel)
+      continue;
 
     // 🔹 Count complaint
     const complaintName = data.complaint.trim();
 
-    complaintCounts[complaintName] =
-      (complaintCounts[complaintName] || 0) + 1;
+    complaintCounts[complaintName] = (complaintCounts[complaintName] || 0) + 1;
   }
 
   renderChiefComplaintChart(complaintCounts);
@@ -330,9 +425,7 @@ function renderChiefComplaintChart(complaintCounts) {
   const labels = Object.keys(complaintCounts);
   const values = Object.values(complaintCounts);
 
-  const ctx = document
-    .getElementById("chiefComplaintChart")
-    .getContext("2d");
+  const ctx = document.getElementById("chiefComplaintChart").getContext("2d");
 
   if (chiefComplaintChart) chiefComplaintChart.destroy();
 
@@ -344,22 +437,22 @@ function renderChiefComplaintChart(complaintCounts) {
         {
           label: "Chief Complaint Count",
           data: values,
-          borderWidth: 1
-        }
-      ]
+          borderWidth: 1,
+        },
+      ],
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { display: false }
+        legend: { display: false },
       },
       scales: {
         y: {
           beginAtZero: true,
-          ticks: { precision: 0 }
-        }
-      }
-    }
+          ticks: { precision: 0 },
+        },
+      },
+    },
   });
 }
 
@@ -369,6 +462,55 @@ loadChiefComplaintChart();
 document
   .getElementById("applyComplaintFilterBtn")
   .addEventListener("click", loadChiefComplaintChart);
+// ===========================================================
+// Export Chief Complaint Chart as Image
+// ===========================================================
+document.getElementById("exportComplaintImageBtn").addEventListener("click", () => {
+  if (!chiefComplaintChart) {
+    alert("No chart to export.");
+    return;
+  }
+
+  // Get chart canvas
+  const canvas = document.getElementById("chiefComplaintChart");
+
+  // Map filter values to readable text
+  const departmentLabel = deptFilter.value === "all-dept" ? "All Departments" : deptFilter.value;
+  const courseLabel = courseFilter.value === "all-course-strand-genEduc" ? 
+                      "All Course, Strand, and General Education" : courseFilter.value;
+  const yearLevelLabel = yearLevelFilter.value === "all-yearLevel" ? "All Year Levels" : yearLevelFilter.value;
+
+  // Create temporary canvas to add filter text
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height + 40; // extra space for filter text
+  const tempCtx = tempCanvas.getContext("2d");
+
+  // Draw the chart onto temp canvas
+  tempCtx.drawImage(canvas, 0, 40);
+
+  // Draw filter text above the chart
+  tempCtx.font = "bold 14px Arial";
+  tempCtx.fillStyle = "#444";
+  tempCtx.textAlign = "center";
+
+  const filterText = 
+    `Date: ${formatDateLabel(startDateInput.value)} → ${formatDateLabel(endDateInput.value)} | ` +
+    `Department: ${departmentLabel} | ` +
+    `Course: ${courseLabel} | ` +
+    `Year Level: ${yearLevelLabel}`;
+
+  tempCtx.fillText(filterText, tempCanvas.width / 2, 20);
+
+  // Convert to image and trigger download
+  const imageURL = tempCanvas.toDataURL("image/png");
+  const link = document.createElement("a");
+  link.href = imageURL;
+  link.download = "Chief_Complaints_Chart.png";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
 
 
 /* ===========================================
@@ -528,7 +670,8 @@ async function loadTodayAppointments() {
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      appointmentsContainer.innerHTML = "<p style='font-size:0.9em;'>No appointments today.</p>";
+      appointmentsContainer.innerHTML =
+        "<p style='font-size:0.9em;'>No appointments today.</p>";
       return;
     }
 
@@ -576,27 +719,36 @@ async function loadTodayAppointments() {
       const formattedDate = appointmentDateObj.toLocaleDateString();
 
       card.innerHTML = `
-        <h4 style="margin:0 0 4px 0;">${data.patientFirstName || ""} ${data.patientMiddleName || ""} ${data.patientLastName || ""}</h4>
-        <p style="margin:1px 0;"><strong>Type:</strong> ${data.patientType || "N/A"}</p>
-        <p style="margin:1px 0;"><strong>Reason:</strong> ${data.appointmentReason || "N/A"}</p>
+        <h4 style="margin:0 0 4px 0;">${data.patientFirstName || ""} ${
+        data.patientMiddleName || ""
+      } ${data.patientLastName || ""}</h4>
+        <p style="margin:1px 0;"><strong>Type:</strong> ${
+          data.patientType || "N/A"
+        }</p>
+        <p style="margin:1px 0;"><strong>Reason:</strong> ${
+          data.appointmentReason || "N/A"
+        }</p>
         <p style="margin:1px 0;"><strong>Scheduled:</strong> ${formattedDate}</p>
-        <p style="margin:1px 0;"><strong>Time:</strong> ${data.appointmentTime || "N/A"}</p>
+        <p style="margin:1px 0;"><strong>Time:</strong> ${
+          data.appointmentTime || "N/A"
+        }</p>
       `;
 
       appointmentsContainer.appendChild(card);
     });
 
     if (!hasTodayAppointments) {
-      appointmentsContainer.innerHTML = "<p style='font-size:0.9em;'>No appointments today.</p>";
+      appointmentsContainer.innerHTML =
+        "<p style='font-size:0.9em;'>No appointments today.</p>";
     }
 
     // Update current date display
     const dateTimeEl = document.getElementById("currentDateTime");
     dateTimeEl.textContent = today.toLocaleDateString();
-
   } catch (error) {
     console.error("Error loading appointments:", error);
-    appointmentsContainer.innerHTML = "<p style='font-size:0.9em;'>Failed to load appointments.</p>";
+    appointmentsContainer.innerHTML =
+      "<p style='font-size:0.9em;'>Failed to load appointments.</p>";
   }
 }
 

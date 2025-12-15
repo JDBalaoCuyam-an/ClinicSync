@@ -201,18 +201,18 @@ searchBar.addEventListener("input", renderMedicines);
 /* ============================================================
    ✅ RESET MODAL STATE WHEN CLOSED
 ============================================================ */
-window.closeButtonOverlay = function () {
-  overlay.classList.remove("show");
-  modal.style.display = "none";
-  document.getElementById("dispense-medicine")?.classList.remove("show");
+// window.closeButtonOverlay = function () {
+//   overlay.classList.remove("show");
+//   modal.style.display = "none";
+//   document.getElementById("dispense-medicine")?.classList.remove("show");
 
   // 🧹 Reset form and modal label
-  form.reset();
-  editMode = false;
-  editId = null;
-  modalTitle.textContent = "Add New Medicine";
-  saveBtn.textContent = "Save";
-};
+//   form.reset();
+//   editMode = false;
+//   editId = null;
+//   modalTitle.textContent = "Add New Medicine";
+//   saveBtn.textContent = "Save";
+// };
 
 /* ============================================================
    ✅ INITIAL LOAD

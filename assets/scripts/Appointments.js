@@ -341,7 +341,7 @@ document.getElementById("rescheduleForm").addEventListener("submit", async (e) =
       day: newDate,
       slot: newSlot,
       weekday: newWeekday,
-      status: "in queue" // optional: keep it in queue
+      status: "accepted" // optional: keep it in queue
     });
 
     // ✅ Get patient email from users collection
