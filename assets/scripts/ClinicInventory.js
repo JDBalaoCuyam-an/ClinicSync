@@ -8,6 +8,14 @@ import {
   doc,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 const form = document.getElementById("add-borrower-form");
 const tableBody = document.getElementById("clinic-table-body");
 const searchBar = document.getElementById("search-bar");
@@ -32,9 +40,9 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const submitBtn = form.querySelector('button[type="submit"]');
-  submitBtn.disabled = true;                // Prevent double clicks
+  submitBtn.disabled = true; // Prevent double clicks
   const originalText = submitBtn.textContent;
-  submitBtn.textContent = "Saving...";      // Optional loading text
+  submitBtn.textContent = "Saving..."; // Optional loading text
 
   const now = new Date();
   const currentDate = now.toISOString().split("T")[0];
@@ -48,7 +56,7 @@ form.addEventListener("submit", async (e) => {
     quantity: parseInt(document.getElementById("quantity").value),
     borrowerName: document.getElementById("borrower-name").value,
     personnel: currentUserName || "Unknown User",
-    dateBorrowed: `${currentDate} ${currentTime}`,
+    dateBorrowed: `${formatDateLabel(currentDate)} ${currentTime}`,
     status: "Borrowed",
     dateReturned: "",
     createdAt: new Date(),
@@ -64,8 +72,8 @@ form.addEventListener("submit", async (e) => {
     console.error("Error adding borrower:", error);
     alert("⚠️ Failed to add borrower. Check console.");
   } finally {
-    submitBtn.disabled = false;             // Re-enable button
-    submitBtn.textContent = originalText;   // Restore original text
+    submitBtn.disabled = false; // Re-enable button
+    submitBtn.textContent = originalText; // Restore original text
   }
 });
 
@@ -142,7 +150,10 @@ function renderBorrowers() {
           ${b.status || "-"}
         </span>
       </td>
-      <td>${b.dateReturned || "-"}</td>
+      <td>${
+        b.dateReturned ? formatDateLabel(b.dateReturned) : "Not Returned"
+      }</td>
+
       <td>
         ${
           status === "borrowed"

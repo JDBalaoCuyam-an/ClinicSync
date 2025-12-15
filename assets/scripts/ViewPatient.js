@@ -21,6 +21,14 @@ import {
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");
 
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 /* -----------------------------------------------
      🔹 LOAD PATIENT DATA (with medicalHistory subcollection)
   ----------------------------------------------- */
@@ -569,19 +577,20 @@ addMedBtns.forEach((btn, index) => {
   });
 });
 
-
 // ============================================================
 // Loading Doctors For Consultation Form
 // ============================================================
 async function loadDoctors() {
   const doctorSelect = document.getElementById("consult-doctor");
+  const doctorSelectOvervewiew = document.getElementById("ovr-doctor");
   doctorSelect.innerHTML = `<option value="">Loading...</option>`;
-
+  doctorSelectOvervewiew.innerHTML = `<option value="">Loading...</option>`;
   const q = query(collection(db, "users"), where("user_type", "==", "doctor"));
 
   const snap = await getDocs(q);
 
   doctorSelect.innerHTML = `<option value="">Select Doctor</option>`;
+  doctorSelectOvervewiew.innerHTML = `<option value="">Select Doctor</option>`;
 
   snap.forEach((doc) => {
     const data = doc.data();
@@ -590,14 +599,20 @@ async function loadDoctors() {
     const firstName = data.firstName || "";
     const middleName = data.middleName || "";
 
-    // Format: LastName, FirstName MiddleName
     const displayName = `${lastName}, ${firstName} ${middleName}`.trim();
 
-    const option = document.createElement("option");
-    option.value = doc.id; // store doctor UID
-    option.textContent = displayName;
+    // Option for consult-doctor
+    const option1 = document.createElement("option");
+    option1.value = doc.id;
+    option1.textContent = displayName;
 
-    doctorSelect.appendChild(option);
+    // Option for overview-doctor
+    const option2 = document.createElement("option");
+    option2.value = doc.id;
+    option2.textContent = displayName;
+
+    doctorSelect.appendChild(option1);
+    doctorSelectOvervewiew.appendChild(option2);
   });
 }
 loadDoctors();
@@ -925,9 +940,9 @@ async function loadConsultations() {
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${data.consultingDoctor}</td>
+        <td>${data.consultingDoctor || "Not Assigned"}</td>
         <td>${data.NurseOnDuty}</td>
-        <td>${data.date}</td>
+        <td>${formatDateLabel(data.date)}</td>
         <td>${data.time}</td>
         <td>${data.complaint}</td>
         <td>${data.diagnosis || "Not Diagnosed"}</td>
@@ -939,7 +954,6 @@ async function loadConsultations() {
         showConsultationDetails(data, consultId)
       );
       tableBody.appendChild(tr);
-     
     });
   } catch (err) {
     console.error("Error loading consultations:", err);
@@ -1074,7 +1088,6 @@ editOverviewBtn.addEventListener("click", async () => {
 
     exitEditMode();
     loadConsultations();
-    
   } catch (err) {
     console.error(err);
     alert("Failed to update consultation.");
@@ -1115,227 +1128,6 @@ function exitEditMode() {
 /* -----------------------------------------------
    🔹 ADD Meds (arrayUnion)
 ------------------------------------------------ */
-
-/* ============================================================
-   MED SELECTION MODAL
-============================================================ */
-const selectMedModal = document.getElementById(".selectMedModal");
-const medSelect = document.getElementById("medSelect");
-const nextBtn = document.getElementById("selectMedNextBtn");
-
-function openSelectMedModal() {
-  selectMedModal.style.display = "flex";
-}
-function closeSelectMedModal() {
-  selectMedModal.style.display = "none";
-}
-
-/* ✅ MAKE FUNCTIONS ACCESSIBLE TO HTML */
-window.openSelectMedModal = openSelectMedModal;
-window.closeSelectMedModal = closeSelectMedModal;
-
-/* ============================================================
-   FETCH MED INVENTORY
-============================================================ */
-async function loadMedInventoryList() {
-  medSelect.innerHTML = "";
-
-  const medSnap = await getDocs(collection(db, "MedicineInventory"));
-  let meds = [];
-
-  medSnap.forEach((docu) => {
-    const data = docu.data();
-    const stock = data.stock ?? 0;
-    meds.push({ id: docu.id, ...data, stock });
-  });
-
-  meds.forEach((m) => {
-    const opt = document.createElement("option");
-    opt.value = m.id;
-    opt.textContent = `${m.name} (Available: ${m.stock})`;
-    medSelect.appendChild(opt);
-  });
-
-  return meds;
-}
-
-/* ============================================================
-   ADD MED CLICK → OPEN SELECT
-============================================================ */
-document.addEventListener("click", async (e) => {
-  if (e.target && e.target.id === "addMedBtn") {
-    if (!currentConsultationId) return alert("No consultation selected!");
-
-    global_medsInventory = await loadMedInventoryList();
-    openSelectMedModal();
-  }
-});
-
-/* ============================================================
-   NEXT → DETAIL MODAL
-============================================================ */
-const medDetailsModal = document.getElementById("medDetailsModal");
-const medDetailsContainer = document.getElementById("medDetailsContainer");
-const saveMedDetailsBtn = document.getElementById("saveMedDetailsBtn");
-
-function openMedDetailsModal() {
-  medDetailsModal.style.display = "flex";
-}
-function closeMedDetailsModal() {
-  medDetailsModal.style.display = "none";
-}
-
-nextBtn.addEventListener("click", async () => {
-  const selectedIds = Array.from(medSelect.selectedOptions).map((o) => o.value);
-  if (selectedIds.length === 0) return alert("Select at least 1 item");
-
-  closeSelectMedModal();
-  medDetailsContainer.innerHTML = "";
-
-  selectedIds.forEach((id) => {
-    const med = global_medsInventory.find((m) => m.id === id);
-    if (!med) return;
-
-    const available = med.stock ?? 0;
-
-    const div = document.createElement("div");
-    div.className = "med-entry";
-    div.style.marginBottom = "10px";
-
-    div.innerHTML = `
-      <div><strong>${med.name}</strong> <small style="color:gray;">(Available: ${available})</small></div>
-
-      <label>Quantity:
-        <input type="number" min="1" class="qty-input" data-id="${id}" style="width: 80px" required placeholder="Max: ${available}">
-      </label>
-
-      <label style="margin-left:10px;">Type:
-        <select class="type-input" data-id="${id}" required>
-          <option value="" disabled selected>Select</option>
-          <option value="Administered">Administered</option>
-          <option value="Dispensed">Dispensed</option>
-        </select>
-      </label>
-
-      <br>
-      <label>Remarks:</label><br>
-      <textarea class="remarks-input" data-id="${id}" rows="2" style="width:100%"></textarea>
-      <hr>
-    `;
-
-    medDetailsContainer.appendChild(div);
-  });
-
-  openMedDetailsModal();
-});
-
-/* ============================================================
-   SAVE MED DETAILS
-============================================================ */
-let isSavingMeds = false; // 🚫 Prevent double submissions
-
-saveMedDetailsBtn.addEventListener("click", async () => {
-  if (isSavingMeds) return;
-  isSavingMeds = true;
-  saveMedDetailsBtn.disabled = true;
-
-  try {
-    const qtyInputs = medDetailsContainer.querySelectorAll(".qty-input");
-    const typeInputs = medDetailsContainer.querySelectorAll(".type-input");
-    const remarksInputs =
-      medDetailsContainer.querySelectorAll(".remarks-input");
-
-    let medsToAdd = [];
-    const now = new Date();
-
-    qtyInputs.forEach((input) => {
-      const id = input.dataset.id;
-      const med = global_medsInventory.find((m) => m.id === id);
-      if (!med) return;
-
-      const qty = Number(input.value);
-      if (isNaN(qty) || qty <= 0) return;
-
-      const typeEl = Array.from(typeInputs).find((t) => t.dataset.id === id);
-      const type = typeEl ? typeEl.value : "";
-      if (type === "") return;
-
-      const remarksEl = Array.from(remarksInputs).find(
-        (r) => r.dataset.id === id
-      );
-      const remarks = remarksEl ? remarksEl.value : "";
-
-      medsToAdd.push({
-        id,
-        name: med.name,
-        quantity: qty,
-        type,
-        remarks,
-        NurseOnDuty: currentUserName,
-        date: now.toISOString().split("T")[0],
-        time: now.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      });
-    });
-
-    if (medsToAdd.length === 0) {
-      alert("Please enter valid medicine info");
-      return;
-    }
-
-    const consultRef = doc(
-      db,
-      "users",
-      patientId,
-      "consultations",
-      currentConsultationId
-    );
-
-    // 🔥 Save to Firestore
-    await updateDoc(consultRef, {
-      meds: arrayUnion(...medsToAdd),
-    });
-
-    // 🔥 Update inventory immediately
-    for (let m of medsToAdd) {
-      const medRef = doc(db, "MedicineInventory", m.id);
-      const medSnap = await getDoc(medRef);
-
-      if (medSnap.exists()) {
-        const data = medSnap.data();
-        const newStock = Math.max((data.stock || 0) - m.quantity, 0);
-        const newDispensed = (data.dispensed || 0) + m.quantity;
-
-        await updateDoc(medRef, { stock: newStock, dispensed: newDispensed });
-      }
-    }
-
-    alert("✅ Medication saved!");
-
-    closeMedDetailsModal();
-
-    // 🔥 Refresh table
-    await loadConsultations();
-
-    // 🔥 Reload updated consultation details
-    const updatedSnap = await getDoc(consultRef);
-    if (updatedSnap.exists()) {
-      showConsultationDetails(updatedSnap.data(), currentConsultationId);
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ Failed to save medication.");
-  } finally {
-    // 🔓 Always unlock button
-    isSavingMeds = false;
-    saveMedDetailsBtn.disabled = false;
-  }
-});
-
-window.openMedDetailsModal = openMedDetailsModal;
-window.closeMedDetailsModal = closeMedDetailsModal;
 
 /* -----------------------------------------------
  🔹 SAVE PHYSICAL EXAMINATION RECORD
@@ -1468,7 +1260,7 @@ async function loadPhysicalExaminations() {
       const tr = document.createElement("tr");
 
       tr.innerHTML = `
-    <td>${data.date || "-"}</td>
+    <td>${formatDateLabel(data.date) || "-"}</td>
     <td>${data.bp || "-"}</td>
     <td>${data.pr || "-"}</td>
     <td>${data.weight || "-"}</td>
@@ -1756,13 +1548,13 @@ async function loadVitals() {
       const tr = document.createElement("tr");
 
       tr.innerHTML = `
-        <td>${data.date || "-"}</td>
+        <td>${formatDateLabel(data.date) || "-"}</td>
         <td>${data.time || "-"}</td>
         <td>${data.takenBy || "-"}</td>
-        <td>${data.temp ? data.temp + " °C" : "-"}</td>
-        <td>${data.bp || "-"}</td>
-        <td>${data.pr || "-"}</td>
-        <td>${data.spo2 ? data.spo2 + " %" : "-"}</td>
+        <td>${data.temp ? data.temp + " °C" : "N"}</td>
+        <td>${data.bp || "N"}</td>
+        <td>${data.pr || "N/A"}</td>
+        <td>${data.spo2 ? data.spo2 + " %" : "N/A"}</td>
         <td>${data.lmp || "-"}</td>
       `;
 
@@ -1844,7 +1636,7 @@ async function loadDoctorNotes() {
       card.innerHTML = `
         <div class="card-body">
           <div class="d-flex justify-content-between mb-2">
-            <strong>${data.date || "-"}</strong>
+            <strong>${formatDateLabel(data.date) || "-"}</strong>
             <span class="text-muted">${data.time || "-"}</span>
           </div>
 
@@ -1882,12 +1674,15 @@ document
     e.preventDefault();
 
     const note = document.getElementById("nurse-note-text").value;
-    
+
     try {
+      const now = new Date();
+
       await addDoc(collection(db, "users", patientId, "nurseNotes"), {
         note,
         nurseName: currentUserName,
-        createdAt: serverTimestamp(),
+        date: now.toLocaleDateString(), // e.g. 9/16/2025
+        time: now.toLocaleTimeString(), // e.g. 2:18 AM
       });
 
       bootstrap.Modal.getInstance(
@@ -1933,21 +1728,17 @@ async function loadNurseNotes() {
 
       card.innerHTML = `
         <div class="card-body">
-          <h6 class="card-subtitle mb-2 text-muted">
+          <h6 class="card-subtitle mb-1 text-muted">
             ${data.nurseName || "Nurse"}
           </h6>
+
+          <small class="text-muted d-block mb-2">
+            ${formatDateLabel(data.date) || "—"} ${data.time || ""}
+          </small>
 
           <p class="card-text">
             ${data.note || "No note provided"}
           </p>
-
-          <small class="text-muted">
-            ${
-              data.createdAt?.toDate
-                ? data.createdAt.toDate().toLocaleString()
-                : ""
-            }
-          </small>
         </div>
       `;
 
@@ -1962,6 +1753,7 @@ async function loadNurseNotes() {
     `;
   }
 }
+
 loadNurseNotes();
 /* -----------------------------------------------
    🔹 Dental Records
@@ -2003,13 +1795,22 @@ document
     try {
       // 1️⃣ Save Dental Record
       const dentalRef = collection(db, "users", patientId, "dentalRecords");
+      const now = new Date();
+
+const date = now.toLocaleDateString("en-CA"); // YYYY-MM-DD (local)
+const time = now.toLocaleTimeString("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+}); // 
+
       await addDoc(dentalRef, {
         procedure,
         teeth,
         notes,
         dentist: currentUserName,
         medications,
-        createdAt: new Date(),
+        date,
+        time,
       });
 
       // 2️⃣ Deduct medicine stock
@@ -2031,7 +1832,11 @@ document
             });
 
             console.log(
-              `✅ ${med.name} stock updated: ${data.stock || 0} → ${newStock}, dispensed: ${data.dispensed || 0} → ${newDispensed}`
+              `✅ ${med.name} stock updated: ${
+                data.stock || 0
+              } → ${newStock}, dispensed: ${
+                data.dispensed || 0
+              } → ${newDispensed}`
             );
           } else {
             console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
@@ -2059,7 +1864,9 @@ document
       });
 
       // 4️⃣ Close modal & reset
-      bootstrap.Modal.getInstance(document.getElementById("dentalModal")).hide();
+      bootstrap.Modal.getInstance(
+        document.getElementById("dentalModal")
+      ).hide();
       e.target.reset();
 
       // 5️⃣ Reload records & medicine options
@@ -2076,13 +1883,12 @@ document
     }
   });
 
-
 async function loadDentalRecords() {
   const container = document.getElementById("dental-records-container");
   if (!container) return;
 
   container.innerHTML = "";
-  container.className = "d-flex flex-wrap gap-3"; // flex container
+  container.className = "d-flex flex-wrap gap-3";
 
   try {
     const ref = collection(db, "users", patientId, "dentalRecords");
@@ -2093,21 +1899,25 @@ async function loadDentalRecords() {
       return;
     }
 
-    // Sort by createdAt descending
+    // ✅ Sort by date + time (latest first)
     const records = snap.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .sort((a, b) => new Date(b.createdAt?.toDate?.() || b.createdAt) - new Date(a.createdAt?.toDate?.() || a.createdAt));
+      .sort((a, b) => {
+        const aDateTime = new Date(`${a.date} ${a.time}`);
+        const bDateTime = new Date(`${b.date} ${b.time}`);
+        return bDateTime - aDateTime;
+      });
 
     records.forEach((d) => {
       const medsHTML = d.medications?.length
         ? d.medications
             .map(
               (m) => `
-          <li>
-            ${m.name} (${m.quantity}) – ${m.type}
-            <br />
-            <small class="text-muted">${m.remarks || "No remarks"}</small>
-          </li>`
+              <li>
+                ${m.name} (${m.quantity}) – ${m.type}
+                <br />
+                <small class="text-muted">${m.remarks || "No remarks"}</small>
+              </li>`
             )
             .join("")
         : "<li>No medications</li>";
@@ -2119,16 +1929,26 @@ async function loadDentalRecords() {
       card.innerHTML = `
         <div class="card-body">
           <h5 class="card-title">🦷 ${d.procedure}</h5>
-          <p class="mb-1"><strong>Teeth:</strong> ${d.teeth?.join(", ") || "-"}</p>
-          <p class="mb-1"><strong>Dentist:</strong> ${d.dentist}</p>
-          <p class="mb-2"><strong>Date:</strong> ${
-            d.createdAt?.toDate
-              ? d.createdAt.toDate().toLocaleDateString()
-              : new Date(d.createdAt).toLocaleDateString()
-          }</p>
+
+          <p class="mb-1">
+            <strong>Teeth:</strong> ${d.teeth?.join(", ") || "-"}
+          </p>
+
+          <p class="mb-1">
+            <strong>Dentist:</strong> ${d.dentist || "Unassigned"}
+          </p>
+
+          <p class="mb-2">
+            <strong>Date:</strong> ${formatDateLabel(d.date) || "-"}
+            <br />
+            <strong>Time:</strong> ${d.time || "-"}
+          </p>
+
           <hr />
+
           <strong>Medications:</strong>
           <ul class="ps-3 mb-2">${medsHTML}</ul>
+
           <p class="card-text text-muted">${d.notes || "No notes"}</p>
         </div>
       `;

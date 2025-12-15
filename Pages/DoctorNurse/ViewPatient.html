@@ -679,7 +679,7 @@
                 >Time:<input type="time" id="consult-time" required
               /></label>
               <label>Chief Complaint:</label>
-              <select id="consult-complaint" class="form-control mb-2">
+              <select id="consult-complaint" class="form-control mb-2" required>
                 <option value="">Select Complaint</option>
                 <option value="__add_new__">➕ Add New Complaint</option>
               </select>
@@ -741,7 +741,9 @@
               <div class="overview-details">
                 <label
                   ><strong>Doctor:</strong>
-                  <input id="ovr-doctor" type="text" disabled />
+                  <select class="form-control" id="ovr-doctor" disabled>
+                      <option value="">Select Doctor</option>
+                  </select>
                 </label>
 
                 <label
@@ -771,7 +773,7 @@
               </div>
               <div class="meds-header">
                 <h4 class="mt-3 fw-bold">Medications</h4>
-                <button id="addMedBtn" style="display: none">➕ Add Med</button>
+                <button class="btn btn-success" id="addMedBtn" style="display: none">➕ Add Med</button>
               </div>
 
               <table id="cons-meds-table">
@@ -796,38 +798,9 @@
                 <button id="editOverviewBtn">✏️ Edit</button>
                 <button onclick="closeButtonOverlay()">Close</button>
               </div>
-              <!-- ✅ ADD MEDICATION SELECTION MODAL -->
-              <div id="selectMedModal" class="modal" style="display: none">
-                <div class="med-modal-content" style="max-width: 400px">
-                  <h3>Select Medicines</h3>
-                  <label><strong>Medicines:</strong></label>
-                  <select
-                    id="medSelect"
-                    multiple
-                    size="8"
-                    style="width: 100%"
-                  ></select>
+              
 
-                  <div style="margin-top: 10px">
-                    <button id="selectMedNextBtn">Next</button>
-                    <button onclick="closeSelectMedModal()">Cancel</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ✅ NEW: Quantity + Remarks Modal -->
-              <div id="medDetailsModal" class="modal" style="display: none">
-                <div class="med-modal-content" style="max-width: 500px">
-                  <h3>Enter Quantity & Remarks</h3>
-
-                  <div id="medDetailsContainer"></div>
-
-                  <div style="margin-top: 15px">
-                    <button id="saveMedDetailsBtn">Save</button>
-                    <button onclick="closeMedDetailsModal()">Cancel</button>
-                  </div>
-                </div>
-              </div>
+              
             </div>
           </div>
 
@@ -1462,21 +1435,22 @@
                           <option>48</option>
                         </optgroup>
                       </select>
-                      <small class="text-muted">Hold Ctrl / Cmd to select multiple teeth</small>
+                      <small class="text-muted"
+                        >Hold Ctrl / Cmd to select multiple teeth</small
+                      >
                     </div>
                     <hr />
                     <!-- Medications Section -->
-<div class="mt-4">
-  <label class="form-label fw-bold">Medications:</label>
-  <div class="d-flex flex-column gap-2 meds-list"></div>
-  <button
-    type="button"
-    class="btn btn-primary btn-sm mt-2 add-med-btn"
-  >
-    + Add Medicine
-  </button>
-</div>
-
+                    <div class="mt-4">
+                      <label class="form-label fw-bold">Medications:</label>
+                      <div class="d-flex flex-column gap-2 meds-list"></div>
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm mt-2 add-med-btn"
+                      >
+                        + Add Medicine
+                      </button>
+                    </div>
 
                     <!-- Notes -->
                     <div class="mb-3">

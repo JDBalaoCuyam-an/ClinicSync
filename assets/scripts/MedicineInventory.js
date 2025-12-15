@@ -7,6 +7,15 @@ import {
   doc,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 const form = document.getElementById("add-medicine-form");
 const tableBody = document.getElementById("medicine-table-body");
 const searchBar = document.getElementById("search-bar");
@@ -128,8 +137,8 @@ function renderMedicines() {
     row.innerHTML = `
       <td>${med.name ?? ""}</td>
       <td>${med.stock ?? 0}</td>
-      <td>${med.datePurchased ?? "-"}</td>
-      <td>${med.expiry ?? ""}</td>
+      <td>${formatDateLabel(med.datePurchased) ?? "-"}</td>
+      <td>${formatDateLabel(med.expiry) ?? ""}</td>
       <td>${med.perPack ?? "-"}</td>
       <td>${med.dispensed ?? 0}</td>
       <td>
@@ -267,9 +276,9 @@ document.getElementById("preview-bulk-btn").onclick = () => {
       tr.innerHTML = `
         <td>${name}</td>
         <td>${stock}</td>
-        <td>${expiry}</td>
+        <td>${formatDateLabel(expiry)}</td>
         <td>${perPack}</td>
-        <td>${datePurchased}</td>
+        <td>${formatDateLabel(datePurchased)}</td>
       `;
       tbody.appendChild(tr);
     });

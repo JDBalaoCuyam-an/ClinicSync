@@ -10,6 +10,14 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 const referralsList = document.getElementById("referralsList");
 const addReferralBtn = document.getElementById("addReferralBtn");
 const referralModal = document.getElementById("referralModal");
@@ -114,7 +122,7 @@ async function loadReferrals() {
       referrals.push({ id: docSnap.id, ...docSnap.data() });
       const row = `
         <tr>
-          <td><strong>${docSnap.data().date}</strong><br><small>${docSnap.data().time}</small></td>
+          <td><strong>${formatDateLabel(docSnap.data().date)}</strong><br><small>${docSnap.data().time}</small></td>
           <td>${docSnap.data().name}</td>
           <td>${docSnap.data().age}</td>
           <td>${docSnap.data().gender}</td>

@@ -12,6 +12,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 /* -----------------------------------------------
    Patient Info Display
   ----------------------------------------------- */
@@ -182,7 +191,7 @@ async function loadMedicalRecords(patientId) {
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${data.date || "-"}</td>
+        <td>${formatDateLabel(data.date) || "-"}</td>
         <td>${data.consultingDoctor || "-"}</td>
         <td>${data.NurseOnDuty || "-"}</td>
         <td>${data.complaint || "-"}</td>
