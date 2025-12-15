@@ -652,105 +652,119 @@ renderStockChart(currentFilter);
 
 // 🔄 Optional: Auto-refresh every minute
 setInterval(() => renderStockChart(currentFilter), 60000);
-async function loadTodayAppointments() {
-  const appointmentsContainer = document.getElementById("appointmentsList");
-  appointmentsContainer.innerHTML = "";
 
-  // Make container scrollable
-  appointmentsContainer.style.maxHeight = "400px"; // adjust height as needed
-  appointmentsContainer.style.overflowY = "auto";
-  appointmentsContainer.style.paddingRight = "5px"; // avoid scrollbar overlay
+
+const appointmentsList = document.getElementById("appointmentsList");
+const currentDateTimeSpan = document.getElementById("currentDateTime");
+
+// Get current week range (Sunday → Saturday)
+function getCurrentWeekRange() {
+  const now = new Date();
+  const firstDay = new Date(now);
+  firstDay.setDate(now.getDate() - now.getDay()); // Sunday
+  firstDay.setHours(0, 0, 0, 0);
+
+  const lastDay = new Date(firstDay);
+  lastDay.setDate(firstDay.getDate() + 6); // Saturday
+  lastDay.setHours(23, 59, 59, 999);
+
+  return { firstDay, lastDay };
+}
+
+async function loadWeeklyAppointments() {
+  appointmentsList.innerHTML = `<p class="text-center text-muted my-2">Loading...</p>`;
+
+  const { firstDay, lastDay } = getCurrentWeekRange();
+
+  // Update header with week
+  currentDateTimeSpan.textContent = `(${formatDateLabel(firstDay)} - ${formatDateLabel(lastDay)})`;
 
   try {
-    const q = query(
-      collection(db, "PendingAppointments"),
-      orderBy("appointmentDate", "asc")
+    // 🔹 Fetch In Queue
+    const qInQueue = query(
+      collection(db, "appointments"),
+      where("status", "==", "in queue")
     );
+    const snapInQueue = await getDocs(qInQueue);
 
-    const querySnapshot = await getDocs(q);
+    let inQueueAppointments = snapInQueue.docs
+      .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+      .filter(appt => {
+        const apptDate = new Date(appt.day);
+        return apptDate >= firstDay && apptDate <= lastDay;
+      });
 
-    if (querySnapshot.empty) {
-      appointmentsContainer.innerHTML =
-        "<p style='font-size:0.9em;'>No appointments today.</p>";
-      return;
+    // 🔹 Fetch Accepted
+    const qAccepted = query(
+      collection(db, "appointments"),
+      where("status", "==", "accepted")
+    );
+    const snapAccepted = await getDocs(qAccepted);
+
+    let acceptedAppointments = snapAccepted.docs
+      .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+      .filter(appt => {
+        const apptDate = new Date(appt.day);
+        return apptDate >= firstDay && apptDate <= lastDay;
+      });
+
+    // 🔹 Combine and sort each by date & time
+    const sortByDateTime = appts => {
+      return appts.sort((a, b) => {
+        const dateA = new Date(`${a.day}`);
+        const dateB = new Date(`${b.day}`);
+        return dateA - dateB;
+      });
+    };
+
+    inQueueAppointments = sortByDateTime(inQueueAppointments);
+    acceptedAppointments = sortByDateTime(acceptedAppointments);
+
+    appointmentsList.innerHTML = "";
+
+    function renderAppointments(title, appts, isAccepted = false) {
+      if (appts.length === 0) return;
+
+      const section = document.createElement("div");
+      section.className = "mb-3";
+
+      section.innerHTML = `<h5 class="mb-2">${title} (${appts.length})</h5>`;
+      const container = document.createElement("div");
+      container.className = "appointments-horizontal-list";
+
+      appts.forEach(appt => {
+        const row = document.createElement("div");
+        row.className = "appointment-row d-flex align-items-center justify-content-between p-2 mb-2 border rounded shadow-sm";
+
+        row.innerHTML = `
+          <div class="flex-grow-1">
+            <strong>${appt.patientName}</strong>
+            ${isAccepted ? `<span class="ms-3"><i class="bi bi-calendar"></i> ${appt.day} (${appt.weekday})</span>` : ""}
+            <span class="ms-3"><i class="bi bi-clock"></i> ${appt.slot}</span>
+            <span class="ms-3"><strong>With:</strong> ${appt.staffName}</span>
+          </div>
+        `;
+
+        container.appendChild(row);
+      });
+
+      section.appendChild(container);
+      appointmentsList.appendChild(section);
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // normalize
+    // 🔹 Accepted first, then in queue
+    renderAppointments("Accepted Appointments", acceptedAppointments, true);
+    renderAppointments("In Queue Appointments", inQueueAppointments, false);
 
-    let hasTodayAppointments = false;
-
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      if (!data.appointmentDate) return;
-
-      const [year, month, day] = data.appointmentDate.split("-").map(Number);
-      const appointmentDateObj = new Date(year, month - 1, day);
-      appointmentDateObj.setHours(0, 0, 0, 0);
-
-      if (appointmentDateObj.getTime() !== today.getTime()) return;
-
-      hasTodayAppointments = true;
-
-      // Create clickable card
-      const card = document.createElement("div");
-      card.classList.add("appointment-card");
-      card.style.cursor = "pointer";
-      card.style.padding = "8px 10px";
-      card.style.marginBottom = "8px";
-      card.style.borderRadius = "6px";
-      card.style.border = "1px solid #E0EFFF";
-      // card.style.backgroundColor = "#E0FFE0";
-      card.style.boxShadow = "0 1px 4px rgba(0,0,0,0.1)";
-      card.style.transition = "transform 0.2s";
-      card.style.fontSize = "0.85em"; // smaller text
-
-      card.addEventListener("mouseover", () => {
-        card.style.transform = "scale(1.02)";
-      });
-      card.addEventListener("mouseout", () => {
-        card.style.transform = "scale(1)";
-      });
-
-      card.addEventListener("click", () => {
-        window.location.href = "Schedules.html";
-      });
-
-      const formattedDate = appointmentDateObj.toLocaleDateString();
-
-      card.innerHTML = `
-        <h4 style="margin:0 0 4px 0;">${data.patientFirstName || ""} ${
-        data.patientMiddleName || ""
-      } ${data.patientLastName || ""}</h4>
-        <p style="margin:1px 0;"><strong>Type:</strong> ${
-          data.patientType || "N/A"
-        }</p>
-        <p style="margin:1px 0;"><strong>Reason:</strong> ${
-          data.appointmentReason || "N/A"
-        }</p>
-        <p style="margin:1px 0;"><strong>Scheduled:</strong> ${formattedDate}</p>
-        <p style="margin:1px 0;"><strong>Time:</strong> ${
-          data.appointmentTime || "N/A"
-        }</p>
-      `;
-
-      appointmentsContainer.appendChild(card);
-    });
-
-    if (!hasTodayAppointments) {
-      appointmentsContainer.innerHTML =
-        "<p style='font-size:0.9em;'>No appointments today.</p>";
+    if (inQueueAppointments.length === 0 && acceptedAppointments.length === 0) {
+      appointmentsList.innerHTML = `<p class="text-center text-muted my-3">No appointments this week.</p>`;
     }
 
-    // Update current date display
-    const dateTimeEl = document.getElementById("currentDateTime");
-    dateTimeEl.textContent = today.toLocaleDateString();
   } catch (error) {
-    console.error("Error loading appointments:", error);
-    appointmentsContainer.innerHTML =
-      "<p style='font-size:0.9em;'>Failed to load appointments.</p>";
+    console.error(error);
+    appointmentsList.innerHTML = `<p class="text-center text-danger my-3">Failed to load appointments.</p>`;
   }
 }
 
-// Call the function
-loadTodayAppointments();
+// Load weekly appointments on page load
+loadWeeklyAppointments();
