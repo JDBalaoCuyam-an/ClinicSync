@@ -264,12 +264,20 @@ document.getElementById("preview-bulk-btn").onclick = () => {
   const reader = new FileReader();
   reader.onload = (e) => {
     const rows = parseCSV(e.target.result);
+
+    if (rows.length < 2) {
+      return alert("⚠ CSV has no data rows!");
+    }
+
+    // Skip the first row (header)
+    const dataRows = rows.slice(1);
+
     const previewTable = document.getElementById("bulk-preview-table");
     const tbody = previewTable.querySelector("tbody");
 
     tbody.innerHTML = "";
 
-    rows.forEach((row) => {
+    dataRows.forEach((row) => {
       const [name, stock, expiry, perPack, datePurchased] = row;
 
       const tr = document.createElement("tr");
@@ -291,6 +299,21 @@ document.getElementById("preview-bulk-btn").onclick = () => {
 };
 
 
+// Download CSV Template
+document.getElementById("download-template-btn").onclick = () => {
+  const headers = ["Name", "Stock", "Expiry(YYYY-MM-DD)", "Per Pack", "Date Purchased(YYYY-MM-DD)"];
+  const csvContent = [headers.join(",")].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "medicine_template.csv";
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 /* ============================================================
    📌 UPLOAD ALL ROWS TO FIRESTORE
 ============================================================ */
@@ -302,8 +325,13 @@ document.getElementById("upload-bulk-btn").onclick = async () => {
   reader.onload = async (e) => {
     const rows = parseCSV(e.target.result);
 
+    if (rows.length < 2) return alert("⚠ No data found in CSV!");
+
+    // Skip the first row (header)
+    const dataRows = rows.slice(1);
+
     try {
-      for (const row of rows) {
+      for (const row of dataRows) {
         const [name, stock, expiry, perPack, datePurchased] = row;
 
         await addDoc(collection(db, "MedicineInventory"), {
@@ -328,3 +356,4 @@ document.getElementById("upload-bulk-btn").onclick = async () => {
 
   reader.readAsText(file);
 };
+
