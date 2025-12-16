@@ -69,30 +69,60 @@
   text-align: center;
   padding: 6px 0;
 }
+
+/* Wrapper to enable horizontal scrolling on small screens */
+.calendar-grid-wrapper {
+  overflow-x: auto;       /* allow horizontal scroll */
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on mobile */
+}
+
 /* Calendar Grid */
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0; /* Remove spacing between days */
+  grid-template-columns: repeat(7, 1fr); /* 7 columns by default */
+  gap: 0;
+  min-width: 420px; /* ensure minimum width to prevent squishing */
+}
+
+/* Responsive grid adjustment */
+@media (max-width: 768px) {
+  .calendar-grid {
+    grid-template-columns: repeat(7, minmax(50px, 1fr));
+    min-width: unset; /* allow grid to shrink but keep scroll if needed */
+  }
 }
 
 /* Calendar Day */
 .calendar-day {
   text-align: center;
-  padding: 25px; /* Make days bigger */
+  padding: 25px;
   font-size: 1.1rem;
-  /* border-radius: 6px; */
   background: #e0efff;
   cursor: pointer;
   position: relative;
   border: 1px solid #dee2e6;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
+
+/* Adjust day size on small screens */
+@media (max-width: 768px) {
+  .calendar-day {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+}
+
 
 /* Disabled past days */
 .disabled-day {
   background: #e9ecef;
   color: #adb5bd;
   cursor: not-allowed;
+}
+
+.disabled-day:hover {
+  background: #e9ecef; /* prevent hover effect */
 }
 
 /* Availability Badge */
@@ -109,13 +139,9 @@
 .calendar-day:hover {
   background: #4682b4;
   transform: scale(1.05);
-  transition: all 0.5s ease-in-out;
   color: #fff;
 }
 
-.disabled-day:hover {
-  background: #e9ecef; /* prevent hover effect */
-}
 
 .time-slot {
   display: flex;

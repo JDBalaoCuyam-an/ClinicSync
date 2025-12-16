@@ -81,34 +81,54 @@
         <button class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
-      <div class="modal-body d-flex">
-        <!-- Calendar (70%) -->
-        <div class="me-3" style="flex: 0 0 70%;">
-          <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-  <!-- Previous Month Button -->
-  <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm" id="prevMonth">
-    <i class="bi bi-chevron-left"></i>
-  </button>
+      <div class="modal-body">
+        <div class="row">
+          <!-- Calendar (takes 70% on large screens, full width on small screens) -->
+          <div class="col-12 col-lg-8 mb-3 mb-lg-0">
+            <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+              <!-- Previous Month Button -->
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm"
+                id="prevMonth"
+              >
+                <i class="bi bi-chevron-left"></i>
+              </button>
 
-  <!-- Month Label -->
-  <strong id="monthLabel" class="mx-2 text-center flex-grow-1 fs-5 text-secondary"></strong>
+              <!-- Month Label -->
+              <strong
+                id="monthLabel"
+                class="mx-2 text-center flex-grow-1 fs-5 text-secondary"
+              ></strong>
 
-  <!-- Next Month Button -->
-  <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm" id="nextMonth">
-    <i class="bi bi-chevron-right"></i>
-  </button>
+              <!-- Next Month Button -->
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm"
+                id="nextMonth"
+              >
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+
+            <!-- Calendar Grid Wrapper -->
+<div class="calendar-grid-wrapper">
+  <div class="calendar-grid" id="calendarGrid"></div>
 </div>
 
+          </div>
 
-          <div class="calendar-grid" id="calendarGrid"></div>
-        </div>
-
-        <!-- Availability (30%) -->
-        <div class="p-2" style="flex: 0 0 30%;">
-          <h6>Your Availability</h6>
-          <ul class="list-group" id="modalAvailabilityList" style="max-height: 400px; overflow-y: auto;">
-            <!-- Availability items will be populated here -->
-          </ul>
+          <!-- Availability (takes 30% on large screens, full width on small screens) -->
+          <div class="col-12 col-lg-4">
+            <h6>Your Availability</h6>
+            <ul
+              class="list-group"
+              id="modalAvailabilityList"
+              style="max-height: 400px; overflow-y: auto"
+            >
+              <!-- Availability items will be populated here -->
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -131,36 +151,44 @@
           </div>
 
           <div class="modal-body">
-  <p class="mb-3">
-    <strong id="selectedDateText"></strong>
-  </p>
+            <p class="mb-3">
+              <strong id="selectedDateText"></strong>
+            </p>
 
-  <div id="timeSlotsContainer"></div>
+            <div id="timeSlotsContainer"></div>
 
-  <button class="btn btn-sm btn-outline-primary mt-2" id="addTimeSlot">
-    + Add Time Slot
-  </button>
-  <hr>
-<div class="mb-3">
-  <label class="form-label"><strong>Repeat</strong></label>
-  <select class="form-select" id="repeatType">
-    <option value="none">None</option>
-    <option value="daily">Daily</option>
-    <option value="weekly">Weekly</option>
-  </select>
-</div>
+            <button
+              class="btn btn-sm btn-outline-primary mt-2"
+              id="addTimeSlot"
+            >
+              + Add Time Slot
+            </button>
+            <hr />
+            <div class="mb-3">
+              <label class="form-label"><strong>Repeat</strong></label>
+              <select class="form-select" id="repeatType">
+                <option value="none">None</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
 
-<div class="mb-3" id="repeatUntilContainer" style="display:none;">
-  <label class="form-label"><strong>Repeat Until</strong></label>
-  <input type="date" class="form-control" id="repeatUntilDate">
-</div>
-<div class="mb-3" id="repeatInstancesContainer" style="display:none;">
-  <label class="form-label"><strong>Instances</strong></label>
-  <ul class="list-group" id="repeatInstancesList"></ul>
-</div>
-<button id="saveAvailabilityBtn" class="btn btn-primary">Save Availability</button>
-</div>
-
+            <div class="mb-3" id="repeatUntilContainer" style="display: none">
+              <label class="form-label"><strong>Repeat Until</strong></label>
+              <input type="date" class="form-control" id="repeatUntilDate" />
+            </div>
+            <div
+              class="mb-3"
+              id="repeatInstancesContainer"
+              style="display: none"
+            >
+              <label class="form-label"><strong>Instances</strong></label>
+              <ul class="list-group" id="repeatInstancesList"></ul>
+            </div>
+            <button id="saveAvailabilityBtn" class="btn btn-primary">
+              Save Availability
+            </button>
+          </div>
         </div>
       </div>
     </div>
