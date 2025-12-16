@@ -9,6 +9,9 @@ import {
   doc,
   query,
   where,
+  writeBatch,
+  serverTimestamp,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 (function () {
@@ -16,9 +19,19 @@ import {
 })();
 
 
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 /* ===================================== */
 /*            STAFF LIST                 */
 /* ===================================== */
+let selectedStaffId = null;
+
 async function loadStaff() {
   try {
     const staffList = document.getElementById("staffList");
@@ -37,15 +50,22 @@ async function loadStaff() {
       const doctorType = data.doctor_type ?? null;
       const availability = data.availability || [];
 
-      // Availability badges
+      // Availability badges - only date, weekday, and slots
       const availabilityHtml = availability.length
-        ? availability
-            .map(
-              (a) =>
-                `<span class="badge bg-success me-1 mb-1">${a.day}: ${a.start} - ${a.end}</span>`
-            )
-            .join("")
-        : '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
+  ? availability
+      .map((a) => {
+        let slotsHtml;
+        if (a.slots.length > 1) {
+          // multiple slots → line break for each
+          slotsHtml = a.slots.map(slot => `${slot.start} - ${slot.end}`).join("<br>");
+        } else {
+          // single slot → just show inline
+          slotsHtml = a.slots.map(slot => `${slot.start} - ${slot.end}`).join("");
+        }
+        return `<span class="badge bg-success me-1 mb-1 d-block">${a.date} (${a.weekday}): ${slotsHtml}</span>`;
+      })
+      .join("")
+  : '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
 
       const card = document.createElement("div");
       card.className = "card mb-3 shadow-sm staff-card w-100";
@@ -54,16 +74,14 @@ async function loadStaff() {
         <div class="card-body p-3 d-flex flex-column">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <p class="fw-bold mb-0">${fullName}</p>
-            <button class="btn btn-sm btn-primary open-modal-btn">Schedule</button>
+            <button class="btn btn-sm btn-primary open-modal-btn">Manage Availability</button>
           </div>
 
           <p class="text-secondary mb-1">${role === "doctor" ? "Doctor" : "Nurse"}</p>
 
           ${
             role === "doctor"
-              ? `<p class="text-primary mb-2">Specialization: ${
-                  doctorType ?? "(none yet)"
-                }</p>`
+              ? `<p class="text-primary mb-2">Specialization: ${doctorType ?? "(none yet)"}</p>`
               : ""
           }
 
@@ -71,9 +89,9 @@ async function loadStaff() {
         </div>
       `;
 
-      // Only the button triggers the modal
+      // Button triggers the modal
       card.querySelector(".open-modal-btn").addEventListener("click", () => {
-        openAvailabilityModal(id, fullName);
+        manageAvailability(id, fullName);
       });
 
       staffList.appendChild(card);
@@ -83,96 +101,339 @@ async function loadStaff() {
   }
 }
 
+
 loadStaff();
 
 /* ===================================== */
 /*        AVAILABILITY MODAL LOGIC       */
 /* ===================================== */
-let selectedStaffId = null;
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+let selectedDate = null;
+const repeatUntilInput = document.getElementById("repeatUntilDate");
+const instancesContainer = document.getElementById("repeatInstancesContainer");
+const instancesList = document.getElementById("repeatInstancesList");
 
-function openAvailabilityModal(id, staffName) {
-  selectedStaffId = id;
-  document.getElementById("modalStaffName").innerText = staffName;
+function manageAvailability(id, fullName) {
+  selectedStaffId = id; // ⚡ store the selected staff ID
 
-  // Reset fields
-  document.getElementById("modalDay").value = "";
-  document.getElementById("modalStartTime").value = "";
-  document.getElementById("modalEndTime").value = "";
-  document.getElementById("availabilityList").innerHTML = "";
+  document.getElementById("calendarTitle").textContent =
+    `Availability — ${fullName}`;
 
-  loadAvailability(id);
+  renderCalendar(calYear, calMonth);
 
-  const modal = new bootstrap.Modal(
+  new bootstrap.Modal(
     document.getElementById("availabilityModal")
-  );
-  modal.show();
+  ).show();
 }
 
-async function loadAvailability(userId) {
-  const ref = doc(db, "users", userId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-  const data = snap.data();
-  const availability = data.availability || [];
+function renderCalendar(year, month) {
+  const grid = document.getElementById("calendarGrid");
+  const label = document.getElementById("monthLabel");
 
-  const container = document.getElementById("availabilityList");
+  grid.innerHTML = "";
+
+  const months = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+
+  label.textContent = `${months[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d => {
+    const h = document.createElement("div");
+    h.className = "calendar-header";
+    h.textContent = d;
+    grid.appendChild(h);
+  });
+
+  for (let i = 0; i < firstDay; i++) {
+    grid.appendChild(document.createElement("div"));
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+  const day = document.createElement("div");
+  day.className = "calendar-day";
+  day.textContent = d;
+
+  day.onclick = () => handleDateClick(year, month, d);
+
+  grid.appendChild(day);
+}
+
+}
+document.getElementById("prevMonth").onclick = () => {
+  calMonth--;
+  if (calMonth < 0) {
+    calMonth = 11;
+    calYear--;
+  }
+  renderCalendar(calYear, calMonth);
+};
+
+document.getElementById("nextMonth").onclick = () => {
+  calMonth++;
+  if (calMonth > 11) {
+    calMonth = 0;
+    calYear++;
+  }
+  renderCalendar(calYear, calMonth);
+};
+document.getElementById("backToCalendar").onclick = () => {
+  // Close step 2
+  bootstrap.Modal.getInstance(
+    document.getElementById("availabilityStep2")
+  ).hide();
+
+  // Reopen calendar
+  new bootstrap.Modal(
+    document.getElementById("availabilityModal")
+  ).show();
+};
+
+function handleDateClick(year, month, day) {
+  selectedDate = new Date(year, month, day);
+timeSlots = []; // reset slots
+
+document.getElementById("selectedDateText").textContent =
+  selectedDate.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+
+// Close calendar modal
+bootstrap.Modal.getInstance(document.getElementById("availabilityModal")).hide();
+
+// Open step 2
+new bootstrap.Modal(document.getElementById("availabilityStep2")).show();
+
+// Set default repeat until 30 days from selected date
+setDefaultRepeatUntil();
+
+}
+
+
+
+let timeSlots = [];
+document.getElementById("addTimeSlot").onclick = () => {
+  timeSlots.push({ start: "", end: "" });
+  renderTimeSlots();
+};
+function renderTimeSlots() {
+  const container = document.getElementById("timeSlotsContainer");
   container.innerHTML = "";
-  availability.forEach((item, index) => {
-    const entry = document.createElement("div");
-    entry.className =
-      "d-flex justify-content-between align-items-center border p-2 rounded mb-2";
 
-    entry.innerHTML = `
-      <div>
-        <strong>${item.day}</strong><br>
-        <span>${item.start} - ${item.end}</span>
-      </div>
-      <button class="btn btn-danger btn-sm" data-index="${index}">Remove</button>
+  timeSlots.forEach((slot, index) => {
+    const row = document.createElement("div");
+    row.className = "time-slot";
+
+    row.innerHTML = `
+      <input type="time" value="${slot.start}">
+      <span>to</span>
+      <input type="time" value="${slot.end}">
+      <button class="btn btn-sm btn-outline-danger">✕</button>
     `;
-    entry.querySelector("button").addEventListener("click", () => {
-      removeAvailability(userId, index);
-    });
-    container.appendChild(entry);
+
+    const [startInput, endInput, removeBtn] = row.querySelectorAll("input, button");
+
+    startInput.onchange = (e) => timeSlots[index].start = e.target.value;
+    endInput.onchange = (e) => timeSlots[index].end = e.target.value;
+
+    removeBtn.onclick = () => {
+      timeSlots.splice(index, 1);
+      renderTimeSlots();
+    };
+
+    container.appendChild(row);
   });
 }
 
-document
-  .getElementById("addAvailability")
-  .addEventListener("click", async () => {
-    const day = document.getElementById("modalDay").value;
-    const start = document.getElementById("modalStartTime").value;
-    const end = document.getElementById("modalEndTime").value;
+const repeatType = document.getElementById("repeatType");
+const repeatUntilContainer = document.getElementById("repeatUntilContainer");
 
-    if (!day || !start || !end) {
-      alert("Please fill all fields.");
-      return;
+repeatType.onchange = () => {
+  if (repeatType.value === "none") {
+    repeatUntilContainer.style.display = "none";
+  } else {
+    repeatUntilContainer.style.display = "block";
+    setDefaultRepeatUntil(); // ensures default 30 days
+  }
+};
+
+
+function getAvailabilityData() {
+  const repeat = repeatType.value; // none, daily, weekly
+  const repeatUntil = document.getElementById("repeatUntilDate").value || null;
+
+  const slots = timeSlots.map(slot => ({
+    start: slot.start,
+    end: slot.end
+  }));
+
+  const weekday = selectedDate.toLocaleDateString("en-US", { weekday: "long" });
+
+  return {
+    date: selectedDate.toISOString().split("T")[0],
+    weekday: weekday,
+    slots: slots,
+    repeat: repeat,
+    repeatUntil: repeatUntil
+  };
+}
+
+document.getElementById("saveAvailabilityBtn").onclick = () => {
+  const availabilityData = getAvailabilityData();
+  console.log(availabilityData);
+
+  // Now you can save it to Firestore
+};
+
+
+function updateRepeatInstances() {
+  const repeat = repeatType.value;
+  const repeatUntil = repeatUntilInput.value;
+
+  instancesList.innerHTML = "";
+
+  if (repeat === "none" || !repeatUntil) {
+    instancesContainer.style.display = "none";
+    return;
+  }
+
+  instancesContainer.style.display = "block";
+
+  const startDate = new Date(selectedDate); // selectedDate must be set
+  const endDate = new Date(repeatUntil);
+
+  let current = new Date(startDate);
+
+  while (current <= endDate) {
+    if (repeat === "daily") {
+      // daily: add every day
+      const li = document.createElement("li");
+      li.className = "list-group-item py-1";
+      li.textContent = current.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      instancesList.appendChild(li);
+      current.setDate(current.getDate() + 1);
+    } else if (repeat === "weekly") {
+      // weekly: only same weekday
+      if (current.getDay() === startDate.getDay()) {
+        const li = document.createElement("li");
+        li.className = "list-group-item py-1";
+        li.textContent = current.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        instancesList.appendChild(li);
+      }
+      current.setDate(current.getDate() + 1);
     }
-
-    const ref = doc(db, "users", selectedStaffId);
-    const snap = await getDoc(ref);
-    const data = snap.data();
-    const availability = data.availability || [];
-
-    availability.push({ day, start, end });
-    await setDoc(ref, { availability }, { merge: true });
-
-    loadAvailability(selectedStaffId);
-
-    document.getElementById("modalDay").value = "";
-    document.getElementById("modalStartTime").value = "";
-    document.getElementById("modalEndTime").value = "";
-  });
-
-async function removeAvailability(userId, index) {
-  const ref = doc(db, "users", userId);
-  const snap = await getDoc(ref);
-  const data = snap.data();
-  const availability = data.availability || [];
-
-  availability.splice(index, 1);
-  await setDoc(ref, { availability }, { merge: true });
-  loadAvailability(userId);
+  }
 }
+function setDefaultRepeatUntil() {
+  if (!selectedDate) return;
+
+  // 30 days from selected date
+  const repeatUntilDate = new Date(selectedDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  repeatUntilInput.value = repeatUntilDate.toISOString().split("T")[0];
+  repeatUntilInput.min = new Date(selectedDate.getTime() + 1 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+
+  updateRepeatInstances();
+}
+
+
+// Update when Repeat or Repeat Until changes
+repeatType.onchange = () => {
+  if (repeatType.value === "none") {
+    repeatUntilContainer.style.display = "none";
+  } else {
+    repeatUntilContainer.style.display = "block";
+    const minDate = new Date(selectedDate.getTime() + 86400000);
+    repeatUntilInput.min = minDate.toISOString().split("T")[0];
+  }
+  updateRepeatInstances();
+};
+
+repeatUntilInput.onchange = () => {
+  updateRepeatInstances();
+};
+async function saveAvailability(staffId) {
+  if (!selectedDate) return alert("Select a date first!");
+
+  const slots = timeSlots.filter(s => s.start && s.end);
+  if (!slots.length) return alert("Add at least one time slot!");
+
+  const repeat = repeatType.value;
+  const repeatUntil = repeatUntilInput.value ? new Date(repeatUntilInput.value) : null;
+
+  let datesToSave = [];
+
+  if (repeat === "none" || !repeatUntil) {
+    datesToSave.push(new Date(selectedDate));
+  } else {
+    let current = new Date(selectedDate);
+    while (current <= repeatUntil) {
+      if (repeat === "daily") {
+        datesToSave.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      } else if (repeat === "weekly") {
+        if (current.getDay() === selectedDate.getDay()) {
+          datesToSave.push(new Date(current));
+        }
+        current.setDate(current.getDate() + 1);
+      }
+    }
+  }
+
+  try {
+    const staffRef = doc(db, "users", staffId);
+
+    // Map dates to availability objects (without serverTimestamp inside arrayUnion)
+    const newAvailability = datesToSave.map(date => ({
+      date: date.toISOString().split("T")[0],
+      weekday: date.toLocaleDateString("en-US", { weekday: "long" }),
+      slots: slots,
+      repeat: repeat,
+      repeatUntil: repeatUntil ? repeatUntil.toISOString().split("T")[0] : null
+    }));
+
+    // ⚡ Add new availability using arrayUnion
+    await updateDoc(staffRef, {
+      availability: arrayUnion(...newAvailability),
+      lastUpdated: serverTimestamp() // you can still set timestamp separately
+    });
+
+    alert("Availability saved successfully!");
+    bootstrap.Modal.getInstance(document.getElementById("availabilityStep2")).hide();
+
+  } catch (err) {
+    console.error("Error saving availability:", err);
+    alert("Failed to save availability. See console.");
+  }
+}
+
+
+document.getElementById("saveAvailabilityBtn").onclick = () => {
+  // Replace with the staffId you are managing
+  saveAvailability(selectedStaffId);
+loadStaff();
+
+};
 
 /* ===================================== */
 /*        APPOINTMENTS LOGIC            */
