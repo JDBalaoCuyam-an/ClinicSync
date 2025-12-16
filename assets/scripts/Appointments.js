@@ -11,7 +11,8 @@ import {
   where,
   writeBatch,
   serverTimestamp,
-  arrayUnion
+  arrayUnion,
+  arrayRemove
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 (function () {
@@ -62,7 +63,7 @@ async function loadStaff() {
           // single slot → just show inline
           slotsHtml = a.slots.map(slot => `${slot.start} - ${slot.end}`).join("");
         }
-        return `<span class="badge bg-success me-1 mb-1 d-block">${a.date} (${a.weekday}): ${slotsHtml}</span>`;
+        return `<span class="badge bg-success me-1 mb-1 d-block">${formatDateLabel(a.date)} (${a.weekday}): ${slotsHtml}</span>`;
       })
       .join("")
   : '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
@@ -115,17 +116,19 @@ const instancesContainer = document.getElementById("repeatInstancesContainer");
 const instancesList = document.getElementById("repeatInstancesList");
 
 function manageAvailability(id, fullName) {
-  selectedStaffId = id; // ⚡ store the selected staff ID
+  selectedStaffId = id;
 
   document.getElementById("calendarTitle").textContent =
     `Availability — ${fullName}`;
 
   renderCalendar(calYear, calMonth);
 
-  new bootstrap.Modal(
-    document.getElementById("availabilityModal")
-  ).show();
+  new bootstrap.Modal(document.getElementById("availabilityModal")).show();
+
+  // Load current availability into the modal list
+  renderModalAvailability(id);
 }
+
 
 function renderCalendar(year, month) {
   const grid = document.getElementById("calendarGrid");
@@ -150,8 +153,20 @@ function renderCalendar(year, month) {
     grid.appendChild(h);
   });
 
+  // Empty slots for first day offset
   for (let i = 0; i < firstDay; i++) {
     grid.appendChild(document.createElement("div"));
+  }
+
+  // Load staff availability for highlighting
+  let staffAvailability = [];
+  if (selectedStaffId) {
+    getDoc(doc(db, "users", selectedStaffId)).then(docSnap => {
+      if (docSnap.exists()) {
+        staffAvailability = docSnap.data().availability || [];
+        highlightCalendarDates(); // call after availability is loaded
+      }
+    });
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -159,12 +174,55 @@ function renderCalendar(year, month) {
   day.className = "calendar-day";
   day.textContent = d;
 
-  day.onclick = () => handleDateClick(year, month, d);
+  // Build local YYYY-MM-DD string
+  const dateStr = `${year}-${(month + 1).toString().padStart(2,"0")}-${d.toString().padStart(2,"0")}`;
+  const dayDate = new Date(year, month, d);
+
+  // Disable past days
+  const today = new Date();
+  today.setHours(0,0,0,0); // normalize to midnight
+  if (dayDate < today) {
+    day.classList.add("disabled-day");
+  } else {
+    day.onclick = () => handleDateClick(year, month, d);
+  }
+
+  // Check if this date has availability and add badge
+  const hasAvailability = staffAvailability.some(a => a.date === dateStr);
+  if (hasAvailability) {
+    const badge = document.createElement("span");
+    badge.className = "availability-badge";
+    badge.title = "Has availability";
+    day.appendChild(badge);
+  }
 
   grid.appendChild(day);
 }
 
+
+  // Highlight function for future dynamic updates
+  function highlightCalendarDates() {
+    const days = grid.querySelectorAll(".calendar-day");
+    days.forEach(dayDiv => {
+      const dayNum = parseInt(dayDiv.textContent);
+      const dateStr = `${year}-${(month + 1).toString().padStart(2,"0")}-${dayNum.toString().padStart(2,"0")}`;
+      const hasAvailability = staffAvailability.some(a => a.date === dateStr);
+
+      // Remove existing badge if any
+      const existingBadge = dayDiv.querySelector(".availability-badge");
+      if (existingBadge) existingBadge.remove();
+
+      if (hasAvailability) {
+        const badge = document.createElement("span");
+        badge.className = "availability-badge";
+        badge.title = "Has availability";
+        dayDiv.appendChild(badge);
+      }
+    });
+  }
 }
+
+
 document.getElementById("prevMonth").onclick = () => {
   calMonth--;
   if (calMonth < 0) {
@@ -216,6 +274,52 @@ new bootstrap.Modal(document.getElementById("availabilityStep2")).show();
 setDefaultRepeatUntil();
 
 }
+function renderModalAvailability(staffId) {
+  const staffRef = doc(db, "users", staffId);
+  getDoc(staffRef).then(docSnap => {
+    if (!docSnap.exists()) return;
+    const data = docSnap.data();
+    const availability = data.availability || [];
+    const list = document.getElementById("modalAvailabilityList");
+    list.innerHTML = "";
+
+    if (!availability.length) {
+      const li = document.createElement("li");
+      li.className = "list-group-item text-muted text-center";
+      li.textContent = "No availability set";
+      list.appendChild(li);
+      return;
+    }
+
+    availability.forEach((a, index) => {
+      const slotsHtml = a.slots.map(slot => `${slot.start} - ${slot.end}`).join("<br>");
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-start flex-column";
+      li.innerHTML = `
+        <div>${formatDateLabel(a.date)} (${a.weekday}):<br>${slotsHtml}</div>
+        <button class="btn btn-sm btn-outline-danger mt-2 remove-btn">Remove</button>
+      `;
+
+      // Remove availability
+      li.querySelector(".remove-btn").onclick = async () => {
+        try {
+          await updateDoc(staffRef, {
+            availability: arrayRemove(a)
+          });
+          li.remove(); // remove from UI
+          loadStaff(); // refresh staff cards
+        } catch (err) {
+          console.error("Error removing availability:", err);
+          alert("Failed to remove availability. See console.");
+        }
+      };
+
+      list.appendChild(li);
+    });
+  });
+}
+
+
 
 
 
@@ -403,19 +507,23 @@ async function saveAvailability(staffId) {
   try {
     const staffRef = doc(db, "users", staffId);
 
-    // Map dates to availability objects (without serverTimestamp inside arrayUnion)
+    // Map dates to availability objects (use en-PH for weekday)
     const newAvailability = datesToSave.map(date => ({
-      date: date.toISOString().split("T")[0],
-      weekday: date.toLocaleDateString("en-US", { weekday: "long" }),
-      slots: slots,
-      repeat: repeat,
-      repeatUntil: repeatUntil ? repeatUntil.toISOString().split("T")[0] : null
-    }));
+  // Use local year/month/day to prevent UTC shift
+  date: `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2,"0")}-${date.getDate().toString().padStart(2,"0")}`,
+  weekday: date.toLocaleDateString("en-PH", { weekday: "long" }), // PH weekday
+  slots: slots,
+  repeat: repeat,
+  repeatUntil: repeatUntil 
+    ? `${repeatUntil.getFullYear()}-${(repeatUntil.getMonth() + 1).toString().padStart(2,"0")}-${repeatUntil.getDate().toString().padStart(2,"0")}`
+    : null
+}));
 
-    // ⚡ Add new availability using arrayUnion
+
+    // Add new availability using arrayUnion
     await updateDoc(staffRef, {
       availability: arrayUnion(...newAvailability),
-      lastUpdated: serverTimestamp() // you can still set timestamp separately
+      lastUpdated: serverTimestamp() // timestamp separately
     });
 
     alert("Availability saved successfully!");
@@ -427,13 +535,12 @@ async function saveAvailability(staffId) {
   }
 }
 
-
+// Save button
 document.getElementById("saveAvailabilityBtn").onclick = () => {
-  // Replace with the staffId you are managing
   saveAvailability(selectedStaffId);
-loadStaff();
-
+  loadStaff(); // refresh staff cards
 };
+
 
 /* ===================================== */
 /*        APPOINTMENTS LOGIC            */
