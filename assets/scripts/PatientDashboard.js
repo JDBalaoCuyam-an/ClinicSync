@@ -8,19 +8,35 @@ import {
   getDocs,
   updateDoc,
   setDoc,
-  addDoc
+  addDoc,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 function formatDateLabel(dateStr) {
   const date = new Date(dateStr);
   return date.toLocaleDateString("en-US", {
-    month: "long",
+    month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
+function formatTimeFromString(timeStr) {
+  // timeStr should be in "HH:MM" format (e.g., "08:45" or "15:30")
+  const [hours, minutes] = timeStr.split(":");
+  let hour = parseInt(hours, 10);
+  const period = hour >= 12 ? "PM" : "AM";
 
+  // Convert to 12-hour format
+  if (hour === 0) {
+    hour = 12; // Midnight
+  } else if (hour > 12) {
+    hour -= 12;
+  }
+
+  // Remove leading zero and format minutes (keep 2 digits)
+  return `${hour}:${minutes} ${period}`;
+}
 /* -----------------------------------------------
    Patient Info Display
   ----------------------------------------------- */
@@ -261,15 +277,16 @@ async function loadStaff() {
         data.availability.forEach((a) => {
           if (a.slots && a.slots.length) {
             availabilityHtml += `<li>
-              <strong>${a.date} (${a.weekday})</strong>: 
-              ${a.slots.map(s => `${s.start} - ${s.end}`).join(", ")}
+              <strong>${formatDateLabel(a.date)} (${a.weekday})</strong>:<br>
+              ${a.slots.map((s) => `${formatTimeFromString(s.start)} - ${formatTimeFromString(s.end)}`).join("<br>")}
             </li>`;
           }
         });
 
         availabilityHtml += `</ul>`;
       } else {
-        availabilityHtml = '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
+        availabilityHtml =
+          '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
       }
 
       const colDiv = document.createElement("div");
@@ -305,12 +322,10 @@ async function loadStaff() {
       `;
 
       // ✅ BUTTON CLICK
-      colDiv
-        .querySelector(".book-appt-btn")
-        .addEventListener("click", () => {
-          console.log("Opening appointment modal for:", fullName);
-          openAppointmentModal(id, fullName);
-        });
+      colDiv.querySelector(".book-appt-btn").addEventListener("click", () => {
+        console.log("Opening appointment modal for:", fullName);
+        openAppointmentModal(id, fullName);
+      });
 
       staffList.appendChild(colDiv);
     });
@@ -318,7 +333,6 @@ async function loadStaff() {
     console.error("Error loading staff:", err);
   }
 }
-
 
 loadStaff();
 
@@ -349,11 +363,13 @@ async function openAppointmentModal(id, fullName) {
   const snap = await getDocs(q);
 
   const bookedAppointments = [];
-  snap.forEach(doc => bookedAppointments.push(doc.data()));
+  snap.forEach((doc) => bookedAppointments.push(doc.data()));
 
   // Filter future dates only
   const today = new Date();
-  const futureAvailability = availability.filter(a => new Date(a.date) >= today);
+  const futureAvailability = availability.filter(
+    (a) => new Date(a.date) >= today
+  );
 
   // Populate appointment day select
   futureAvailability.forEach((a) => {
@@ -368,7 +384,7 @@ async function openAppointmentModal(id, fullName) {
   // When day changes → regenerate slots
   apptDay.addEventListener("change", () => {
     const selectedDate = apptDay.value; // "YYYY-MM-DD"
-    const avail = futureAvailability.find(a => a.date === selectedDate);
+    const avail = futureAvailability.find((a) => a.date === selectedDate);
     generateTimeSlots(avail?.slots || [], bookedAppointments, selectedDate);
   });
 
@@ -376,8 +392,12 @@ async function openAppointmentModal(id, fullName) {
   if (apptDay.options.length > 0) {
     const firstOption = apptDay.options[0];
     apptDay.value = firstOption.value;
-    const avail = futureAvailability.find(a => a.date === firstOption.value);
-    generateTimeSlots(avail?.slots || [], bookedAppointments, firstOption.value);
+    const avail = futureAvailability.find((a) => a.date === firstOption.value);
+    generateTimeSlots(
+      avail?.slots || [],
+      bookedAppointments,
+      firstOption.value
+    );
   }
 
   new bootstrap.Modal(document.getElementById("appointmentModal")).show();
@@ -390,11 +410,12 @@ function generateTimeSlots(slots, bookedAppointments, date) {
   selectedSlot = null; // reset selection
 
   if (!slots.length) {
-    apptSlot.innerHTML = "<p class='text-muted'>No available slots for this date.</p>";
+    apptSlot.innerHTML =
+      "<p class='text-muted'>No available slots for this date.</p>";
     return;
   }
 
-  slots.forEach(slot => {
+  slots.forEach((slot) => {
     let startTime = parseTime(slot.start);
     const endTime = parseTime(slot.end);
 
@@ -404,7 +425,7 @@ function generateTimeSlots(slots, bookedAppointments, date) {
 
       // Check if this 30-min slot is already booked
       const isBooked = bookedAppointments.some(
-        a => a.date === date && a.slot === slotLabel
+        (a) => a.date === date && a.slot === slotLabel
       );
 
       const slotBtn = document.createElement("button");
@@ -420,7 +441,7 @@ function generateTimeSlots(slots, bookedAppointments, date) {
           selectedSlot = slotLabel;
 
           // Remove highlight from all buttons
-          apptSlot.querySelectorAll("button").forEach(b => {
+          apptSlot.querySelectorAll("button").forEach((b) => {
             b.classList.remove("btn-primary", "text-white");
             if (!b.disabled) b.classList.add("btn-outline-primary");
           });
@@ -439,11 +460,10 @@ function generateTimeSlots(slots, bookedAppointments, date) {
 
   // If no available slots at all
   if (!apptSlot.querySelector("button:not(:disabled)")) {
-    apptSlot.innerHTML = "<p class='text-muted'>All slots for this date are already booked.</p>";
+    apptSlot.innerHTML =
+      "<p class='text-muted'>All slots for this date are already booked.</p>";
   }
 }
-
-
 
 /* Helper: parse "HH:MM" string → Date object (today's date) */
 function parseTime(timeStr) {
@@ -455,9 +475,8 @@ function parseTime(timeStr) {
 
 /* Helper: format Date object → "HH:MM" */
 function formatTime(date) {
-  return date.toTimeString().slice(0,5);
+  return date.toTimeString().slice(0, 5);
 }
-
 
 // Track selected 30-min slot
 let selectedSlot = null;
@@ -469,6 +488,9 @@ document.getElementById("confirmBookingBtn").onclick = async () => {
   const selectedDate = document.getElementById("apptDay").value;
   if (!selectedDate) return alert("Please select a date!");
 
+  const reason = document.getElementById("appointmentReason").value.trim();
+  if (!reason) return alert("Please provide a reason for your appointment!");
+
   try {
     // Get current user info
     const userSnap = await getDoc(doc(db, "users", currentUserId));
@@ -476,25 +498,109 @@ document.getElementById("confirmBookingBtn").onclick = async () => {
 
     // Save appointment
     await addDoc(collection(db, "appointments"), {
-  staffId: selectedStaffId,
-  staffName: selectedStaffName,
-  patientId: currentUserId,
-  patientName: `${userData.lastName}, ${userData.firstName}`,
-  date: selectedDate,
-  slot: selectedSlot,
-  createdAt: new Date() // client-side timestamp
-});
-
+      staffId: selectedStaffId,
+      staffName: selectedStaffName,
+      patientId: currentUserId,
+      patientName: `${userData.lastName}, ${userData.firstName}`,
+      date: selectedDate,
+      slot: selectedSlot,
+      reason: reason, // <--- Save the reason
+      status: "InQueue",
+      createdAt: new Date(), // client-side timestamp
+    });
 
     alert(`Appointment booked: ${selectedDate} (${selectedSlot})`);
-    bootstrap.Modal.getInstance(document.getElementById("appointmentModal")).hide();
+    bootstrap.Modal.getInstance(
+      document.getElementById("appointmentModal")
+    ).hide();
+
+    // Clear reason for next booking
+    document.getElementById("appointmentReason").value = "";
 
     // Refresh staff cards to reflect booked slots
     loadStaff();
-
   } catch (err) {
     console.error("Error booking appointment:", err);
     alert("Failed to book appointment. See console.");
   }
 };
+/* -----------------------------------------------
+   Load Patient Appointments
+----------------------------------------------- */
+async function loadAppointments() {
+  try {
+    const appointmentsList = document.getElementById("appointments-list");
+    const appointmentsCount = document.getElementById("appointments-count");
 
+    appointmentsList.innerHTML = "";
+    appointmentsCount.textContent = "0";
+
+    if (!currentUserId) return;
+
+    // Fetch appointments for this patient
+    const q = query(
+      collection(db, "appointments"),
+      where("patientId", "==", currentUserId)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      appointmentsList.innerHTML = `<p class="text-muted">No appointments found.</p>`;
+      return;
+    }
+
+    // Collect appointments and sort by date (client-side)
+    let appointments = [];
+    snap.forEach(docSnap => appointments.push(docSnap.data()));
+    appointments.sort((a, b) => a.date.localeCompare(b.date));
+
+    let count = 0;
+    const todayStr = new Date().toISOString().slice(0,10); // "YYYY-MM-DD"
+
+    appointments.forEach(appt => {
+      count++;
+
+      const isPast = appt.date < todayStr;
+
+      const colDiv = document.createElement("div");
+      colDiv.className = "col-12 mb-2";
+
+      colDiv.innerHTML = `
+        <div class="card p-2 border shadow-sm">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>${appt.staffName}</strong>
+              <p class="m-0 text-secondary">${formatDateLabel(appt.date)} (${appt.slot})</p>
+              <p class="m-0 text-muted"><small>Reason: ${appt.reason}</small></p>
+            </div>
+            <div>
+              <span class="badge ${isPast ? 'bg-secondary' : 'bg-primary'}">
+                ${isPast ? 'Past' : 'Upcoming'}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      appointmentsList.appendChild(colDiv);
+    });
+
+    appointmentsCount.textContent = count;
+
+  } catch (err) {
+    console.error("Error loading appointments:", err);
+    const appointmentsList = document.getElementById("appointments-list");
+    appointmentsList.innerHTML = `<p class="text-danger">Failed to load appointments.</p>`;
+  }
+}
+
+// Call this after user is loaded
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUserId = user.uid;
+    loadAppointments();
+  }
+});
+
+// Also call loadAppointments() after a new appointment is booked
