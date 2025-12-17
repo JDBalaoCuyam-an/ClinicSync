@@ -214,7 +214,7 @@ async function loadMedicalRecords(patientId) {
 }
 
 /* -----------------------------------------------
-   Appointment Functions (FULLY FIXED VERSION)
+   Appointment Functions (UPDATED: Date-Based Availability)
 ----------------------------------------------- */
 
 const staffList = document.getElementById("staffs");
@@ -230,13 +230,13 @@ onAuthStateChanged(auth, (user) => {
     getDoc(doc(db, "users", user.uid)).then((docSnap) => {
       if (docSnap.exists()) {
         const d = docSnap.data();
+        // You can use currentUser info if needed
       }
     });
   }
 });
 
-/* Load Staff */
-/* Load Staff */
+/* Load Staff with Date-Based Availability */
 async function loadStaff() {
   try {
     const q = query(
@@ -252,13 +252,25 @@ async function loadStaff() {
       const id = docSnap.id;
       const fullName = `${data.lastName}, ${data.firstName}`;
 
-      const availabilityHtml = (data.availability || []).length
-        ? `<ul class="m-0 mt-2 p-0" style="list-style:none;">
-            ${data.availability
-              .map((a) => `<li>${a.day}: ${a.start} - ${a.end}</li>`)
-              .join("")}
-           </ul>`
-        : '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
+      // Prepare availability HTML
+      let availabilityHtml = "";
+
+      if (data.availability && data.availability.length) {
+        availabilityHtml = `<ul class="m-0 mt-2 p-0" style="list-style:none;">`;
+
+        data.availability.forEach((a) => {
+          if (a.slots && a.slots.length) {
+            availabilityHtml += `<li>
+              <strong>${a.date} (${a.weekday})</strong>: 
+              ${a.slots.map(s => `${s.start} - ${s.end}`).join(", ")}
+            </li>`;
+          }
+        });
+
+        availabilityHtml += `</ul>`;
+      } else {
+        availabilityHtml = '<p class="m-0 mt-2 text-muted">(No availability set)</p>';
+      }
 
       const colDiv = document.createElement("div");
       colDiv.className = "col-12 col-md-6 col-lg-4 d-flex";
@@ -292,7 +304,7 @@ async function loadStaff() {
         </div>
       `;
 
-      // ✅ BUTTON CLICK (THIS IS THE IMPORTANT PART)
+      // ✅ BUTTON CLICK
       colDiv
         .querySelector(".book-appt-btn")
         .addEventListener("click", () => {
@@ -307,6 +319,7 @@ async function loadStaff() {
   }
 }
 
+
 loadStaff();
 
 /* Open Appointment Modal */
@@ -316,7 +329,7 @@ async function openAppointmentModal(id, fullName) {
 
   const apptDay = document.getElementById("apptDay");
   const apptSlot = document.getElementById("apptSlot");
-
+  document.getElementById("staffNameTitle").textContent = fullName;
   apptDay.innerHTML = "";
   apptSlot.innerHTML = "";
 
@@ -338,330 +351,150 @@ async function openAppointmentModal(id, fullName) {
   const bookedAppointments = [];
   snap.forEach(doc => bookedAppointments.push(doc.data()));
 
-  // Generate next 5 upcoming dates for each available weekday
-  availability.forEach((a) => {
-    const weekday = a.day; // e.g., "Monday"
-    const nextFive = getNextFiveDays(weekday);
+  // Filter future dates only
+  const today = new Date();
+  const futureAvailability = availability.filter(a => new Date(a.date) >= today);
 
-    nextFive.forEach(dateObj => {
+  // Populate appointment day select
+  futureAvailability.forEach((a) => {
+    if (a.slots && a.slots.length) {
       const opt = document.createElement("option");
-      opt.value = dateObj.full;       // "2025-12-08 (Monday)"
-      opt.textContent = dateObj.label; // "December 8, 2025 (Monday)"
-      opt.dataset.availDay = weekday; // Used later to find correct slot rules
+      opt.value = a.date; // "YYYY-MM-DD"
+      opt.textContent = `${a.date} (${a.weekday})`;
       apptDay.appendChild(opt);
-    });
+    }
   });
 
   // When day changes → regenerate slots
   apptDay.addEventListener("change", () => {
-    const selected = apptDay.value; // "YYYY-MM-DD (Weekday)"
-    const weekday = apptDay.selectedOptions[0].dataset.availDay;
-    const avail = availability.find((a) => a.day === weekday);
-
-    generateTimeSlots(avail.start, avail.end, bookedAppointments, selected);
+    const selectedDate = apptDay.value; // "YYYY-MM-DD"
+    const avail = futureAvailability.find(a => a.date === selectedDate);
+    generateTimeSlots(avail?.slots || [], bookedAppointments, selectedDate);
   });
 
   // Auto-load first day’s slots
   if (apptDay.options.length > 0) {
     const firstOption = apptDay.options[0];
     apptDay.value = firstOption.value;
-    const avail = availability.find(a => a.day === firstOption.dataset.availDay);
-    generateTimeSlots(avail.start, avail.end, bookedAppointments, firstOption.value);
+    const avail = futureAvailability.find(a => a.date === firstOption.value);
+    generateTimeSlots(avail?.slots || [], bookedAppointments, firstOption.value);
   }
 
   new bootstrap.Modal(document.getElementById("appointmentModal")).show();
 }
 
-/* Generate Available Time Slots (filters taken slots) */
-function generateTimeSlots(startTime, endTime, booked, selectedDay) {
-  const slotSelect = document.getElementById("apptSlot");
-  slotSelect.innerHTML = "";
+/* Generate time slots (divided by 30 minutes) */
+function generateTimeSlots(slots, bookedAppointments, date) {
+  const apptSlot = document.getElementById("apptSlot");
+  apptSlot.innerHTML = "";
+  selectedSlot = null; // reset selection
 
-  let start = new Date(`1970-01-01T${startTime}:00`);
-  const end = new Date(`1970-01-01T${endTime}:00`);
-
-  while (start < end) {
-    const next = new Date(start.getTime() + 30 * 60 * 1000);
-    if (next > end) break;
-
-    const slotText = `${formatTime(start)} - ${formatTime(next)}`;
-
-    // ✅ Check if this slot is already booked
-    const isTaken = booked.some(
-      (b) => b.day === selectedDay && b.slot === slotText
-    );
-
-    if (!isTaken) {
-      const opt = document.createElement("option");
-      opt.value = slotText;
-      opt.textContent = slotText;
-      slotSelect.appendChild(opt);
-    }
-
-    start = next;
-  }
-
-  if (slotSelect.options.length === 0) {
-    const opt = document.createElement("option");
-    opt.value = "";
-    opt.textContent = "No available slots";
-    opt.disabled = true;
-    slotSelect.appendChild(opt);
-  }
-}
-
-/* Utilities */
-const weekdayMap = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
-
-function formatLocalDate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function getNextFiveDays(weekdayName) {
-  const target = weekdayMap[weekdayName];
-  const results = [];
-
-  let date = new Date();
-  date.setHours(0, 0, 0, 0);
-
-  while (date.getDay() !== target) {
-    date.setDate(date.getDate() + 1);
-  }
-
-  for (let i = 0; i < 5; i++) {
-    const d = new Date(date);
-    d.setDate(date.getDate() + (i * 7));
-
-    results.push({
-      full: `${formatLocalDate(d)} (${weekdayName})`,
-      label: d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) + ` (${weekdayName})`,
-      date: d
-    });
-  }
-
-  return results;
-}
-
-function formatTime(date) {
-  return date.toTimeString().slice(0, 5);
-}
-
-
-document.getElementById("saveAppointment").addEventListener("click", async () => {
-  const rawDay = document.getElementById("apptDay").value; 
-  const [day, weekdayWithParen] = rawDay.split(" ");
-  const weekday = weekdayWithParen.replace("(", "").replace(")", "");
-
-  const slot = document.getElementById("apptSlot").value;
-  const reason = document.getElementById("apptReason").value;
-
-  if (!day || !slot || !reason) {
-    alert("Please fill all fields.");
+  if (!slots.length) {
+    apptSlot.innerHTML = "<p class='text-muted'>No available slots for this date.</p>";
     return;
   }
 
-  const user = auth.currentUser;
-  if (!user) {
-    alert("Not logged in.");
-    return;
-  }
+  slots.forEach(slot => {
+    let startTime = parseTime(slot.start);
+    const endTime = parseTime(slot.end);
 
-  const patientRef = doc(db, "users", user.uid);
-  const patientSnap = await getDoc(patientRef);
-  const patient = patientSnap.data();
-  const patientName = `${patient.lastName}, ${patient.firstName}`;
+    while (startTime < endTime) {
+      const nextTime = new Date(startTime.getTime() + 30 * 60000); // +30 minutes
+      const slotLabel = `${formatTime(startTime)} - ${formatTime(nextTime)}`;
 
-  // ✅ Check last appointment date
-  const apptQuery = query(
-    collection(db, "appointments"),
-    where("patientId", "==", user.uid)
-  );
-  const apptSnap = await getDocs(apptQuery);
+      // Check if this 30-min slot is already booked
+      const isBooked = bookedAppointments.some(
+        a => a.date === date && a.slot === slotLabel
+      );
 
-  // Find latest appointment
-  let latestApptDate = null;
-  apptSnap.forEach(doc => {
-    const apptDate = new Date(doc.data().day);
-    if (!latestApptDate || apptDate > latestApptDate) {
-      latestApptDate = apptDate;
+      const slotBtn = document.createElement("button");
+      slotBtn.className = "btn btn-sm me-2 mb-2";
+      slotBtn.textContent = slotLabel;
+
+      if (isBooked) {
+        slotBtn.disabled = true;
+        slotBtn.classList.add("btn-secondary"); // disabled style
+      } else {
+        slotBtn.classList.add("btn-outline-primary");
+        slotBtn.addEventListener("click", () => {
+          selectedSlot = slotLabel;
+
+          // Remove highlight from all buttons
+          apptSlot.querySelectorAll("button").forEach(b => {
+            b.classList.remove("btn-primary", "text-white");
+            if (!b.disabled) b.classList.add("btn-outline-primary");
+          });
+
+          // Highlight selected button with white text
+          slotBtn.classList.remove("btn-outline-primary");
+          slotBtn.classList.add("btn-primary", "text-white");
+        });
+      }
+
+      apptSlot.appendChild(slotBtn);
+
+      startTime = nextTime;
     }
   });
 
-  const selectedDate = new Date(day);
-
-  if (latestApptDate) {
-    const diffTime = selectedDate - latestApptDate;
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
-    const showBookingError = (message) => {
-  document.getElementById("bookingErrorMessage").textContent = message;
-  new bootstrap.Modal(document.getElementById("bookingErrorModal")).show();
-};
-
-    if (diffDays < 3) {
-  showBookingError("You cannot book an appointment within 3 days of your latest appointment.");
-  return;
+  // If no available slots at all
+  if (!apptSlot.querySelector("button:not(:disabled)")) {
+    apptSlot.innerHTML = "<p class='text-muted'>All slots for this date are already booked.</p>";
+  }
 }
 
-  }
+
+
+/* Helper: parse "HH:MM" string → Date object (today's date) */
+function parseTime(timeStr) {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+}
+
+/* Helper: format Date object → "HH:MM" */
+function formatTime(date) {
+  return date.toTimeString().slice(0,5);
+}
+
+
+// Track selected 30-min slot
+let selectedSlot = null;
+
+// Confirm Booking Button
+document.getElementById("confirmBookingBtn").onclick = async () => {
+  if (!selectedSlot) return alert("Please select a time slot!");
+
+  const selectedDate = document.getElementById("apptDay").value;
+  if (!selectedDate) return alert("Please select a date!");
 
   try {
+    // Get current user info
+    const userSnap = await getDoc(doc(db, "users", currentUserId));
+    const userData = userSnap.data();
+
+    // Save appointment
     await addDoc(collection(db, "appointments"), {
-      day,               // "2025-12-08"
-      weekday,           // "Monday"
-      slot,
-      reason,
-      staffId: selectedStaffId,
-      staffName: selectedStaffName,
-      patientId: user.uid,
-      patientName: patientName,
-      status: "in queue",
-      createdAt: new Date().toISOString()
-    });
-
-    alert("Appointment saved!");
-    bootstrap.Modal.getInstance(document.getElementById("appointmentModal")).hide();
-
-    loadPatientAppointments();
-
-  } catch (err) {
-    console.error(err);
-  }
+  staffId: selectedStaffId,
+  staffName: selectedStaffName,
+  patientId: currentUserId,
+  patientName: `${userData.lastName}, ${userData.firstName}`,
+  date: selectedDate,
+  slot: selectedSlot,
+  createdAt: new Date() // client-side timestamp
 });
 
 
+    alert(`Appointment booked: ${selectedDate} (${selectedSlot})`);
+    bootstrap.Modal.getInstance(document.getElementById("appointmentModal")).hide();
 
-function getStatusBadge(status) {
-  switch (status) {
-    case "in Queue":
-      return `<span class="badge bg-warning text-dark">In Queue</span>`;
-    case "accepted":
-      return `<span class="badge bg-primary">Accepted</span>`;
-    case "finished":
-      return `<span class="badge bg-success">Finished</span>`;
-    case "canceled":
-      return `<span class="badge bg-danger">Canceled</span>`;
-    case "no Show":
-      return `<span class="badge bg-secondary">No Show</span>`;
-    default:
-      return `<span class="badge bg-light text-dark">${status}</span>`;
+    // Refresh staff cards to reflect booked slots
+    loadStaff();
+
+  } catch (err) {
+    console.error("Error booking appointment:", err);
+    alert("Failed to book appointment. See console.");
   }
-}
-const STATUS_PRIORITY = {
-  "accepted": 1,
-  "in queue": 2,
-  "finished": 3,
-  "no show": 4,
-  "canceled": 5,
 };
 
-function loadPatientAppointments() {
-  const list = document.getElementById("appointments-list");
-  list.innerHTML = "<p class='text-center text-muted'>Loading...</p>";
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      list.innerHTML = `<p class="text-center text-muted">You are not logged in.</p>`;
-      return;
-    }
-
-    const q = query(
-      collection(db, "appointments"),
-      where("patientId", "==", user.uid)
-    );
-
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      list.innerHTML = `<p class="text-center text-muted">No appointments found.</p>`;
-      return;
-    }
-
-    // 🔹 Convert snapshot to array
-    const appointments = snap.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...docSnap.data(),
-    }));
-
-    // 🔹 SORT BY STATUS PRIORITY
-    appointments.sort((a, b) => {
-      return (
-        (STATUS_PRIORITY[a.status] || 99) -
-        (STATUS_PRIORITY[b.status] || 99)
-      );
-    });
-const countBadge = document.getElementById("appointments-count");
-countBadge.textContent = appointments.length;
-    list.innerHTML = "";
-
-    appointments.forEach((appt) => {
-      const div = document.createElement("div");
-      div.className = "col-12 mb-3";
-
-      const dayWithWeekday = `${appt.day} (${appt.weekday})`;
-      const canCancel = ["in queue", "accepted"].includes(appt.status);
-
-      div.innerHTML = `
-        <div class="p-3 border rounded shadow-sm d-flex flex-column gap-1 ">
-          <h5 class="mb-1 text-primary">${dayWithWeekday}</h5>
-
-          <p class="m-0"><strong>Time:</strong> ${appt.slot}</p>
-          <p class="m-0"><strong>Doc./Nurse:</strong> ${appt.staffName}</p>
-          <p class="m-0"><strong>Reason:</strong> ${appt.reason}</p>
-
-          <p class="m-0">
-            <strong>Status:</strong> ${getStatusBadge(appt.status)}
-          </p>
-
-          ${
-            canCancel
-              ? `
-                <button
-                  class="btn btn-sm btn-outline-danger mt-2 cancel-appt-btn"
-                  data-id="${appt.id}"
-                >
-                  ❌ Cancel Appointment
-                </button>
-              `
-              : ""
-          }
-        </div>
-      `;
-
-      list.appendChild(div);
-    });
-  });
-}
-
-// Call the function once at page load
-loadPatientAppointments();
-
-document
-  .getElementById("appointments-list")
-  .addEventListener("click", async (e) => {
-    const btn = e.target.closest(".cancel-appt-btn");
-    if (!btn) return;
-
-    const apptId = btn.dataset.id;
-
-    const confirmed = confirm(
-      "Are you sure you want to cancel this appointment?\nThis action cannot be undone."
-    );
-
-    if (!confirmed) return;
-
-    try {
-      await updateDoc(doc(db, "appointments", apptId), {
-        status: "canceled",
-        canceledAt: new Date(),
-      });
-
-      alert("✅ Appointment successfully canceled");
-      loadPatientAppointments();
-    } catch (err) {
-      console.error(err);
-      alert("❌ Failed to cancel appointment");
-    }
-  });

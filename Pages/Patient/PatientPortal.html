@@ -401,7 +401,6 @@
                           </option>
                           <option value="Elementary">Elementary</option>
                           <option value="Kindergarten">Kindergarten</option>
-                          
                         </select>
                       </div>
                     </div>
@@ -676,51 +675,53 @@
       </div>
     </main>
     <!-- Appointment Modal -->
-    <div class="modal fade" id="appointmentModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
+    <div
+      class="modal fade"
+      id="appointmentModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
           <div class="modal-header">
-            <h5 class="modal-title">Set Appointment</h5>
-            <button class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title">
+              Book Appointment with <span id="staffNameTitle"></span>
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
-
           <div class="modal-body">
-            <label class="fw-bold">Choose Day</label>
-            <select id="apptDay" class="form-control mb-3"></select>
+            <label for="apptDay" class="form-label">Select Date:</label>
+            <select id="apptDay" class="form-select mb-3"></select>
 
-            <label class="fw-bold">Choose Time Slot</label>
-            <select id="apptSlot" class="form-control mb-3"></select>
-
-            <label class="fw-bold">Reason for Appointment</label>
-            <textarea id="apptReason" class="form-control" rows="3"></textarea>
+            <label for="apptSlot" class="form-label"
+              >Available Time Slots:</label
+            >
+            <div id="apptSlot" class="d-flex flex-wrap"></div>
           </div>
-
           <div class="modal-footer">
-            <button class="btn btn-secondary" data-bs-dismiss="modal">
-              Cancel
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
             </button>
-            <button class="btn btn-primary" id="saveAppointment">Save</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="confirmBookingBtn"
+            >
+              Confirm Booking
+            </button>
           </div>
         </div>
       </div>
     </div>
-    <!-- Booking Restriction Modal -->
-<div class="modal fade" id="bookingErrorModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-danger">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title">Booking Not Allowed</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="bookingErrorMessage">
-        <!-- Message will be injected here -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
-      </div>
-    </div>
-  </div>
-</div>
 
     <!-- Footer -->
     <footer class="footer-container">

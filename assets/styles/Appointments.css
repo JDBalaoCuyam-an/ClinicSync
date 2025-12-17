@@ -138,7 +138,7 @@
 
 .calendar-day:hover {
   background: #4682b4;
-  transform: scale(1.05);
+  /* transform: scale(1.05); */
   color: #fff;
 }
 
