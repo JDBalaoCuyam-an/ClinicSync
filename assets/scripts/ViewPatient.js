@@ -24,10 +24,26 @@ const patientId = urlParams.get("id");
 function formatDateLabel(dateStr) {
   const date = new Date(dateStr);
   return date.toLocaleDateString("en-US", {
-    month: "long",
+    month: "short",
     day: "numeric",
     year: "numeric",
   });
+}
+function formatTimeFromString(timeStr) {
+  // timeStr should be in "HH:MM" format (e.g., "08:45" or "15:30")
+  const [hours, minutes] = timeStr.split(":");
+  let hour = parseInt(hours, 10);
+  const period = hour >= 12 ? "PM" : "AM";
+
+  // Convert to 12-hour format
+  if (hour === 0) {
+    hour = 12; // Midnight
+  } else if (hour > 12) {
+    hour -= 12;
+  }
+
+  // Remove leading zero and format minutes (keep 2 digits)
+  return `${hour}:${minutes} ${period}`;
 }
 /* -----------------------------------------------
      🔹 LOAD PATIENT DATA (with medicalHistory subcollection)
@@ -939,7 +955,7 @@ async function loadConsultations() {
         <td>${data.consultingDoctor || "Not Assigned"}</td>
         <td>${data.NurseOnDuty}</td>
         <td>${formatDateLabel(data.date)}</td>
-        <td>${data.time}</td>
+        <td>${formatTimeFromString(data.time)}</td>
         <td>${data.complaint}</td>
         <td>${data.diagnosis || "Not Diagnosed"}</td>
         <td>${medsDisplay}</td>
@@ -984,7 +1000,7 @@ window.showConsultationDetails = async function (data, consultId) {
           <td>${i + 1}</td>
           <td>${m.name || "-"}</td>
           <td>${m.quantity || "-"}</td>
-          <td>${m.date || "-"} ${m.time || "-"}</td>
+          <td>${formatDateLabel(m.date) || "-"} ${m.time || "-"}</td>
           <td>${m.NurseOnDuty || "-"}</td>
           <td>${m.type || "-"}</td>
           <td>${m.remarks || "-"}</td>
@@ -1529,7 +1545,7 @@ async function loadVitals() {
 
       tr.innerHTML = `
         <td>${formatDateLabel(data.date) || "-"}</td>
-        <td>${data.time || "-"}</td>
+        <td>${formatTimeFromString(data.time) || "-"}</td>
         <td>${data.takenBy || "-"}</td>
         <td>${data.temp ? data.temp + " °C" : "N"}</td>
         <td>${data.bp || "N"}</td>
@@ -1713,7 +1729,7 @@ async function loadNurseNotes() {
           </h6>
 
           <small class="text-muted d-block mb-2">
-            ${formatDateLabel(data.date) || "—"} ${data.time || ""}
+            ${formatDateLabel(data.date) || "—"} ${formatTimeFromString(data.time) || ""}
           </small>
 
           <p class="card-text">
@@ -1921,7 +1937,7 @@ async function loadDentalRecords() {
           <p class="mb-2">
             <strong>Date:</strong> ${formatDateLabel(d.date) || "-"}
             <br />
-            <strong>Time:</strong> ${d.time || "-"}
+            <strong>Time:</strong> ${formatTimeFromString(d.time) || "-"}
           </p>
 
           <hr />

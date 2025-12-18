@@ -12,9 +12,19 @@ import {
   collectionGroup,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 /* ======================================================
    CARDS VISITS BORROWWED ITEMS MEDICINES
 ====================================================== */
+
 async function updateMonthlyVisitsComparison() {
   const now = new Date();
   const currentMonth = now.getMonth(); // 0-11
@@ -218,14 +228,7 @@ async function loadVisitsChart() {
   renderVisitsChart(studentVisits, employeeVisits, fromDate, toDate);
 }
 
-function formatDateLabel(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+
 
 // Render chart
 function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
