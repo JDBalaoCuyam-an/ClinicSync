@@ -1,3 +1,6 @@
+.nav::-webkit-scrollbar {
+  display: none;          
+}
 /* ======================================================
    🔹 PHYSICAL EXAMINATION - CONSISTENT DESIGN
 ====================================================== */
