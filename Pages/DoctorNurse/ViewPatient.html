@@ -18,6 +18,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
   </head>
+
   <body>
     <!-- NavBar -->
     <header class="navbar">
@@ -488,67 +489,133 @@
                   role="tabpanel"
                   aria-labelledby="patient-info-tab"
                 >
-                  <div class="header-row">
-                    <h2>Patient Information</h2>
-                    <button class="edit-btn">✏️ Edit</button>
-                    <button
-                      id="cancelPatientInfoBtn"
-                      style="display: none; margin-top: 10px"
-                    >
-                      ❌ Cancel
-                    </button>
+                  <div class="d-flex align-items-center mb-3 flex-wrap">
+                    <h2 class="mb-0">Patient Information</h2>
+                    <div class="ms-auto d-flex gap-2">
+                      <button
+                        id="editPatientInfoBtn"
+                        class="btn btn-primary btn-sm"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        id="cancelPatientInfoBtn"
+                        class="btn btn-outline-danger btn-sm"
+                        style="display: none"
+                      >
+                        ❌ Cancel
+                      </button>
+                    </div>
                   </div>
 
-                  <div class="info-grid">
-                    <label
-                      >Last Name : <input id="lastName" type="text" disabled
-                    /></label>
-                    <label
-                      >First Name : <input id="firstName" type="text" disabled
-                    /></label>
-                    <label
-                      >Middle Name :
-                      <input id="middleName" type="text" disabled
-                    /></label>
-                    <label
-                      >Ext. Name : <input id="extName" type="text" disabled
-                    /></label>
-                    <label
-                      >Gender :
-                      <select id="gender" disabled>
+                  <!-- Patient Info -->
+                  <div class="row g-3">
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Last Name</label>
+                      <input
+                        id="lastName"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">First Name</label>
+                      <input
+                        id="firstName"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Middle Name</label>
+                      <input
+                        id="middleName"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Ext. Name</label>
+                      <select id="extName" class="form-select" disabled>
+                        <option value="">None</option>
+                        <option value="Jr.">Jr.</option>
+                        <option value="Sr.">Sr.</option>
+                        <option value="I">I</option>
+                        <option value="II">II</option>
+                        <option value="III">III</option>
+                        <option value="IV">IV</option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Gender</label>
+                      <select id="gender" class="form-select" disabled>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
-                      </select></label
-                    >
-                    <label
-                      >Birthdate : <input id="birthdate" type="date" disabled
-                    /></label>
-                    <label
-                      >Age : <input id="age" type="number" disabled
-                    /></label>
-                    <label
-                      >Civil Status :
-                      <select name="" id="civilStatus" disabled>
-                        <option value="Single">Single</option>
-                        <option value="Married">Married</option>
-                        <option value="Widowed">Widowed</option>
-                        <option value="Divorced">Divorced</option>
-                      </select></label
-                    >
-                    <label
-                      >Nationality :
-                      <input id="nationality" type="text" disabled
-                    /></label>
-                    <label
-                      >Religion : <input id="religion" type="text" disabled
-                    /></label>
+                      </select>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Birthdate</label>
+                      <input
+                        id="birthdate"
+                        type="date"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Age</label>
+                      <input
+                        id="age"
+                        type="number"
+                        class="form-control"
+                        disabled
+                        readonly
+                      />
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Civil Status</label>
+                      <select id="civilStatus" class="form-select" disabled>
+                        <option>Single</option>
+                        <option>Married</option>
+                        <option>Widowed</option>
+                        <option>Divorced</option>
+                      </select>
+                    </div>
 
-                    <label
-                      >School ID : <input id="schoolId" type="text" disabled
-                    /></label>
-                    <label>
-                      Department :
-                      <select id="department" disabled required>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Nationality</label>
+                      <input
+                        id="nationality"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Religion</label>
+                      <input
+                        id="religion"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">School ID</label>
+                      <input
+                        id="schoolId"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Department</label>
+                      <select id="department" class="form-select" disabled>
                         <option value="">Select Department</option>
                         <option value="CABM">CABM</option>
                         <option value="CCJE">CCJE</option>
@@ -557,14 +624,17 @@
                         <option value="TTED">TTED</option>
                         <option value="CTE">CTE</option>
                         <option value="BasicEd">BasicEd</option>
-                        <option value="Visitor">Visitor</option>
                       </select>
-                    </label>
+                    </div>
 
-                    <label>
-                      Course/Strand/Gen. Educ. :
-                      <select id="course" disabled>
-                        <option value="">Select Course / Strand</option>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label"
+                        >Course / Strand / Gen. Educ.</label
+                      >
+                      <select id="course" class="form-select" disabled>
+                        <option value="">
+                          Select Course/Strand/Gen. Educ.
+                        </option>
                         <option value="Bachelor of Science in Accountancy">
                           Bachelor of Science in Accountancy
                         </option>
@@ -611,13 +681,12 @@
                           Bachelor of Theology
                         </option>
                         <option value="Accountancy and Business Management">
-                          Accountancy and Business Management (ABM)
+                          Accountancy and Business Management
                         </option>
                         <option
                           value="Science, Technology, Engineering, and Mathematics"
                         >
                           Science, Technology, Engineering, and Mathematics
-                          (STEM)
                         </option>
                         <option value="Humanities and Sciences">
                           Humanities and Sciences
@@ -627,13 +696,12 @@
                         </option>
                         <option value="Elementary">Elementary</option>
                         <option value="Kindergarten">Kindergarten</option>
-                        <option value="Visitor">Visitor</option>
                       </select>
-                    </label>
+                    </div>
 
-                    <label
-                      >Year Level :
-                      <select id="year" disabled>
+                    <div class="col-md-6 col-lg-3">
+                      <label class="form-label">Year Level</label>
+                      <select id="yearLevel" class="form-select" disabled>
                         <option value="">Select Year</option>
                         <option value="1">1</option>
                         <option value="2">2</option>
@@ -647,49 +715,88 @@
                         <option value="10">10</option>
                         <option value="11">11</option>
                         <option value="12">12</option>
-                      </select></label
-                    >
+                      </select>
+                    </div>
                   </div>
 
-                  <br />
-                  <hr />
-                  <br />
+                  <hr class="my-4" />
 
-                  <h3>Parent’s Information</h3>
-                  <div class="info-grid" id="parent-info-grid">
-                    <label
-                      >Father’s Name :
-                      <input id="fatherName" type="text" disabled
-                    /></label>
-                    <label
-                      >Father's Age :
-                      <input id="fatherAge" type="number" disabled
-                    /></label>
-                    <label
-                      >Father's Occupation :
-                      <input id="fatherOccupation" type="text" disabled
-                    /></label>
-                    <label
-                      >Father's Health Status :
-                      <input id="fatherHealth" type="text" disabled
-                    /></label>
+                  <!-- Parent Info -->
+                  <h3>Parent's Information</h3>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Father's Name</label>
+                      <input
+                        id="fatherName"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Father's Age</label>
+                      <input
+                        id="fatherAge"
+                        type="number"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Father's Occupation</label>
+                      <input
+                        id="fatherOccupation"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Father's Health Status</label>
+                      <input
+                        id="fatherHealth"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
 
-                    <label
-                      >Mother’s Name :
-                      <input id="motherName" type="text" disabled
-                    /></label>
-                    <label
-                      >Mother's Age :
-                      <input id="motherAge" type="number" disabled
-                    /></label>
-                    <label
-                      >Mother's Occupation :
-                      <input id="motherOccupation" type="text" disabled
-                    /></label>
-                    <label
-                      >Mother's Health Status :
-                      <input id="motherHealth" type="text" disabled
-                    /></label>
+                    <div class="col-md-6">
+                      <label class="form-label">Mother's Name</label>
+                      <input
+                        id="motherName"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Mother's Age</label>
+                      <input
+                        id="motherAge"
+                        type="number"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Mother's Occupation</label>
+                      <input
+                        id="motherOccupation"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Mother's Health Status</label>
+                      <input
+                        id="motherHealth"
+                        type="text"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
                   </div>
                 </div>
 

@@ -37,6 +37,19 @@ function formatDateLabel(dateStr) {
 /* -----------------------------------------------
      🔹 LOAD PATIENT DATA (with medicalHistory subcollection)
   ----------------------------------------------- */
+// Helper: calculate age from birthdate string "YYYY-MM-DD"
+function calculateAge(birthdateStr) {
+  if (!birthdateStr) return "";
+  const today = new Date();
+  const birthDate = new Date(birthdateStr);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 async function loadPatient() {
   if (!patientId) return;
 
@@ -71,7 +84,6 @@ async function loadPatient() {
       extName: data.extName || "",
       gender: data.gender || "",
       birthdate: data.birthdate || "",
-      age: data.age || "",
       civilStatus: data.civilStatus || "",
       nationality: data.nationality || "",
       religion: data.religion || "",
@@ -82,6 +94,18 @@ async function loadPatient() {
       const input = document.getElementById(key);
       if (input) input.value = infoFields[key];
     });
+
+    /* 🧩 Calculate age from birthdate */
+    const ageInput = document.getElementById("age");
+    ageInput.value = calculateAge(data.birthdate);
+
+    // Update age when birthdate changes
+    const birthdateInput = document.getElementById("birthdate");
+    if (birthdateInput) {
+      birthdateInput.addEventListener("change", () => {
+        ageInput.value = calculateAge(birthdateInput.value);
+      });
+    }
 
     /* 🧩 Select fields */
     document.getElementById("department").value = data.department || "";
@@ -173,6 +197,7 @@ async function loadPatient() {
     console.error("Error fetching patient:", err);
   }
 }
+
 
 /* -----------------------------------------------
      🔹 EDIT/SAVE CONTACT DETAILS
@@ -406,58 +431,55 @@ cancelHistoryBtn.addEventListener("click", () => {
 /* -----------------------------------------------
      🔹 EDIT/SAVE PATIENT INFORMATION WITH CANCEL
   ----------------------------------------------- */
-const editPatientInfoBtn = document.querySelector(
-  ".patient-info-content .edit-btn"
-);
-// Create Cancel button dynamically below the Edit/Save button
-let cancelPatientInfoBtn = document.createElement("button");
-cancelPatientInfoBtn.textContent = "❌ Cancel";
-cancelPatientInfoBtn.style.display = "none";
-cancelPatientInfoBtn.style.marginTop = "10px";
-editPatientInfoBtn.insertAdjacentElement("afterend", cancelPatientInfoBtn);
+const editPatientInfoBtn = document.getElementById("editPatientInfoBtn");
+const cancelPatientInfoBtn = document.getElementById("cancelPatientInfoBtn");
 
 let isEditingPatientInfo = false;
 let originalPatientInfoData = {};
 
 // Helper: get all editable inputs & selects
 function getPatientInfoFields() {
-  return document.querySelectorAll(
-    ".patient-info-content .info-grid input, .patient-info-content .info-grid select"
-  );
+  return document.querySelectorAll(".patient-info-content input, .patient-info-content select");
 }
+
 
 // Store original values
 function storeOriginalPatientInfo(fields) {
   originalPatientInfoData = {};
-  fields.forEach((el) => {
-    originalPatientInfoData[el.id || el.name] = el.value;
-  });
+  fields.forEach(el => originalPatientInfoData[el.id || el.name] = el.value);
 }
 
 // Restore original values
 function restoreOriginalPatientInfo(fields) {
-  fields.forEach((el) => {
+  fields.forEach(el => {
     const key = el.id || el.name;
-    if (originalPatientInfoData[key] !== undefined) {
-      el.value = originalPatientInfoData[key];
-    }
+    if (originalPatientInfoData[key] !== undefined) el.value = originalPatientInfoData[key];
   });
 }
 
 // Enable editing
 function enablePatientInfoEditing(fields) {
-  fields.forEach((el) => el.removeAttribute("disabled"));
+  fields.forEach(el => {
+    el.removeAttribute("disabled");
+    el.removeAttribute("readonly"); // <- this ensures Bootstrap read-only styling is removed
+  });
   editPatientInfoBtn.textContent = "💾 Save";
-  cancelPatientInfoBtn.style.display = "block";
+  cancelPatientInfoBtn.style.display = "inline-block";
+  isEditingPatientInfo = true;
 }
+
 
 // Disable editing
 function disablePatientInfoEditing(fields) {
-  fields.forEach((el) => el.setAttribute("disabled", "true"));
+  fields.forEach(el => {
+    el.setAttribute("disabled", "true");
+    // optional: el.setAttribute("readonly", "true");
+  });
   editPatientInfoBtn.textContent = "✏️ Edit";
   cancelPatientInfoBtn.style.display = "none";
   isEditingPatientInfo = false;
 }
+
 
 // Edit/Save button click
 editPatientInfoBtn.addEventListener("click", async () => {
@@ -466,41 +488,16 @@ editPatientInfoBtn.addEventListener("click", async () => {
   if (!isEditingPatientInfo) {
     storeOriginalPatientInfo(fields);
     enablePatientInfoEditing(fields);
-    isEditingPatientInfo = true;
   } else {
-    // Collect updated data
-    const updatedData = {
-      lastName: document.getElementById("lastName").value,
-      firstName: document.getElementById("firstName").value,
-      middleName: document.getElementById("middleName").value,
-      extName: document.getElementById("extName").value,
-      gender: document.getElementById("gender").value,
-      birthdate: document.getElementById("birthdate").value,
-      age: Number(document.getElementById("age").value),
-      civilStatus: document.getElementById("civilStatus").value,
-      nationality: document.getElementById("nationality").value,
-      religion: document.getElementById("religion").value,
-      schoolId: document.getElementById("schoolId").value,
-      department: document.getElementById("department").value,
-      course: document.getElementById("course").value,
-      yearLevel: Number(document.getElementById("year").value),
-
-      fatherName: document.getElementById("fatherName")?.value,
-      fatherAge: Number(document.getElementById("fatherAge")?.value || 0),
-      fatherOccupation: document.getElementById("fatherOccupation")?.value,
-      fatherHealth: document.getElementById("fatherHealth")?.value,
-      motherName: document.getElementById("motherName")?.value,
-      motherAge: Number(document.getElementById("motherAge")?.value || 0),
-      motherOccupation: document.getElementById("motherOccupation")?.value,
-      motherHealth: document.getElementById("motherHealth")?.value,
-    };
+    const updatedData = {};
+    fields.forEach(f => updatedData[f.id] = f.value);
 
     try {
       await updateDoc(doc(db, "users", patientId), updatedData);
       alert("Patient information updated!");
       disablePatientInfoEditing(fields);
     } catch (err) {
-      console.error("Error updating patient information:", err);
+      console.error(err);
       alert("Failed to update patient information.");
     }
   }
@@ -512,6 +509,7 @@ cancelPatientInfoBtn.addEventListener("click", () => {
   restoreOriginalPatientInfo(fields);
   disablePatientInfoEditing(fields);
 });
+
 
 /* -----------------------------------------------
      🔹 CONSULTATION FORM SUBMIT
