@@ -83,1383 +83,1805 @@
     </div>
 
     <div class="view-patient-container container-fluid mt-3">
-  <div class="row">
-    <!-- Left Container -->
-    <div class="left-container col-lg-4 col-md-5 mb-4">
-      <div class="patient-contacts card mb-4">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <h5 class="mb-0">Contact Details</h5>
-          <div class="d-flex align-items-center gap-2">
-            <button id="edit-contacts" class="btn btn-primary btn-sm" type="button">
-              ✏️ Edit
-            </button>
-            <button id="cancel-contact-edit-btn" class="btn btn-outline-danger btn-sm" type="button" style="display: none">
-              ❌ Cancel
-            </button>
-          </div>
-        </div>
-        
-        <div class="card-body">
-          <div class="mb-3">
-            <label class="form-label">Phone Number</label>
-            <input type="text" id="phone-number" class="form-control" placeholder="Phone Number" disabled>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Email Address</label>
-            <input type="email" id="email-address" class="form-control" placeholder="Email Address" disabled>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Home Address</label>
-            <input type="text" id="home-address" class="form-control" placeholder="Home Address" disabled>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Guardian's Name</label>
-              <input type="text" id="guardian-name" class="form-control" placeholder="Guardian's Name" disabled>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Guardian's Contact</label>
-              <input type="text" id="guardian-phone" class="form-control" placeholder="Guardian's Phone Number" disabled>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Document Files -->
-      <div class="patient-documents card">
-        <div class="patient-documents">
-          <h3>Documents :</h3>
-
-          <button class="upload-btn" id="upload-btn">Upload Files</button>
-          <input type="file" id="file-input" style="display: none" />
-
-          <div class="category-section">
-            <button class="category-toggle">Laboratory ▼</button>
-            <ul class="documents-list" id="lab-list" style="display: none"></ul>
-          </div>
-
-          <div class="category-section">
-            <button class="category-toggle">Radiology ▼</button>
-            <ul class="documents-list" id="rad-list" style="display: none"></ul>
-          </div>
-
-          <div class="category-section">
-            <button class="category-toggle">Others ▼</button>
-            <ul
-              class="documents-list"
-              id="others-list"
-              style="display: none"
-            ></ul>
-          </div>
-        </div>
-        <div class="upload-select-category">
-          <h3>Select Document Category:</h3>
-          <select id="document-category">
-            <option value="Laboratory">Laboratory</option>
-            <option value="Radiology">Radiology</option>
-            <option value="Others">Others</option>
-          </select>
-          <button id="confirm-upload-btn">Upload</button>
-          <button id="cancel-upload-btn">Cancel</button>
-        </div>
-      </div>
-      
-      <!-- Upload Category Selection -->
-      <div class="upload-select-category card mt-3 d-none" id="upload-category-card">
-        <div class="card-body">
-          <h3 class="card-title">Select Document Category:</h3>
-          <select id="document-category" class="form-select mb-3">
-            <option value="Laboratory">Laboratory</option>
-            <option value="Radiology">Radiology</option>
-            <option value="Others">Others</option>
-          </select>
-          <div class="d-flex gap-2">
-            <button id="confirm-upload-btn" class="btn btn-primary flex-fill">Upload</button>
-            <button id="cancel-upload-btn" class="btn btn-outline-secondary flex-fill">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Right Container -->
-    <div class="right-container col-lg-8 col-md-7">
-      <div class="patient-records card">
-        <div class="card-body">
-          <!-- Bootstrap Tabs Navigation -->
-          <ul class="nav nav-tabs" id="patientRecordsTab" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="patient-info-tab" data-bs-toggle="tab" data-bs-target="#patient-info-content" type="button" role="tab" aria-controls="patient-info-content" aria-selected="true">Patient Info</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="medical-history-tab" data-bs-toggle="tab" data-bs-target="#medical-history-content" type="button" role="tab" aria-controls="medical-history-content" aria-selected="false">Medical History</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="medical-consultation-tab" data-bs-toggle="tab" data-bs-target="#medical-consultation-content" type="button" role="tab" aria-controls="medical-consultation-content" aria-selected="false">Medical Consultation Records</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="vital-signs-tab" data-bs-toggle="tab" data-bs-target="#vital-signs-content" type="button" role="tab" aria-controls="vital-signs-content" aria-selected="false">Vital Signs</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="doctor-notes-tab" data-bs-toggle="tab" data-bs-target="#doctor-notes-content" type="button" role="tab" aria-controls="doctor-notes-content" aria-selected="false">Doctor's Notes</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="nurse-notes-tab" data-bs-toggle="tab" data-bs-target="#nurse-notes-content" type="button" role="tab" aria-controls="nurse-notes-content" aria-selected="false">Nurse's Notes</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="dental-records-tab" data-bs-toggle="tab" data-bs-target="#dental-records-content" type="button" role="tab" aria-controls="dental-records-content" aria-selected="false">Dental Records</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="physical-examination-tab" data-bs-toggle="tab" data-bs-target="#physical-examination-content" type="button" role="tab" aria-controls="physical-examination-content" aria-selected="false">Physical Examination</button>
-            </li>
-          </ul>
-          
-          <!-- Tab Contents -->
-          <div class="tab-content p-3" id="patientRecordsTabContent">
-            <div class="tab-pane fade show active patient-info-content" id="patient-info-content" role="tabpanel" aria-labelledby="patient-info-tab">
-              <div class="header-row">
-              <h2>Patient Information</h2>
-              <button class="edit-btn">✏️ Edit</button>
-              <button
-                id="cancelPatientInfoBtn"
-                style="display: none; margin-top: 10px"
-              >
-                ❌ Cancel
-              </button>
-            </div>
-
-            <div class="info-grid">
-              <label
-                >Last Name : <input id="lastName" type="text" disabled
-              /></label>
-              <label
-                >First Name : <input id="firstName" type="text" disabled
-              /></label>
-              <label
-                >Middle Name : <input id="middleName" type="text" disabled
-              /></label>
-              <label
-                >Ext. Name : <input id="extName" type="text" disabled
-              /></label>
-              <label
-                >Gender :
-                <select id="gender" disabled>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select></label
-              >
-              <label
-                >Birthdate : <input id="birthdate" type="date" disabled
-              /></label>
-              <label>Age : <input id="age" type="number" disabled /></label>
-              <label
-                >Civil Status :
-                <select name="" id="civilStatus" disabled>
-                  <option value="Single">Single</option>
-                  <option value="Married">Married</option>
-                  <option value="Widowed">Widowed</option>
-                  <option value="Divorced">Divorced</option>
-                </select></label
-              >
-              <label
-                >Nationality : <input id="nationality" type="text" disabled
-              /></label>
-              <label
-                >Religion : <input id="religion" type="text" disabled
-              /></label>
-
-              <label
-                >School ID : <input id="schoolId" type="text" disabled
-              /></label>
-              <label>
-                Department :
-                <select id="department" disabled required>
-                  <option value="">Select Department</option>
-                  <option value="CABM">CABM</option>
-                  <option value="CCJE">CCJE</option>
-                  <option value="CIT">CIT</option>
-                  <option value="COT">COT</option>
-                  <option value="TTED">TTED</option>
-                  <option value="CTE">CTE</option>
-                  <option value="BasicEd">BasicEd</option>
-                  <option value="Visitor">Visitor</option>
-                </select>
-              </label>
-
-              <label>
-                Course/Strand/Gen. Educ. :
-                <select id="course" disabled>
-                  <option value="">Select Course / Strand</option>
-                  <option value="Bachelor of Science in Accountancy">
-                    Bachelor of Science in Accountancy
-                  </option>
-                  <option value="Bachelor of Science in Hospitality Management">
-                    Bachelor of Science in Hospitality Management
-                  </option>
-                  <option value="Bachelor of Science in Information Technology">
-                    Bachelor of Science in Information Technology
-                  </option>
-                  <option value="Bachelor of Science in Office Administration">
-                    Bachelor of Science in Office Administration
-                  </option>
-                  <option
-                    value="Bachelor of Science in Business Administration"
-                  >
-                    Bachelor of Science in Business Administration
-                  </option>
-                  <option value="Bachelor of Elementary Education">
-                    Bachelor of Elementary Education
-                  </option>
-                  <option value="Bachelor of Science in Psychology">
-                    Bachelor of Science in Psychology
-                  </option>
-                  <option value="Bachelor of Science in Social Work">
-                    Bachelor of Science in Social Work
-                  </option>
-                  <option value="Bachelor of Secondary Education">
-                    Bachelor of Secondary Education
-                  </option>
-                  <option value="Technical Vocational Teacher Education">
-                    Technical Vocational Teacher Education
-                  </option>
-                  <option value="Bachelor of Science in Criminology">
-                    Bachelor of Science in Criminology
-                  </option>
-                  <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
-                  <option value="Bachelor of Theology">
-                    Bachelor of Theology
-                  </option>
-                  <option value="Accountancy and Business Management">
-                    Accountancy and Business Management (ABM)
-                  </option>
-                  <option
-                    value="Science, Technology, Engineering, and Mathematics"
-                  >
-                    Science, Technology, Engineering, and Mathematics (STEM)
-                  </option>
-                  <option value="Humanities and Sciences">
-                    Humanities and Sciences
-                  </option>
-                  <option value="Junior Highschool">Junior Highschool</option>
-                  <option value="Elementary">Elementary</option>
-                  <option value="Kindergarten">Kindergarten</option>
-                  <option value="Visitor">Visitor</option>
-                </select>
-              </label>
-
-              <label
-                >Year Level :
-                <select id="year" disabled>
-                  <option value="">Select Year</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                </select></label
-              >
-            </div>
-
-            <br />
-            <hr />
-            <br />
-
-            <h3>Parent’s Information</h3>
-            <div class="info-grid" id="parent-info-grid">
-              <label
-                >Father’s Name : <input id="fatherName" type="text" disabled
-              /></label>
-              <label
-                >Father's Age : <input id="fatherAge" type="number" disabled
-              /></label>
-              <label
-                >Father's Occupation :
-                <input id="fatherOccupation" type="text" disabled
-              /></label>
-              <label
-                >Father's Health Status :
-                <input id="fatherHealth" type="text" disabled
-              /></label>
-
-              <label
-                >Mother’s Name : <input id="motherName" type="text" disabled
-              /></label>
-              <label
-                >Mother's Age : <input id="motherAge" type="number" disabled
-              /></label>
-              <label
-                >Mother's Occupation :
-                <input id="motherOccupation" type="text" disabled
-              /></label>
-              <label
-                >Mother's Health Status :
-                <input id="motherHealth" type="text" disabled
-              /></label>
-            </div>
-            </div>
-            
-            <div class="tab-pane fade medical-history-content" id="medical-history-content" role="tabpanel" aria-labelledby="medical-history-tab">
-              <div class="card">
-                <div class="header-row">
-              <h2>Medical History :</h2>
-              <button class="edit-btn">✏️ Edit</button>
-              <button
-                id="cancelHistoryBtn"
-                style="display: none; margin-top: 10px"
-              >
-                ❌ Cancel
-              </button>
-            </div>
-
-            <div class="history-grid">
-              <div class="history-card">
-                <h3>Past Medical History</h3>
-                <textarea disabled>---</textarea>
-              </div>
-
-              <div class="history-card">
-                <h3>Family History</h3>
-                <textarea disabled>---</textarea>
-              </div>
-
-              <div class="history-card">
-                <h3>Past Surgical History</h3>
-                <textarea disabled></textarea>
-              </div>
-            </div>
-            <!-- end of history-grid -->
-
-            <!-- Additional Medical Info Section -->
-            <div class="additional-info">
-              <div class="history-card">
-                <h3>Nutritional Supplements / Vitamins / Other Medications</h3>
-                <textarea
-                  disabled
-                  placeholder="Enter details here..."
-                ></textarea>
-              </div>
-
-              <div class="history-card">
-                <h3>Allergies</h3>
-                <textarea
-                  disabled
-                  placeholder="List allergies here..."
-                ></textarea>
-              </div>
-
-              <!-- 🔹 Immunization Section -->
-              <div class="history-card immunization-card">
-                <h3>Immunization</h3>
-                <div class="immunization-form">
-                  <div class="immunization-row">
-                    <label>BCG:</label
-                    ><input name="bcg" type="text" disabled />
-                    <label>DPT:</label
-                    ><input name="dpt" type="text" disabled />
-                    <label>OPV:</label><input name="opv" type="text" disabled />
-                  </div>
-                  <div class="immunization-row">
-                    <label>HEP. B:</label
-                    ><input name="hepb" type="text" disabled />
-                    <label>MMR:</label
-                    ><input name="mmr" type="text" disabled />
-                    <label>MEASLES:</label
-                    ><input name="measles" type="text" disabled />
-                  </div>
-                  <div class="immunization-row">
-                    <label>OTHERS:</label
-                    ><input
-                      type="text"
-                      name="others"
-                      disabled
-                      style="flex: 1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- 🔹 OB-GYNE History Section -->
-              <div class="history-card obgyne-card">
-                <h3>OB-GYNE History (Female Only)</h3>
-                <div class="obgyne-form">
-                  <div class="ob-row">
-                    <label>Age of First Menstrual Period:</label>
-                    <input type="text" name="menarcheAge" disabled />
-                  </div>
-
-                  <div class="ob-row">
-                    <label>Duration/Days:</label>
-                    <input type="text" name="durationDays" disabled />
-                    <label>Napkin/s per Day:</label>
-                    <input type="text" name="napkinsPerDay" disabled />
-                    <label>Interval:</label>
-                    <input type="text" name="interval" disabled />
-                  </div>
-
-                  <div class="ob-row dysmenorrhea-row">
-                    <label>Dysmenorrhea:</label>
-                    <div class="radio-group">
-                      <label
-                        ><input
-                          type="radio"
-                          name="dysmenorrhea"
-                          value="No"
-                          disabled
-                        />
-                        No</label
-                      >
-                      <label
-                        ><input
-                          type="radio"
-                          name="dysmenorrhea"
-                          value="Sometimes"
-                          disabled
-                        />
-                        Sometimes</label
-                      >
-                      <label
-                        ><input
-                          type="radio"
-                          name="dysmenorrhea"
-                          value="Moderate"
-                          disabled
-                        />
-                        Moderate</label
-                      >
-                      <label
-                        ><input
-                          type="radio"
-                          name="dysmenorrhea"
-                          value="Severe"
-                          disabled
-                        />
-                        Severe</label
-                      >
-                    </div>
-                  </div>
-
-                  <div class="ob-row">
-                    <label>Last Menstrual:</label>
-                    <input type="date" name="lastMenstrual" disabled />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="mt-4">
-              <a
-                class="text-decoration-none"
-                data-bs-toggle="collapse"
-                href="#medicalHistoryLogs"
-                role="button"
-                aria-expanded="true"
-                aria-controls="medicalHistoryLogs"
-              >
-                <h5
-                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
-                >
-                  Action History
-                  <span
-                    id="medical-history-logs-count"
-                    class="badge bg-primary rounded-pill"
-                    >0</span
-                  >
-                </h5>
-              </a>
-
-              <div class="collapse show mt-2" id="medicalHistoryLogs">
-                <ul id="medical-history-logs" class="list-group">
-                  <li class="list-group-item text-muted">No actions yet</li>
-                </ul>
-              </div>
-            </div>
-              </div>
-            </div>
-            
-            <div class="tab-pane fade medical-consultation-content" id="medical-consultation-content" role="tabpanel" aria-labelledby="medical-consultation-tab">
-              <h2>Medical Consultation Records :</h2>
-
-            <button onclick="addConsultationRecordOverlay()" class="new-btn">
-              + New
-            </button>
-
-            <div class="table-responsive">
-              <table
-                class="table table-striped table-bordered table-hover align-middle"
-              >
-                <thead class="table-primary">
-                  <tr>
-                    <th>Cons. Dr.</th>
-                    <th>NoD</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Chief Complaint</th>
-                    <th>Diagnosis</th>
-                    <th>Meds.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Data will load here -->
-                </tbody>
-              </table>
-            </div>
-            <div class="mt-4">
-              <a
-                class="text-decoration-none"
-                data-bs-toggle="collapse"
-                href="#actionHistory"
-                role="button"
-                aria-expanded="true"
-                aria-controls="actionHistory"
-              >
-                <h5
-                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
-                >
-                  Action History
-                  <span
-                    id="medical-consultation-logs-count"
-                    class="badge bg-primary rounded-pill"
-                    >0</span
-                  >
-                </h5>
-              </a>
-
-              <div class="collapse show mt-2" id="actionHistory">
-                <ul id="action-history" class="list-group">
-                  <li class="list-group-item text-muted">No actions yet</li>
-                </ul>
-              </div>
-            </div>
-            </div>
-            <!-- New Consultation Record -->
-          <div id="add-consultation-record">
-            <h2>New Consultation Record</h2>
-
-            <form id="consultation-form">
-              <label>
-                Consulting Doctor:
-                <select id="consult-doctor" class="form-control">
-                  <option value="">Select Doctor</option>
-                </select>
-              </label>
-              <label
-                >Date:<input type="date" id="consult-date" required
-              /></label>
-              <label
-                >Time:<input type="time" id="consult-time" required
-              /></label>
-              <label>Chief Complaint:</label>
-              <select id="consult-complaint" class="form-control mb-2" required>
-                <option value="">Select Complaint</option>
-                <option value="__add_new__">➕ Add New Complaint</option>
-              </select>
-
-              <!-- Hidden new complaint input -->
-              <input
-                type="text"
-                id="new-complaint-input"
-                class="form-control mt-2"
-                placeholder="Enter new complaint"
-                style="display: none"
-              />
-
-              <label>Diagnosis:</label>
-              <select id="consult-diagnosis" class="form-control mb-2">
-                <option value="">Select Diagnosis</option>
-                <option value="__add_new__">➕ Add New Diagnosis</option>
-              </select>
-
-              <!-- Hidden new diagnosis input -->
-              <input
-                type="text"
-                id="new-diagnosis-input"
-                class="form-control mt-2"
-                placeholder="Enter new diagnosis"
-                style="display: none"
-              />
-
-              <label>Medications:</label>
-              <div class="meds-list"></div>
-              <button type="button" class="add-med-btn">+ Add Medicine</button>
-
-              <label for="consult-notes">Notes/Intervention:</label>
-              <textarea
-                id="consult-notes"
-                placeholder="Enter consultation notes here..."
-              ></textarea>
-
-              <button type="submit" class="save-btn">Save</button>
-            </form>
-            <button
-              style="
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 1px solid black;
-                border-radius: 4px;
-                margin-top: 3px;
-                width: 100%;
-              "
-              onclick="closeButtonOverlay()"
-            >
-              Cancel
-            </button>
-          </div>
-          <div id="consultation-overview" class="consultation-modal">
-            <div class="modal-content">
-              <h2>Consultation Overview</h2>
-
-              <div class="overview-details">
-                <label
-                  ><strong>Doctor:</strong>
-                  <select class="form-control" id="ovr-doctor" disabled>
-                      <option value="">Select Doctor</option>
-                  </select>
-                </label>
-
-                <label
-                  ><strong>Date:</strong>
-                  <input id="ovr-date" type="date" disabled />
-                </label>
-
-                <label
-                  ><strong>Time:</strong>
-                  <input id="ovr-time" type="time" disabled />
-                </label>
-
-                <label
-                  ><strong>Chief Complaint:</strong>
-                  <input id="ovr-complaint" type="text" disabled />
-                </label>
-
-                <label
-                  ><strong>Diagnosis:</strong>
-                  <input id="ovr-diagnosis" type="text" disabled />
-                </label>
-
-                <label
-                  ><strong>Notes/Intervention:</strong>
-                  <textarea id="ovr-notes" disabled></textarea>
-                </label>
-              </div>
-              <div class="meds-header">
-                <h4 class="mt-3 fw-bold">Medications</h4>
-                <button class="btn btn-success" id="addMedBtn" style="display: none">➕ Add Med</button>
-              </div>
-
-              <table id="cons-meds-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Qty</th>
-                    <th>Date / Time</th>
-                    <th>Personnel Incharge</th>
-                    <th>Type</th>
-                    <th>Remarks</th>
-                  </tr>
-                </thead>
-                <tbody id="cons-meds-list"></tbody>
-              </table>
-
-              <div class="modal-buttons">
-                <button style="background-color: #95a5a6; display: none">
-                  Cancel
-                </button>
-                <button id="editOverviewBtn">✏️ Edit</button>
-                <button onclick="closeButtonOverlay()">Close</button>
-              </div>
-              
-
-              
-            </div>
-          </div>
-            <div class="tab-pane fade vital-signs-content" id="vital-signs-content" role="tabpanel" aria-labelledby="vital-signs-tab">
-               <h2>Vitals Records :</h2>
-
-            <button
-              class="new-btn btn btn-primary mb-3"
-              data-bs-toggle="modal"
-              data-bs-target="#vitalsModal"
-            >
-              + New
-            </button>
-
-            <div class="table-responsive">
-              <table
-                class="table table-striped table-bordered table-hover align-middle"
-              >
-                <thead class="table-primary">
-                  <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Taken By</th>
-                    <th>Temp (°C)</th>
-                    <th>BP</th>
-                    <th>PR</th>
-                    <th>SpO2 (%)</th>
-                    <th>LMP</th>
-                  </tr>
-                </thead>
-                <tbody id="vitals-list">
-                  <!-- Vitals data will load here -->
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Action History -->
-            <div class="mt-4">
-              <a
-                class="text-decoration-none"
-                data-bs-toggle="collapse"
-                href="#vitalsActionHistory"
-                role="button"
-                aria-expanded="true"
-                aria-controls="vitalsActionHistory"
-              >
-                <h5
-                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
-                >
-                  Action History
-                  <span
-                    id="vitals-logs-count"
-                    class="badge bg-primary rounded-pill"
-                  >
-                    0
-                  </span>
-                </h5>
-              </a>
-
-              <div class="collapse show mt-2" id="vitalsActionHistory">
-                <ul id="vitals-action-history" class="list-group">
-                  <li class="list-group-item text-muted">No actions yet</li>
-                </ul>
-              </div>
-            </div>
-            </div>
+      <div class="row">
+        <!-- Left Container -->
+        <div class="left-container col-lg-4 col-md-5 mb-4">
+          <div class="patient-contacts card mb-4">
             <div
-            class="modal fade"
-            id="vitalsModal"
-            tabindex="-1"
-            aria-labelledby="vitalsModalLabel"
-            aria-hidden="true"
-          >
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="vitalsModalLabel">Add Vitals</h5>
-                  <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
+              class="card-header d-flex align-items-center justify-content-between"
+            >
+              <h5 class="mb-0">Contact Details</h5>
+              <div class="d-flex align-items-center gap-2">
+                <button
+                  id="edit-contacts"
+                  class="btn btn-primary btn-sm"
+                  type="button"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  id="cancel-contact-edit-btn"
+                  class="btn btn-outline-danger btn-sm"
+                  type="button"
+                  style="display: none"
+                >
+                  ❌ Cancel
+                </button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <input
+                  type="text"
+                  id="phone-number"
+                  class="form-control"
+                  placeholder="Phone Number"
+                  disabled
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <input
+                  type="email"
+                  id="email-address"
+                  class="form-control"
+                  placeholder="Email Address"
+                  disabled
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Home Address</label>
+                <input
+                  type="text"
+                  id="home-address"
+                  class="form-control"
+                  placeholder="Home Address"
+                  disabled
+                />
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Guardian's Name</label>
+                  <input
+                    type="text"
+                    id="guardian-name"
+                    class="form-control"
+                    placeholder="Guardian's Name"
+                    disabled
+                  />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Guardian's Contact</label>
+                  <input
+                    type="text"
+                    id="guardian-phone"
+                    class="form-control"
+                    placeholder="Guardian's Phone Number"
+                    disabled
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Files -->
+          <div class="patient-documents card mb-4">
+            <div class="card-body">
+              <h3 class="card-title mb-3">Documents:</h3>
+
+              <!-- Upload Button -->
+              <button class="btn btn-primary mb-3" id="upload-btn">
+                Upload Files
+              </button>
+              <input type="file" id="file-input" class="d-none" />
+
+              <!-- Document Categories -->
+              <div class="accordion" id="documentsAccordion">
+                <!-- Laboratory -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="labHeading">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#labCollapse"
+                      aria-expanded="false"
+                      aria-controls="labCollapse"
+                    >
+                      Laboratory
+                    </button>
+                  </h2>
+                  <div
+                    id="labCollapse"
+                    class="accordion-collapse collapse"
+                    aria-labelledby="labHeading"
+                    data-bs-parent="#documentsAccordion"
+                  >
+                    <div class="accordion-body p-0">
+                      <ul
+                        class="list-group list-group-flush"
+                        id="lab-list"
+                      ></ul>
+                    </div>
+                  </div>
                 </div>
 
-                <form id="addVitalsForm">
-                  <div class="modal-body">
-                    <div class="row g-3">
-                      <div class="col-md-6">
-                        <label class="form-label">Date</label>
-                        <input
-                          type="date"
-                          id="v-date"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-6">
-                        <label class="form-label">Time</label>
-                        <input
-                          type="time"
-                          id="v-time"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-4">
-                        <label class="form-label">Temp (°C)</label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          id="v-temp"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-4">
-                        <label class="form-label">BP</label>
-                        <input
-                          type="text"
-                          id="v-bp"
-                          class="form-control"
-                          placeholder="120/80"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-4">
-                        <label class="form-label">Pulse Rate</label>
-                        <input
-                          type="number"
-                          id="v-pr"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-6">
-                        <label class="form-label">SpO2 (%)</label>
-                        <input
-                          type="number"
-                          id="v-spo2"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-6">
-                        <label class="form-label">LMP (Optional)</label>
-                        <input type="date" id="v-lmp" class="form-control" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
+                <!-- Radiology -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="radHeading">
                     <button
+                      class="accordion-button collapsed"
                       type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#radCollapse"
+                      aria-expanded="false"
+                      aria-controls="radCollapse"
                     >
-                      Cancel
+                      Radiology
                     </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-            <div class="tab-pane fade doctor-notes-content" id="doctor-notes-content" role="tabpanel" aria-labelledby="doctor-notes-tab">
-              <h2>Doctor's Notes</h2>
-
-            <button
-              class="btn btn-primary mb-3"
-              data-bs-toggle="modal"
-              data-bs-target="#doctorNotesModal"
-            >
-              + New Note
-            </button>
-
-            <!-- Cards Container -->
-            <div id="doctor-notes-list" class="d-flex flex-column gap-3">
-              <!-- Doctor note cards will load here -->
-            </div>
-            </div>
-            <div class="modal fade" id="doctorNotesModal" tabindex="-1">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <form id="addDoctorNoteForm">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Add Doctor's Note</h5>
-                    <button
-                      type="button"
-                      class="btn-close"
-                      data-bs-dismiss="modal"
-                    ></button>
-                  </div>
-
-                  <div class="modal-body">
-                    <div class="mb-2">
-                      <label>Date</label>
-                      <input
-                        type="date"
-                        id="dn-date"
-                        class="form-control"
-                        required
-                      />
-                    </div>
-
-                    <div class="mb-2">
-                      <label>Time</label>
-                      <input
-                        type="time"
-                        id="dn-time"
-                        class="form-control"
-                        required
-                      />
-                    </div>
-
-                    <div class="mb-2">
-                      <label>Notes</label>
-                      <textarea
-                        id="dn-note"
-                        class="form-control"
-                        rows="4"
-                        required
-                      ></textarea>
+                  </h2>
+                  <div
+                    id="radCollapse"
+                    class="accordion-collapse collapse"
+                    aria-labelledby="radHeading"
+                    data-bs-parent="#documentsAccordion"
+                  >
+                    <div class="accordion-body p-0">
+                      <ul
+                        class="list-group list-group-flush"
+                        id="rad-list"
+                      ></ul>
                     </div>
                   </div>
+                </div>
 
-                  <div class="modal-footer">
-                    <button class="btn btn-primary" type="submit">Save</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-            <div class="tab-pane fade nurse-notes-content" id="nurse-notes-content" role="tabpanel" aria-labelledby="nurse-notes-tab">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-              <h2>Nurse Notes</h2>
-
-              <button
-                class="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#nurseNoteModal"
-              >
-                + Add Note
-              </button>
-            </div>
-
-            <div id="nurse-notes-container" class="d-flex flex-wrap gap-3">
-              <!-- Nurse note cards load here -->
-            </div>
-            </div>
-            <div class="modal fade" id="nurseNoteModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content">
-                <form id="addNurseNoteForm">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Add Nurse Note</h5>
+                <!-- Others -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="othersHeading">
                     <button
+                      class="accordion-button collapsed"
                       type="button"
-                      class="btn-close"
-                      data-bs-dismiss="modal"
-                    ></button>
-                  </div>
-
-                  <div class="modal-body">
-                    <textarea
-                      id="nurse-note-text"
-                      class="form-control"
-                      rows="4"
-                      placeholder="Enter nurse note..."
-                      required
-                    ></textarea>
-                  </div>
-
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button
-                      type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#othersCollapse"
+                      aria-expanded="false"
+                      aria-controls="othersCollapse"
                     >
-                      Cancel
+                      Others
                     </button>
+                  </h2>
+                  <div
+                    id="othersCollapse"
+                    class="accordion-collapse collapse"
+                    aria-labelledby="othersHeading"
+                    data-bs-parent="#documentsAccordion"
+                  >
+                    <div class="accordion-body p-0">
+                      <ul
+                        class="list-group list-group-flush"
+                        id="others-list"
+                      ></ul>
+                    </div>
                   </div>
-                </form>
+                </div>
               </div>
-            </div>
-          </div>
-            <div class="tab-pane fade dental-records-content" id="dental-records-content" role="tabpanel" aria-labelledby="dental-records-tab">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-              <h2>Dental Records</h2>
-              <button
-                class="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#dentalModal"
+
+              <!-- Category Selection & File Preview Modal -->
+              <div
+                class="modal fade"
+                id="categoryModal"
+                tabindex="-1"
+                aria-labelledby="categoryModalLabel"
+                aria-hidden="true"
               >
-                + New Dental Record
-              </button>
-            </div>
-
-            <div id="dental-records-container" class="d-flex flex-wrap gap-3">
-              <!-- Dental cards load here -->
-            </div>
-            </div>
-             <div class="modal fade" id="dentalModal" tabindex="-1">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-              <div class="modal-content">
-                <form id="addDentalForm">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Add Dental Record</h5>
-                    <button
-                      type="button"
-                      class="btn-close"
-                      data-bs-dismiss="modal"
-                    ></button>
-                  </div>
-
-                  <div class="modal-body">
-                    <!-- Procedure -->
-                    <div class="mb-3">
-                      <label class="form-label">Dental Procedure</label>
-                      <select class="form-select" id="d-procedure" required>
-                        <option value="">Select Procedure</option>
-                        <option>Dental Filling</option>
-                        <option>Tooth Extraction</option>
-                        <option>Oral Prophylaxis</option>
-                      </select>
-                    </div>
-
-                    <!-- Teeth -->
-                    <div class="mb-3">
-                      <label class="form-label">Teeth Affected</label>
-                      <select
-                        class="form-select"
-                        id="d-teeth"
-                        multiple
-                        required
-                      >
-                        <optgroup label="Upper Right">
-                          <option>11</option>
-                          <option>12</option>
-                          <option>13</option>
-                          <option>14</option>
-                          <option>15</option>
-                          <option>16</option>
-                          <option>17</option>
-                          <option>18</option>
-                        </optgroup>
-                        <optgroup label="Upper Left">
-                          <option>21</option>
-                          <option>22</option>
-                          <option>23</option>
-                          <option>24</option>
-                          <option>25</option>
-                          <option>26</option>
-                          <option>27</option>
-                          <option>28</option>
-                        </optgroup>
-                        <optgroup label="Lower Left">
-                          <option>31</option>
-                          <option>32</option>
-                          <option>33</option>
-                          <option>34</option>
-                          <option>35</option>
-                          <option>36</option>
-                          <option>37</option>
-                          <option>38</option>
-                        </optgroup>
-                        <optgroup label="Lower Right">
-                          <option>41</option>
-                          <option>42</option>
-                          <option>43</option>
-                          <option>44</option>
-                          <option>45</option>
-                          <option>46</option>
-                          <option>47</option>
-                          <option>48</option>
-                        </optgroup>
-                      </select>
-                      <small class="text-muted"
-                        >Hold Ctrl / Cmd to select multiple teeth</small
-                      >
-                    </div>
-                    <hr />
-                    <!-- Medications Section -->
-                    <div class="mt-4">
-                      <label class="form-label fw-bold">Medications:</label>
-                      <div class="d-flex flex-column gap-2 meds-list"></div>
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="categoryModalLabel">
+                        Select Document Category
+                      </h5>
                       <button
                         type="button"
-                        class="btn btn-primary btn-sm mt-2 add-med-btn"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label for="document-category" class="form-label"
+                          >Category</label
+                        >
+                        <select id="document-category" class="form-select">
+                          <option value="Laboratory">Laboratory</option>
+                          <option value="Radiology">Radiology</option>
+                          <option value="Others">Others</option>
+                        </select>
+                      </div>
+
+                      <!-- File Preview -->
+                      <div id="file-preview" class="border p-2 text-center">
+                        <p class="text-muted mb-0">No file selected</p>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button
+                        type="button"
+                        id="confirm-upload-btn"
+                        class="btn btn-primary"
                       >
-                        + Add Medicine
+                        Upload
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upload Category Selection -->
+          <div
+            class="upload-select-category card mt-3 d-none"
+            id="upload-category-card"
+          >
+            <div class="card-body">
+              <h3 class="card-title">Select Document Category:</h3>
+              <select id="document-category" class="form-select mb-3">
+                <option value="Laboratory">Laboratory</option>
+                <option value="Radiology">Radiology</option>
+                <option value="Others">Others</option>
+              </select>
+              <div class="d-flex gap-2">
+                <button
+                  id="confirm-upload-btn"
+                  class="btn btn-primary flex-fill"
+                >
+                  Upload
+                </button>
+                <button
+                  id="cancel-upload-btn"
+                  class="btn btn-outline-secondary flex-fill"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Container -->
+        <div class="right-container col-lg-8 col-md-7">
+          <div class="patient-records card">
+            <div class="card-body">
+              <!-- Bootstrap Tabs Navigation -->
+              <ul class="nav nav-tabs" id="patientRecordsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link active"
+                    id="patient-info-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#patient-info-content"
+                    type="button"
+                    role="tab"
+                    aria-controls="patient-info-content"
+                    aria-selected="true"
+                  >
+                    Patient Info
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="medical-history-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#medical-history-content"
+                    type="button"
+                    role="tab"
+                    aria-controls="medical-history-content"
+                    aria-selected="false"
+                  >
+                    Medical History
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="medical-consultation-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#medical-consultation-content"
+                    type="button"
+                    role="tab"
+                    aria-controls="medical-consultation-content"
+                    aria-selected="false"
+                  >
+                    Medical Consultation Records
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="vital-signs-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#vital-signs-content"
+                    type="button"
+                    role="tab"
+                    aria-controls="vital-signs-content"
+                    aria-selected="false"
+                  >
+                    Vital Signs
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="doctor-notes-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#doctor-notes-content"
+                    type="button"
+                    role="tab"
+                    aria-controls="doctor-notes-content"
+                    aria-selected="false"
+                  >
+                    Doctor's Notes
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="nurse-notes-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#nurse-notes-content"
+                    type="button"
+                    role="tab"
+                    aria-controls="nurse-notes-content"
+                    aria-selected="false"
+                  >
+                    Nurse's Notes
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="dental-records-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#dental-records-content"
+                    type="button"
+                    role="tab"
+                    aria-controls="dental-records-content"
+                    aria-selected="false"
+                  >
+                    Dental Records
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="physical-examination-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#physical-examination-content"
+                    type="button"
+                    role="tab"
+                    aria-controls="physical-examination-content"
+                    aria-selected="false"
+                  >
+                    Physical Examination
+                  </button>
+                </li>
+              </ul>
+
+              <!-- Tab Contents -->
+              <div class="tab-content p-3" id="patientRecordsTabContent">
+                <div
+                  class="tab-pane fade show active patient-info-content"
+                  id="patient-info-content"
+                  role="tabpanel"
+                  aria-labelledby="patient-info-tab"
+                >
+                  <div class="header-row">
+                    <h2>Patient Information</h2>
+                    <button class="edit-btn">✏️ Edit</button>
+                    <button
+                      id="cancelPatientInfoBtn"
+                      style="display: none; margin-top: 10px"
+                    >
+                      ❌ Cancel
+                    </button>
+                  </div>
+
+                  <div class="info-grid">
+                    <label
+                      >Last Name : <input id="lastName" type="text" disabled
+                    /></label>
+                    <label
+                      >First Name : <input id="firstName" type="text" disabled
+                    /></label>
+                    <label
+                      >Middle Name :
+                      <input id="middleName" type="text" disabled
+                    /></label>
+                    <label
+                      >Ext. Name : <input id="extName" type="text" disabled
+                    /></label>
+                    <label
+                      >Gender :
+                      <select id="gender" disabled>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                      </select></label
+                    >
+                    <label
+                      >Birthdate : <input id="birthdate" type="date" disabled
+                    /></label>
+                    <label
+                      >Age : <input id="age" type="number" disabled
+                    /></label>
+                    <label
+                      >Civil Status :
+                      <select name="" id="civilStatus" disabled>
+                        <option value="Single">Single</option>
+                        <option value="Married">Married</option>
+                        <option value="Widowed">Widowed</option>
+                        <option value="Divorced">Divorced</option>
+                      </select></label
+                    >
+                    <label
+                      >Nationality :
+                      <input id="nationality" type="text" disabled
+                    /></label>
+                    <label
+                      >Religion : <input id="religion" type="text" disabled
+                    /></label>
+
+                    <label
+                      >School ID : <input id="schoolId" type="text" disabled
+                    /></label>
+                    <label>
+                      Department :
+                      <select id="department" disabled required>
+                        <option value="">Select Department</option>
+                        <option value="CABM">CABM</option>
+                        <option value="CCJE">CCJE</option>
+                        <option value="CIT">CIT</option>
+                        <option value="COT">COT</option>
+                        <option value="TTED">TTED</option>
+                        <option value="CTE">CTE</option>
+                        <option value="BasicEd">BasicEd</option>
+                        <option value="Visitor">Visitor</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      Course/Strand/Gen. Educ. :
+                      <select id="course" disabled>
+                        <option value="">Select Course / Strand</option>
+                        <option value="Bachelor of Science in Accountancy">
+                          Bachelor of Science in Accountancy
+                        </option>
+                        <option
+                          value="Bachelor of Science in Hospitality Management"
+                        >
+                          Bachelor of Science in Hospitality Management
+                        </option>
+                        <option
+                          value="Bachelor of Science in Information Technology"
+                        >
+                          Bachelor of Science in Information Technology
+                        </option>
+                        <option
+                          value="Bachelor of Science in Office Administration"
+                        >
+                          Bachelor of Science in Office Administration
+                        </option>
+                        <option
+                          value="Bachelor of Science in Business Administration"
+                        >
+                          Bachelor of Science in Business Administration
+                        </option>
+                        <option value="Bachelor of Elementary Education">
+                          Bachelor of Elementary Education
+                        </option>
+                        <option value="Bachelor of Science in Psychology">
+                          Bachelor of Science in Psychology
+                        </option>
+                        <option value="Bachelor of Science in Social Work">
+                          Bachelor of Science in Social Work
+                        </option>
+                        <option value="Bachelor of Secondary Education">
+                          Bachelor of Secondary Education
+                        </option>
+                        <option value="Technical Vocational Teacher Education">
+                          Technical Vocational Teacher Education
+                        </option>
+                        <option value="Bachelor of Science in Criminology">
+                          Bachelor of Science in Criminology
+                        </option>
+                        <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+                        <option value="Bachelor of Theology">
+                          Bachelor of Theology
+                        </option>
+                        <option value="Accountancy and Business Management">
+                          Accountancy and Business Management (ABM)
+                        </option>
+                        <option
+                          value="Science, Technology, Engineering, and Mathematics"
+                        >
+                          Science, Technology, Engineering, and Mathematics
+                          (STEM)
+                        </option>
+                        <option value="Humanities and Sciences">
+                          Humanities and Sciences
+                        </option>
+                        <option value="Junior Highschool">
+                          Junior Highschool
+                        </option>
+                        <option value="Elementary">Elementary</option>
+                        <option value="Kindergarten">Kindergarten</option>
+                        <option value="Visitor">Visitor</option>
+                      </select>
+                    </label>
+
+                    <label
+                      >Year Level :
+                      <select id="year" disabled>
+                        <option value="">Select Year</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                      </select></label
+                    >
+                  </div>
+
+                  <br />
+                  <hr />
+                  <br />
+
+                  <h3>Parent’s Information</h3>
+                  <div class="info-grid" id="parent-info-grid">
+                    <label
+                      >Father’s Name :
+                      <input id="fatherName" type="text" disabled
+                    /></label>
+                    <label
+                      >Father's Age :
+                      <input id="fatherAge" type="number" disabled
+                    /></label>
+                    <label
+                      >Father's Occupation :
+                      <input id="fatherOccupation" type="text" disabled
+                    /></label>
+                    <label
+                      >Father's Health Status :
+                      <input id="fatherHealth" type="text" disabled
+                    /></label>
+
+                    <label
+                      >Mother’s Name :
+                      <input id="motherName" type="text" disabled
+                    /></label>
+                    <label
+                      >Mother's Age :
+                      <input id="motherAge" type="number" disabled
+                    /></label>
+                    <label
+                      >Mother's Occupation :
+                      <input id="motherOccupation" type="text" disabled
+                    /></label>
+                    <label
+                      >Mother's Health Status :
+                      <input id="motherHealth" type="text" disabled
+                    /></label>
+                  </div>
+                </div>
+
+                <div
+                  class="tab-pane fade medical-history-content"
+                  id="medical-history-content"
+                  role="tabpanel"
+                  aria-labelledby="medical-history-tab"
+                >
+                  <div class="card">
+                    <div class="header-row">
+                      <h2>Medical History :</h2>
+                      <button class="edit-btn">✏️ Edit</button>
+                      <button
+                        id="cancelHistoryBtn"
+                        style="display: none; margin-top: 10px"
+                      >
+                        ❌ Cancel
                       </button>
                     </div>
 
-                    <!-- Notes -->
-                    <div class="mb-3">
-                      <label class="form-label">Notes</label>
-                      <textarea
-                        class="form-control"
-                        id="d-notes"
-                        rows="3"
-                        placeholder="Additional details (optional)"
-                      ></textarea>
+                    <div class="history-grid">
+                      <div class="history-card">
+                        <h3>Past Medical History</h3>
+                        <textarea disabled>---</textarea>
+                      </div>
+
+                      <div class="history-card">
+                        <h3>Family History</h3>
+                        <textarea disabled>---</textarea>
+                      </div>
+
+                      <div class="history-card">
+                        <h3>Past Surgical History</h3>
+                        <textarea disabled></textarea>
+                      </div>
+                    </div>
+                    <!-- end of history-grid -->
+
+                    <!-- Additional Medical Info Section -->
+                    <div class="additional-info">
+                      <div class="history-card">
+                        <h3>
+                          Nutritional Supplements / Vitamins / Other Medications
+                        </h3>
+                        <textarea
+                          disabled
+                          placeholder="Enter details here..."
+                        ></textarea>
+                      </div>
+
+                      <div class="history-card">
+                        <h3>Allergies</h3>
+                        <textarea
+                          disabled
+                          placeholder="List allergies here..."
+                        ></textarea>
+                      </div>
+
+                      <!-- 🔹 Immunization Section -->
+                      <div class="history-card immunization-card">
+                        <h3>Immunization</h3>
+                        <div class="immunization-form">
+                          <div class="immunization-row">
+                            <label>BCG:</label
+                            ><input name="bcg" type="text" disabled />
+                            <label>DPT:</label
+                            ><input name="dpt" type="text" disabled />
+                            <label>OPV:</label
+                            ><input name="opv" type="text" disabled />
+                          </div>
+                          <div class="immunization-row">
+                            <label>HEP. B:</label
+                            ><input name="hepb" type="text" disabled />
+                            <label>MMR:</label
+                            ><input name="mmr" type="text" disabled />
+                            <label>MEASLES:</label
+                            ><input name="measles" type="text" disabled />
+                          </div>
+                          <div class="immunization-row">
+                            <label>OTHERS:</label
+                            ><input
+                              type="text"
+                              name="others"
+                              disabled
+                              style="flex: 1"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- 🔹 OB-GYNE History Section -->
+                      <div class="history-card obgyne-card">
+                        <h3>OB-GYNE History (Female Only)</h3>
+                        <div class="obgyne-form">
+                          <div class="ob-row">
+                            <label>Age of First Menstrual Period:</label>
+                            <input type="text" name="menarcheAge" disabled />
+                          </div>
+
+                          <div class="ob-row">
+                            <label>Duration/Days:</label>
+                            <input type="text" name="durationDays" disabled />
+                            <label>Napkin/s per Day:</label>
+                            <input type="text" name="napkinsPerDay" disabled />
+                            <label>Interval:</label>
+                            <input type="text" name="interval" disabled />
+                          </div>
+
+                          <div class="ob-row dysmenorrhea-row">
+                            <label>Dysmenorrhea:</label>
+                            <div class="radio-group">
+                              <label
+                                ><input
+                                  type="radio"
+                                  name="dysmenorrhea"
+                                  value="No"
+                                  disabled
+                                />
+                                No</label
+                              >
+                              <label
+                                ><input
+                                  type="radio"
+                                  name="dysmenorrhea"
+                                  value="Sometimes"
+                                  disabled
+                                />
+                                Sometimes</label
+                              >
+                              <label
+                                ><input
+                                  type="radio"
+                                  name="dysmenorrhea"
+                                  value="Moderate"
+                                  disabled
+                                />
+                                Moderate</label
+                              >
+                              <label
+                                ><input
+                                  type="radio"
+                                  name="dysmenorrhea"
+                                  value="Severe"
+                                  disabled
+                                />
+                                Severe</label
+                              >
+                            </div>
+                          </div>
+
+                          <div class="ob-row">
+                            <label>Last Menstrual:</label>
+                            <input type="date" name="lastMenstrual" disabled />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-4">
+                      <a
+                        class="text-decoration-none"
+                        data-bs-toggle="collapse"
+                        href="#medicalHistoryLogs"
+                        role="button"
+                        aria-expanded="true"
+                        aria-controls="medicalHistoryLogs"
+                      >
+                        <h5
+                          class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                        >
+                          Action History
+                          <span
+                            id="medical-history-logs-count"
+                            class="badge bg-primary rounded-pill"
+                            >0</span
+                          >
+                        </h5>
+                      </a>
+
+                      <div class="collapse show mt-2" id="medicalHistoryLogs">
+                        <ul id="medical-history-logs" class="list-group">
+                          <li class="list-group-item text-muted">
+                            No actions yet
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button
-                      type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-            <div class="tab-pane fade physical-examination-content" id="physical-examination-content" role="tabpanel" aria-labelledby="physical-examination-tab">
-             <h2>Physical Examination :</h2>
-
-            <button onclick="addPhysicalExamOverlay()" class="new-btn">
-              + New
-            </button>
-
-            <div class="table-responsive">
-              <table
-                class="table table-bordered table-striped align-middle text-center"
-              >
-                <thead class="table-primary">
-                  <tr>
-                    <th>Date</th>
-                    <th>BP</th>
-                    <th>PR</th>
-                    <th>Weight (kg)</th>
-                    <th>Height (cm)</th>
-                    <th>BMI</th>
-                    <th>BMI Category</th>
-                  </tr>
-                </thead>
-
-                <tbody id="physical-exam-list">
-                  <!-- Records will load here -->
-                </tbody>
-              </table>
-            </div>
-            <div class="mt-4">
-              <a
-                class="text-decoration-none"
-                data-bs-toggle="collapse"
-                href="#physicalExamHistory"
-                role="button"
-                aria-expanded="true"
-                aria-controls="physicalExamHistory"
-              >
-                <h5
-                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                <div
+                  class="tab-pane fade medical-consultation-content"
+                  id="medical-consultation-content"
+                  role="tabpanel"
+                  aria-labelledby="medical-consultation-tab"
                 >
-                  Action History
-                  <span
-                    id="physical-examination-logs-count"
-                    class="badge bg-primary rounded-pill"
-                    >0</span
+                  <h2>Medical Consultation Records :</h2>
+
+                  <button
+                    onclick="addConsultationRecordOverlay()"
+                    class="new-btn"
                   >
-                </h5>
-              </a>
+                    + New
+                  </button>
 
-              <div class="collapse show mt-2" id="physicalExamHistory">
-                <ul id="physical-examination-history" class="list-group">
-                  <li class="list-group-item text-muted">No actions yet</li>
-                </ul>
-              </div>
-            </div>
-            <div id="add-physical-exam">
-              <h2>Physical Examination</h2>
-
-              <p>
-                <em><strong>TO BE FILLED OUT BY CLINIC PERSONNEL</strong></em>
-              </p>
-              <p><em>PHYSICAL EXAMINATION</em></p>
-
-              <form id="physical-exam-form">
-                <div class="vitals">
-                  <label
-                    >Date: <input type="date" id="exam-date" required
-                  /></label>
-                  <label
-                    >BP: <input type="text" id="exam-bp" placeholder="120/80"
-                  /></label>
-                  <label
-                    >PR: <input type="text" id="exam-pr" placeholder="75"
-                  /></label>
-                  <label
-                    >Weight (kg): <input type="number" min="10" max="250" id="exam-weight"
-                  /></label>
-                  <label
-                    >Height (cm): <input type="number" min="10" max="300" id="exam-height"
-                  /></label>
-                  <label
-                    >BMI: <input disabled type="number" id="exam-bmi" step="0.1"
-                  /></label>
-                  <label
-                    >Visual Acuity (OS): <input type="text" id="exam-visual-os"
-                  /></label>
-                  <label>OD: <input type="text" id="exam-visual-od" /></label>
-                  <label
-                    >With Glasses: <input type="checkbox" id="exam-glasses"
-                  /></label>
-                </div>
-
-                <div class="exam-section">
-                  <div class="left-col">
-                    <label>HEENT: <input type="text" id="exam-heent" /></label>
-                    <label>TEETH: <input type="text" id="exam-teeth" /></label>
-                    <label>NECK: <input type="text" id="exam-neck" /></label>
-                    <label>CHEST: <input type="text" id="exam-chest" /></label>
-                    <label>LUNGS: <input type="text" id="exam-lungs" /></label>
-                    <label>HEART: <input type="text" id="exam-heart" /></label>
-                    <label
-                      >BREAST: <input type="text" id="exam-breast"
-                    /></label>
-                    <label>SKIN: <input type="text" id="exam-skin" /></label>
-                    <label
-                      >ABDOMEN: <input type="text" id="exam-abdomen"
-                    /></label>
+                  <div class="table-responsive">
+                    <table
+                      class="table table-striped table-bordered table-hover align-middle"
+                    >
+                      <thead class="table-primary">
+                        <tr>
+                          <th>Cons. Dr.</th>
+                          <th>NoD</th>
+                          <th>Date</th>
+                          <th>Time</th>
+                          <th>Chief Complaint</th>
+                          <th>Diagnosis</th>
+                          <th>Meds.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Data will load here -->
+                      </tbody>
+                    </table>
                   </div>
+                  <div class="mt-4">
+                    <a
+                      class="text-decoration-none"
+                      data-bs-toggle="collapse"
+                      href="#actionHistory"
+                      role="button"
+                      aria-expanded="true"
+                      aria-controls="actionHistory"
+                    >
+                      <h5
+                        class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                      >
+                        Action History
+                        <span
+                          id="medical-consultation-logs-count"
+                          class="badge bg-primary rounded-pill"
+                          >0</span
+                        >
+                      </h5>
+                    </a>
 
-                  <div class="right-col">
-                    <label
-                      >BACK/FLANKS: <input type="text" id="exam-back"
-                    /></label>
-                    <label
-                      >ANUS/RECTUM: <input type="text" id="exam-anus"
-                    /></label>
-                    <label
-                      >GENITALIA: <input type="text" id="exam-genitalia"
-                    /></label>
-                    <label
-                      >EXTREMITIES: <input type="text" id="exam-extremities"
-                    /></label>
-                    <label
-                      >CLEANLINESS (Nails, Hair, Ears):
-                      <input type="text" id="exam-cleanliness"
-                    /></label>
-                    <label
-                      >POSTURE: <input type="text" id="exam-posture"
-                    /></label>
-                    <label
-                      >NUTRITION: <input type="text" id="exam-nutrition"
-                    /></label>
-                    <label
-                      >DEFORMITY: <input type="text" id="exam-deformity"
-                    /></label>
-                    <label
-                      >OTHERS: <input type="text" id="exam-others"
-                    /></label>
+                    <div class="collapse show mt-2" id="actionHistory">
+                      <ul id="action-history" class="list-group">
+                        <li class="list-group-item text-muted">
+                          No actions yet
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
+                <!-- New Consultation Record -->
+                <div id="add-consultation-record">
+                  <h2>New Consultation Record</h2>
 
-                <h4>Laboratory and Ancillary Procedure</h4>
-                <label
-                  >Present: <input type="text" id="exam-lab-present"
-                /></label>
-                <label
-                  >Recommendations:
-                  <input type="text" id="exam-recommendations"
-                /></label>
+                  <form id="consultation-form">
+                    <label>
+                      Consulting Doctor:
+                      <select id="consult-doctor" class="form-control">
+                        <option value="">Select Doctor</option>
+                      </select>
+                    </label>
+                    <label
+                      >Date:<input type="date" id="consult-date" required
+                    /></label>
+                    <label
+                      >Time:<input type="time" id="consult-time" required
+                    /></label>
+                    <label>Chief Complaint:</label>
+                    <select
+                      id="consult-complaint"
+                      class="form-control mb-2"
+                      required
+                    >
+                      <option value="">Select Complaint</option>
+                      <option value="__add_new__">➕ Add New Complaint</option>
+                    </select>
 
-                <div class="form-buttons">
-                  <button type="submit" class="save-btn">Save</button>
-                  <button type="button" onclick="closeButtonOverlay()">
+                    <!-- Hidden new complaint input -->
+                    <input
+                      type="text"
+                      id="new-complaint-input"
+                      class="form-control mt-2"
+                      placeholder="Enter new complaint"
+                      style="display: none"
+                    />
+
+                    <label>Diagnosis:</label>
+                    <select id="consult-diagnosis" class="form-control mb-2">
+                      <option value="">Select Diagnosis</option>
+                      <option value="__add_new__">➕ Add New Diagnosis</option>
+                    </select>
+
+                    <!-- Hidden new diagnosis input -->
+                    <input
+                      type="text"
+                      id="new-diagnosis-input"
+                      class="form-control mt-2"
+                      placeholder="Enter new diagnosis"
+                      style="display: none"
+                    />
+
+                    <label>Medications:</label>
+                    <div class="meds-list"></div>
+                    <button type="button" class="add-med-btn">
+                      + Add Medicine
+                    </button>
+
+                    <label for="consult-notes">Notes/Intervention:</label>
+                    <textarea
+                      id="consult-notes"
+                      placeholder="Enter consultation notes here..."
+                    ></textarea>
+
+                    <button type="submit" class="save-btn">Save</button>
+                  </form>
+                  <button
+                    style="
+                      padding: 6px 8px;
+                      font-size: 14px;
+                      border: 1px solid black;
+                      border-radius: 4px;
+                      margin-top: 3px;
+                      width: 100%;
+                    "
+                    onclick="closeButtonOverlay()"
+                  >
                     Cancel
                   </button>
                 </div>
-              </form>
-            </div>
-            <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
-            <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
-            <div id="exam-overview-modal" class="exam-overview-modal">
-              <div class="modal-content">
-                <h2>Physical Examination Overview</h2>
-                <div class="overview-details">
-                  <label
-                    ><strong>Date:</strong>
-                    <input id="ovr-exam-date" type="date" disabled />
-                  </label>
-                  <label
-                    ><strong>BP:</strong>
-                    <input id="ovr-exam-bp" type="text" disabled />
-                  </label>
-                  <label
-                    ><strong>PR:</strong>
-                    <input id="ovr-exam-pr" type="text" disabled />
-                  </label>
-                  <label
-                    ><strong>Weight (kg):</strong>
-                    <input
-                      id="ovr-exam-weight"
-                      type="number"
-                      step="0.1"
-                      disabled
-                    />
-                  </label>
-                  <label
-                    ><strong>Height (cm):</strong>
-                    <input
-                      id="ovr-exam-height"
-                      type="number"
-                      step="0.1"
-                      disabled
-                    />
-                  </label>
-                  <label
-                    ><strong>BMI:</strong>
-                    <input
-                      id="ovr-exam-bmi"
-                      type="number"
-                      step="0.1"
-                      readonly
-                      disabled
-                    />
-                  </label>
+                <div id="consultation-overview" class="consultation-modal">
+                  <div class="modal-content">
+                    <h2>Consultation Overview</h2>
 
-                  <h4>👁️ Visual Acuity</h4>
-                  <label
-                    ><strong>OS:</strong>
-                    <input id="ovr-exam-os" type="text" disabled />
-                  </label>
-                  <label
-                    ><strong>OD:</strong>
-                    <input id="ovr-exam-od" type="text" disabled />
-                  </label>
-                  <label
-                    ><strong>Glasses:</strong>
-                    <select id="ovr-exam-glasses" disabled>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                  </label>
+                    <div class="overview-details">
+                      <label
+                        ><strong>Doctor:</strong>
+                        <select class="form-control" id="ovr-doctor" disabled>
+                          <option value="">Select Doctor</option>
+                        </select>
+                      </label>
 
-                  <h4>🩺 Physical Findings</h4>
-                  <div class="findings-box">
-                    <textarea
-                      id="ovr-exam-findings"
-                      placeholder="Enter findings..."
-                      disabled
-                    ></textarea>
+                      <label
+                        ><strong>Date:</strong>
+                        <input id="ovr-date" type="date" disabled />
+                      </label>
+
+                      <label
+                        ><strong>Time:</strong>
+                        <input id="ovr-time" type="time" disabled />
+                      </label>
+
+                      <label
+                        ><strong>Chief Complaint:</strong>
+                        <input id="ovr-complaint" type="text" disabled />
+                      </label>
+
+                      <label
+                        ><strong>Diagnosis:</strong>
+                        <input id="ovr-diagnosis" type="text" disabled />
+                      </label>
+
+                      <label
+                        ><strong>Notes/Intervention:</strong>
+                        <textarea id="ovr-notes" disabled></textarea>
+                      </label>
+                    </div>
+                    <div class="meds-header">
+                      <h4 class="mt-3 fw-bold">Medications</h4>
+                      <button
+                        class="btn btn-success"
+                        id="addMedBtn"
+                        style="display: none"
+                      >
+                        ➕ Add Med
+                      </button>
+                    </div>
+
+                    <table id="cons-meds-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Name</th>
+                          <th>Qty</th>
+                          <th>Date / Time</th>
+                          <th>Personnel Incharge</th>
+                          <th>Type</th>
+                          <th>Remarks</th>
+                        </tr>
+                      </thead>
+                      <tbody id="cons-meds-list"></tbody>
+                    </table>
+
+                    <div class="modal-buttons">
+                      <button style="background-color: #95a5a6; display: none">
+                        Cancel
+                      </button>
+                      <button id="editOverviewBtn">✏️ Edit</button>
+                      <button onclick="closeButtonOverlay()">Close</button>
+                    </div>
                   </div>
-                  <input disabled id="ovr-exam-findings-raw" />
-                  <h4>🧪 Laboratory & Recommendations</h4>
-                  <label
-                    ><strong>Laboratory Procedure:</strong>
-                    <textarea id="ovr-exam-lab" type="text" disabled></textarea>
-                  </label>
-                  <label
-                    ><strong>Recommendations:</strong>
-                    <textarea id="ovr-exam-recommendations" disabled></textarea>
-                  </label>
                 </div>
+                <div
+                  class="tab-pane fade vital-signs-content"
+                  id="vital-signs-content"
+                  role="tabpanel"
+                  aria-labelledby="vital-signs-tab"
+                >
+                  <h2>Vitals Records :</h2>
 
-                <div class="modal-buttons">
-                  <button id="editExamBtn">✏️ Edit</button>
-                  <button onclick="closeButtonOverlay()">Close</button>
+                  <button
+                    class="new-btn btn btn-primary mb-3"
+                    data-bs-toggle="modal"
+                    data-bs-target="#vitalsModal"
+                  >
+                    + New
+                  </button>
+
+                  <div class="table-responsive">
+                    <table
+                      class="table table-striped table-bordered table-hover align-middle"
+                    >
+                      <thead class="table-primary">
+                        <tr>
+                          <th>Date</th>
+                          <th>Time</th>
+                          <th>Taken By</th>
+                          <th>Temp (°C)</th>
+                          <th>BP</th>
+                          <th>PR</th>
+                          <th>SpO2 (%)</th>
+                          <th>LMP</th>
+                        </tr>
+                      </thead>
+                      <tbody id="vitals-list">
+                        <!-- Vitals data will load here -->
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Action History -->
+                  <div class="mt-4">
+                    <a
+                      class="text-decoration-none"
+                      data-bs-toggle="collapse"
+                      href="#vitalsActionHistory"
+                      role="button"
+                      aria-expanded="true"
+                      aria-controls="vitalsActionHistory"
+                    >
+                      <h5
+                        class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                      >
+                        Action History
+                        <span
+                          id="vitals-logs-count"
+                          class="badge bg-primary rounded-pill"
+                        >
+                          0
+                        </span>
+                      </h5>
+                    </a>
+
+                    <div class="collapse show mt-2" id="vitalsActionHistory">
+                      <ul id="vitals-action-history" class="list-group">
+                        <li class="list-group-item text-muted">
+                          No actions yet
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="modal fade"
+                  id="vitalsModal"
+                  tabindex="-1"
+                  aria-labelledby="vitalsModalLabel"
+                  aria-hidden="true"
+                >
+                  <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="vitalsModalLabel">
+                          Add Vitals
+                        </h5>
+                        <button
+                          type="button"
+                          class="btn-close"
+                          data-bs-dismiss="modal"
+                          aria-label="Close"
+                        ></button>
+                      </div>
+
+                      <form id="addVitalsForm">
+                        <div class="modal-body">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label">Date</label>
+                              <input
+                                type="date"
+                                id="v-date"
+                                class="form-control"
+                                required
+                              />
+                            </div>
+
+                            <div class="col-md-6">
+                              <label class="form-label">Time</label>
+                              <input
+                                type="time"
+                                id="v-time"
+                                class="form-control"
+                                required
+                              />
+                            </div>
+
+                            <div class="col-md-4">
+                              <label class="form-label">Temp (°C)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                id="v-temp"
+                                class="form-control"
+                                required
+                              />
+                            </div>
+
+                            <div class="col-md-4">
+                              <label class="form-label">BP</label>
+                              <input
+                                type="text"
+                                id="v-bp"
+                                class="form-control"
+                                placeholder="120/80"
+                                required
+                              />
+                            </div>
+
+                            <div class="col-md-4">
+                              <label class="form-label">Pulse Rate</label>
+                              <input
+                                type="number"
+                                id="v-pr"
+                                class="form-control"
+                                required
+                              />
+                            </div>
+
+                            <div class="col-md-6">
+                              <label class="form-label">SpO2 (%)</label>
+                              <input
+                                type="number"
+                                id="v-spo2"
+                                class="form-control"
+                                required
+                              />
+                            </div>
+
+                            <div class="col-md-6">
+                              <label class="form-label">LMP (Optional)</label>
+                              <input
+                                type="date"
+                                id="v-lmp"
+                                class="form-control"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-primary">
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="tab-pane fade doctor-notes-content"
+                  id="doctor-notes-content"
+                  role="tabpanel"
+                  aria-labelledby="doctor-notes-tab"
+                >
+                  <h2>Doctor's Notes</h2>
+
+                  <button
+                    class="btn btn-primary mb-3"
+                    data-bs-toggle="modal"
+                    data-bs-target="#doctorNotesModal"
+                  >
+                    + New Note
+                  </button>
+
+                  <!-- Cards Container -->
+                  <div id="doctor-notes-list" class="d-flex flex-column gap-3">
+                    <!-- Doctor note cards will load here -->
+                  </div>
+                </div>
+                <div class="modal fade" id="doctorNotesModal" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <form id="addDoctorNoteForm">
+                        <div class="modal-header">
+                          <h5 class="modal-title">Add Doctor's Note</h5>
+                          <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                          ></button>
+                        </div>
+
+                        <div class="modal-body">
+                          <div class="mb-2">
+                            <label>Date</label>
+                            <input
+                              type="date"
+                              id="dn-date"
+                              class="form-control"
+                              required
+                            />
+                          </div>
+
+                          <div class="mb-2">
+                            <label>Time</label>
+                            <input
+                              type="time"
+                              id="dn-time"
+                              class="form-control"
+                              required
+                            />
+                          </div>
+
+                          <div class="mb-2">
+                            <label>Notes</label>
+                            <textarea
+                              id="dn-note"
+                              class="form-control"
+                              rows="4"
+                              required
+                            ></textarea>
+                          </div>
+                        </div>
+
+                        <div class="modal-footer">
+                          <button class="btn btn-primary" type="submit">
+                            Save
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="tab-pane fade nurse-notes-content"
+                  id="nurse-notes-content"
+                  role="tabpanel"
+                  aria-labelledby="nurse-notes-tab"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <h2>Nurse Notes</h2>
+
+                    <button
+                      class="btn btn-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#nurseNoteModal"
+                    >
+                      + Add Note
+                    </button>
+                  </div>
+
+                  <div
+                    id="nurse-notes-container"
+                    class="d-flex flex-wrap gap-3"
+                  >
+                    <!-- Nurse note cards load here -->
+                  </div>
+                </div>
+                <div class="modal fade" id="nurseNoteModal" tabindex="-1">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <form id="addNurseNoteForm">
+                        <div class="modal-header">
+                          <h5 class="modal-title">Add Nurse Note</h5>
+                          <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                          ></button>
+                        </div>
+
+                        <div class="modal-body">
+                          <textarea
+                            id="nurse-note-text"
+                            class="form-control"
+                            rows="4"
+                            placeholder="Enter nurse note..."
+                            required
+                          ></textarea>
+                        </div>
+
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-primary">
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="tab-pane fade dental-records-content"
+                  id="dental-records-content"
+                  role="tabpanel"
+                  aria-labelledby="dental-records-tab"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <h2>Dental Records</h2>
+                    <button
+                      class="btn btn-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#dentalModal"
+                    >
+                      + New Dental Record
+                    </button>
+                  </div>
+
+                  <div
+                    id="dental-records-container"
+                    class="d-flex flex-wrap gap-3"
+                  >
+                    <!-- Dental cards load here -->
+                  </div>
+                </div>
+                <div class="modal fade" id="dentalModal" tabindex="-1">
+                  <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                      <form id="addDentalForm">
+                        <div class="modal-header">
+                          <h5 class="modal-title">Add Dental Record</h5>
+                          <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                          ></button>
+                        </div>
+
+                        <div class="modal-body">
+                          <!-- Procedure -->
+                          <div class="mb-3">
+                            <label class="form-label">Dental Procedure</label>
+                            <select
+                              class="form-select"
+                              id="d-procedure"
+                              required
+                            >
+                              <option value="">Select Procedure</option>
+                              <option>Dental Filling</option>
+                              <option>Tooth Extraction</option>
+                              <option>Oral Prophylaxis</option>
+                            </select>
+                          </div>
+
+                          <!-- Teeth -->
+                          <div class="mb-3">
+                            <label class="form-label">Teeth Affected</label>
+                            <select
+                              class="form-select"
+                              id="d-teeth"
+                              multiple
+                              required
+                            >
+                              <optgroup label="Upper Right">
+                                <option>11</option>
+                                <option>12</option>
+                                <option>13</option>
+                                <option>14</option>
+                                <option>15</option>
+                                <option>16</option>
+                                <option>17</option>
+                                <option>18</option>
+                              </optgroup>
+                              <optgroup label="Upper Left">
+                                <option>21</option>
+                                <option>22</option>
+                                <option>23</option>
+                                <option>24</option>
+                                <option>25</option>
+                                <option>26</option>
+                                <option>27</option>
+                                <option>28</option>
+                              </optgroup>
+                              <optgroup label="Lower Left">
+                                <option>31</option>
+                                <option>32</option>
+                                <option>33</option>
+                                <option>34</option>
+                                <option>35</option>
+                                <option>36</option>
+                                <option>37</option>
+                                <option>38</option>
+                              </optgroup>
+                              <optgroup label="Lower Right">
+                                <option>41</option>
+                                <option>42</option>
+                                <option>43</option>
+                                <option>44</option>
+                                <option>45</option>
+                                <option>46</option>
+                                <option>47</option>
+                                <option>48</option>
+                              </optgroup>
+                            </select>
+                            <small class="text-muted"
+                              >Hold Ctrl / Cmd to select multiple teeth</small
+                            >
+                          </div>
+                          <hr />
+                          <!-- Medications Section -->
+                          <div class="mt-4">
+                            <label class="form-label fw-bold"
+                              >Medications:</label
+                            >
+                            <div
+                              class="d-flex flex-column gap-2 meds-list"
+                            ></div>
+                            <button
+                              type="button"
+                              class="btn btn-primary btn-sm mt-2 add-med-btn"
+                            >
+                              + Add Medicine
+                            </button>
+                          </div>
+
+                          <!-- Notes -->
+                          <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea
+                              class="form-control"
+                              id="d-notes"
+                              rows="3"
+                              placeholder="Additional details (optional)"
+                            ></textarea>
+                          </div>
+                        </div>
+
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-primary">
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="tab-pane fade physical-examination-content"
+                  id="physical-examination-content"
+                  role="tabpanel"
+                  aria-labelledby="physical-examination-tab"
+                >
+                  <h2>Physical Examination :</h2>
+
+                  <button onclick="addPhysicalExamOverlay()" class="new-btn">
+                    + New
+                  </button>
+
+                  <div class="table-responsive">
+                    <table
+                      class="table table-bordered table-striped align-middle text-center"
+                    >
+                      <thead class="table-primary">
+                        <tr>
+                          <th>Date</th>
+                          <th>BP</th>
+                          <th>PR</th>
+                          <th>Weight (kg)</th>
+                          <th>Height (cm)</th>
+                          <th>BMI</th>
+                          <th>BMI Category</th>
+                        </tr>
+                      </thead>
+
+                      <tbody id="physical-exam-list">
+                        <!-- Records will load here -->
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="mt-4">
+                    <a
+                      class="text-decoration-none"
+                      data-bs-toggle="collapse"
+                      href="#physicalExamHistory"
+                      role="button"
+                      aria-expanded="true"
+                      aria-controls="physicalExamHistory"
+                    >
+                      <h5
+                        class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                      >
+                        Action History
+                        <span
+                          id="physical-examination-logs-count"
+                          class="badge bg-primary rounded-pill"
+                          >0</span
+                        >
+                      </h5>
+                    </a>
+
+                    <div class="collapse show mt-2" id="physicalExamHistory">
+                      <ul id="physical-examination-history" class="list-group">
+                        <li class="list-group-item text-muted">
+                          No actions yet
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div id="add-physical-exam">
+                    <h2>Physical Examination</h2>
+
+                    <p>
+                      <em
+                        ><strong
+                          >TO BE FILLED OUT BY CLINIC PERSONNEL</strong
+                        ></em
+                      >
+                    </p>
+                    <p><em>PHYSICAL EXAMINATION</em></p>
+
+                    <form id="physical-exam-form">
+                      <div class="vitals">
+                        <label
+                          >Date: <input type="date" id="exam-date" required
+                        /></label>
+                        <label
+                          >BP:
+                          <input type="text" id="exam-bp" placeholder="120/80"
+                        /></label>
+                        <label
+                          >PR: <input type="text" id="exam-pr" placeholder="75"
+                        /></label>
+                        <label
+                          >Weight (kg):
+                          <input
+                            type="number"
+                            min="10"
+                            max="250"
+                            id="exam-weight"
+                        /></label>
+                        <label
+                          >Height (cm):
+                          <input
+                            type="number"
+                            min="10"
+                            max="300"
+                            id="exam-height"
+                        /></label>
+                        <label
+                          >BMI:
+                          <input
+                            disabled
+                            type="number"
+                            id="exam-bmi"
+                            step="0.1"
+                        /></label>
+                        <label
+                          >Visual Acuity (OS):
+                          <input type="text" id="exam-visual-os"
+                        /></label>
+                        <label
+                          >OD: <input type="text" id="exam-visual-od"
+                        /></label>
+                        <label
+                          >With Glasses:
+                          <input type="checkbox" id="exam-glasses"
+                        /></label>
+                      </div>
+
+                      <div class="exam-section">
+                        <div class="left-col">
+                          <label
+                            >HEENT: <input type="text" id="exam-heent"
+                          /></label>
+                          <label
+                            >TEETH: <input type="text" id="exam-teeth"
+                          /></label>
+                          <label
+                            >NECK: <input type="text" id="exam-neck"
+                          /></label>
+                          <label
+                            >CHEST: <input type="text" id="exam-chest"
+                          /></label>
+                          <label
+                            >LUNGS: <input type="text" id="exam-lungs"
+                          /></label>
+                          <label
+                            >HEART: <input type="text" id="exam-heart"
+                          /></label>
+                          <label
+                            >BREAST: <input type="text" id="exam-breast"
+                          /></label>
+                          <label
+                            >SKIN: <input type="text" id="exam-skin"
+                          /></label>
+                          <label
+                            >ABDOMEN: <input type="text" id="exam-abdomen"
+                          /></label>
+                        </div>
+
+                        <div class="right-col">
+                          <label
+                            >BACK/FLANKS: <input type="text" id="exam-back"
+                          /></label>
+                          <label
+                            >ANUS/RECTUM: <input type="text" id="exam-anus"
+                          /></label>
+                          <label
+                            >GENITALIA: <input type="text" id="exam-genitalia"
+                          /></label>
+                          <label
+                            >EXTREMITIES:
+                            <input type="text" id="exam-extremities"
+                          /></label>
+                          <label
+                            >CLEANLINESS (Nails, Hair, Ears):
+                            <input type="text" id="exam-cleanliness"
+                          /></label>
+                          <label
+                            >POSTURE: <input type="text" id="exam-posture"
+                          /></label>
+                          <label
+                            >NUTRITION: <input type="text" id="exam-nutrition"
+                          /></label>
+                          <label
+                            >DEFORMITY: <input type="text" id="exam-deformity"
+                          /></label>
+                          <label
+                            >OTHERS: <input type="text" id="exam-others"
+                          /></label>
+                        </div>
+                      </div>
+
+                      <h4>Laboratory and Ancillary Procedure</h4>
+                      <label
+                        >Present: <input type="text" id="exam-lab-present"
+                      /></label>
+                      <label
+                        >Recommendations:
+                        <input type="text" id="exam-recommendations"
+                      /></label>
+
+                      <div class="form-buttons">
+                        <button type="submit" class="save-btn">Save</button>
+                        <button type="button" onclick="closeButtonOverlay()">
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                  <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
+                  <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
+                  <div id="exam-overview-modal" class="exam-overview-modal">
+                    <div class="modal-content">
+                      <h2>Physical Examination Overview</h2>
+                      <div class="overview-details">
+                        <label
+                          ><strong>Date:</strong>
+                          <input id="ovr-exam-date" type="date" disabled />
+                        </label>
+                        <label
+                          ><strong>BP:</strong>
+                          <input id="ovr-exam-bp" type="text" disabled />
+                        </label>
+                        <label
+                          ><strong>PR:</strong>
+                          <input id="ovr-exam-pr" type="text" disabled />
+                        </label>
+                        <label
+                          ><strong>Weight (kg):</strong>
+                          <input
+                            id="ovr-exam-weight"
+                            type="number"
+                            step="0.1"
+                            disabled
+                          />
+                        </label>
+                        <label
+                          ><strong>Height (cm):</strong>
+                          <input
+                            id="ovr-exam-height"
+                            type="number"
+                            step="0.1"
+                            disabled
+                          />
+                        </label>
+                        <label
+                          ><strong>BMI:</strong>
+                          <input
+                            id="ovr-exam-bmi"
+                            type="number"
+                            step="0.1"
+                            readonly
+                            disabled
+                          />
+                        </label>
+
+                        <h4>👁️ Visual Acuity</h4>
+                        <label
+                          ><strong>OS:</strong>
+                          <input id="ovr-exam-os" type="text" disabled />
+                        </label>
+                        <label
+                          ><strong>OD:</strong>
+                          <input id="ovr-exam-od" type="text" disabled />
+                        </label>
+                        <label
+                          ><strong>Glasses:</strong>
+                          <select id="ovr-exam-glasses" disabled>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                          </select>
+                        </label>
+
+                        <h4>🩺 Physical Findings</h4>
+                        <div class="findings-box">
+                          <textarea
+                            id="ovr-exam-findings"
+                            placeholder="Enter findings..."
+                            disabled
+                          ></textarea>
+                        </div>
+                        <input disabled id="ovr-exam-findings-raw" />
+                        <h4>🧪 Laboratory & Recommendations</h4>
+                        <label
+                          ><strong>Laboratory Procedure:</strong>
+                          <textarea
+                            id="ovr-exam-lab"
+                            type="text"
+                            disabled
+                          ></textarea>
+                        </label>
+                        <label
+                          ><strong>Recommendations:</strong>
+                          <textarea
+                            id="ovr-exam-recommendations"
+                            disabled
+                          ></textarea>
+                        </label>
+                      </div>
+
+                      <div class="modal-buttons">
+                        <button id="editExamBtn">✏️ Edit</button>
+                        <button onclick="closeButtonOverlay()">Close</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
     <div id="footer-container"></div>
   </body>
   <script src="../../assets/scripts/modal.js"></script>

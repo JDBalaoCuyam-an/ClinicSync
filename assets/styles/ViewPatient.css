@@ -123,7 +123,7 @@
 /* ======================================================
    🔹 PATIENT RECORDS (Tabs) - CONSISTENT DESIGN
 ====================================================== */
-.patient-records {
+/* .patient-records {
   width: 100%;
   background: white;
   border: 2px solid #3498db;
@@ -135,10 +135,10 @@
 /* Hide radio buttons */
 .patient-records input[type="radio"] {
   display: none;
-}
+} */
 
 /* Tab labels */
-.patient-records .radio-tabs {
+/* .patient-records .radio-tabs {
   display: inline-block;
   padding: 15px 20px;
   cursor: pointer;
@@ -154,7 +154,7 @@
   transition: all 0.3s ease-in-out;
 }
 
-/* Active tab */
+
 .patient-records input:checked+.radio-tabs {
   background: #3498db;
   color: white;
@@ -172,7 +172,7 @@
 
 .radio-tabs:hover i {
   color: #3498db;
-}
+} */
 
 /* Tab content */
 /* .tab-content {

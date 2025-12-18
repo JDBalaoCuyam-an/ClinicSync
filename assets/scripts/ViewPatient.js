@@ -1983,31 +1983,45 @@ const supabaseClient = window.supabase.createClient(
 
 const uploadBtn = document.getElementById("upload-btn");
 const fileInput = document.getElementById("file-input");
-
-// Category Modal Elements
-const categoryModal = document.querySelector(".upload-select-category");
 const categorySelect = document.getElementById("document-category");
 const confirmBtn = document.getElementById("confirm-upload-btn");
-const cancelFileUploadBtn = document.getElementById("cancel-upload-btn");
+const filePreview = document.getElementById("file-preview");
 
 let selectedFile = null;
 
-// Open file picker
+// Bootstrap modal instance
+const categoryModalEl = document.getElementById("categoryModal");
+const bsCategoryModal = new bootstrap.Modal(categoryModalEl, { backdrop: 'static', keyboard: false });
+
+// 1️⃣ Open file picker
 uploadBtn.addEventListener("click", () => fileInput.click());
 
-// When file is chosen, show category selector modal
+// 2️⃣ Show modal and preview on file select
 fileInput.addEventListener("change", (e) => {
   selectedFile = e.target.files[0];
   if (!selectedFile) return;
 
-  categoryModal.style.display = "block"; // show modal
+  // Show file preview
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const url = event.target.result;
+    if (selectedFile.type.startsWith("image/")) {
+      filePreview.innerHTML = `<img src="${url}" class="img-fluid" style="max-height:200px;">`;
+    } else if (selectedFile.type === "application/pdf") {
+      filePreview.innerHTML = `<embed src="${url}" type="application/pdf" width="100%" height="200px">`;
+    } else {
+      filePreview.innerHTML = `<p class="text-muted mb-0">Selected file: ${selectedFile.name}</p>`;
+    }
+  };
+  reader.readAsDataURL(selectedFile);
+
+  bsCategoryModal.show();
 });
 
-// Confirm category and start upload
+// 3️⃣ Upload file
 confirmBtn.addEventListener("click", async () => {
   if (!selectedFile || !patientId) return;
 
-  // Disable the button to prevent double submission
   confirmBtn.disabled = true;
   confirmBtn.textContent = "Uploading...";
 
@@ -2025,17 +2039,21 @@ confirmBtn.addEventListener("click", async () => {
       return;
     }
 
-    alert("File Uploaded Successfully!");
-    await loadDocumentsFiles(); // refresh list after upload
+    // Refresh file list in accordion
+    await loadDocumentsFiles();
+
+    // Hide modal
+    bsCategoryModal.hide();
   } finally {
-    // Re-enable button and reset
     confirmBtn.disabled = false;
-    confirmBtn.textContent = "Confirm";
-    categoryModal.style.display = "none"; // hide modal
-    fileInput.value = ""; // reset file input
+    confirmBtn.textContent = "Upload";
+    fileInput.value = "";
     selectedFile = null;
+    filePreview.innerHTML = `<p class="text-muted mb-0">No file selected</p>`;
   }
 });
+
+const cancelFileUploadBtn = document.getElementById("cancel-upload-btn");
 
 // Cancel button resets everything
 cancelFileUploadBtn.addEventListener("click", () => {
@@ -2044,7 +2062,7 @@ cancelFileUploadBtn.addEventListener("click", () => {
   categoryModal.style.display = "none";
 });
 
-// Load categorized files
+// Load categorized files into Bootstrap accordion
 async function loadDocumentsFiles() {
   if (!patientId) return;
 
@@ -2057,47 +2075,47 @@ async function loadDocumentsFiles() {
 
   for (const cat of categories) {
     const ul = document.getElementById(listIds[cat]);
-    ul.innerHTML = "";
+    ul.innerHTML = ""; // clear existing
 
-    // Get the button inside the same category section
-    const button = ul
-      .closest(".category-section")
-      .querySelector(".category-toggle");
-
-    const { data, error } = await supabaseClient.storage
-      .from("patient-documents")
-      .list(`${patientId}/${cat}/`, { limit: 100 });
-
-    if (error || !data) {
-      button.textContent = `${cat} (0) ▼`; // still show 0
-      continue;
-    }
-
-    // Update file count on the button
-    const count = data.length;
-    button.textContent = `${cat} (${count}) ▼`;
-
-    for (const item of data) {
-      const { data: publicUrlObj } = supabaseClient.storage
+    try {
+      // Fetch files from Supabase
+      const { data, error } = await supabaseClient.storage
         .from("patient-documents")
-        .getPublicUrl(`${patientId}/${cat}/${item.name}`);
+        .list(`${patientId}/${cat}/`, { limit: 100 });
 
-      const li = document.createElement("li");
-      li.innerHTML = `<a href="${publicUrlObj.publicUrl}" target="_blank">${item.name}</a>`;
-      ul.appendChild(li);
+      // Get the accordion button to update count
+      const button = document.querySelector(
+        `[data-bs-target="#${ul.id.replace("-list", "Collapse")}"]`
+      );
+
+      if (error || !data) {
+        button.textContent = `${cat} (0)`;
+        continue;
+      }
+
+      // Update file count
+      const count = data.length;
+      button.textContent = `${cat} (${count})`;
+
+      // Add files to the list
+      for (const item of data) {
+        const { data: publicUrlObj } = supabaseClient.storage
+          .from("patient-documents")
+          .getPublicUrl(`${patientId}/${cat}/${item.name}`);
+
+        const li = document.createElement("li");
+        li.className = "list-group-item";
+        li.innerHTML = `<a href="${publicUrlObj.publicUrl}" target="_blank">${item.name}</a>`;
+        ul.appendChild(li);
+      }
+    } catch (err) {
+      console.error(`Failed to load ${cat} files:`, err);
     }
   }
 }
 
+// Call it once
 loadDocumentsFiles();
-
-// Dropdown toggles
-document.querySelectorAll(".category-toggle").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const list = btn.nextElementSibling;
-    list.style.display = list.style.display === "none" ? "block" : "none";
-  });
-});
 
 loadPatient();
 await loadConsultations();
