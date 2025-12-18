@@ -169,8 +169,9 @@ saveBtn.addEventListener("click", async () => {
 });
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
-
+  loadRecentMedications();
   loadMedicalRecords(user.uid);
+  loadLastVisit();
 });
 
 /* -----------------------------------------------
@@ -232,6 +233,136 @@ async function loadMedicalRecords(patientId) {
           Failed to load records
         </td>
       </tr>
+    `;
+  }
+}
+// Load Recent Medications on Dashboard
+async function loadRecentMedications() {
+  const medsDiv = document.getElementById("recent-medications");
+
+  medsDiv.innerHTML = `
+    <p class="text-muted mb-0">Loading...</p>
+  `;
+
+  if (!currentUserId) {
+    medsDiv.innerHTML = `
+      <p class="text-muted mb-0">No recent medications</p>
+    `;
+    return;
+  }
+
+  try {
+    const recordsRef = collection(db, "users", currentUserId, "consultations");
+
+    const snapshot = await getDocs(recordsRef);
+
+    if (snapshot.empty) {
+      medsDiv.innerHTML = `
+        <p class="text-muted mb-0">No recent medications</p>
+      `;
+      return;
+    }
+
+    let consultations = [];
+    snapshot.forEach((docSnap) => {
+      consultations.push(docSnap.data());
+    });
+
+    // Only consultations with meds
+    consultations = consultations.filter(
+      (c) => Array.isArray(c.meds) && c.meds.length > 0
+    );
+
+    if (consultations.length === 0) {
+      medsDiv.innerHTML = `
+        <p class="text-muted mb-0">No recent medications</p>
+      `;
+      return;
+    }
+
+    // Sort by date (latest first)
+    consultations.sort((a, b) => b.date.localeCompare(a.date));
+
+    const latest = consultations[0];
+
+    const medsList = latest.meds.map((m) => `<li>${m.name}</li>`).join("");
+
+    medsDiv.innerHTML = `
+      <div class="mt-2">
+        <small class="text-secondary d-block mb-1">
+          ${formatDateLabel(latest.date)}
+        </small>
+        <ul class="mb-0 ps-3">
+          ${medsList}
+        </ul>
+      </div>
+    `;
+  } catch (err) {
+    console.error("Error loading recent medications:", err);
+    medsDiv.innerHTML = `
+      <p class="text-danger mb-0">Failed to load medications</p>
+    `;
+  }
+}
+async function loadLastVisit() {
+  const lastVisitDiv = document.getElementById("last-visit");
+
+  lastVisitDiv.innerHTML = `
+    <p class="text-muted mb-0">Loading...</p>
+  `;
+
+  if (!currentUserId) {
+    lastVisitDiv.innerHTML = `
+      <p class="text-muted mb-0">No recent visits</p>
+    `;
+    return;
+  }
+
+  try {
+    const recordsRef = collection(db, "users", currentUserId, "consultations");
+
+    const snapshot = await getDocs(recordsRef);
+
+    if (snapshot.empty) {
+      lastVisitDiv.innerHTML = `
+        <p class="text-muted mb-0">No recent visits</p>
+      `;
+      return;
+    }
+
+    let consultations = [];
+    snapshot.forEach((docSnap) => {
+      consultations.push(docSnap.data());
+    });
+
+    // Sort by date (latest first)
+    consultations.sort((a, b) => b.date.localeCompare(a.date));
+
+    const visit = consultations[0];
+
+    lastVisitDiv.innerHTML = `
+      <div class="mt-2">
+        <strong class="d-block">
+          ${formatDateLabel(visit.date)}
+        </strong>
+
+        <small class="text-secondary d-block">
+          Doctor: ${visit.consultingDoctor || "—"}
+        </small>
+
+        <small class="text-muted d-block mt-1">
+          Complaint: ${visit.complaint || "—"}
+        </small>
+
+        <small class="text-muted d-block">
+          Diagnosis: ${visit.diagnosis || "Not Diagnosed"}
+        </small>
+      </div>
+    `;
+  } catch (err) {
+    console.error("Error loading last visit:", err);
+    lastVisitDiv.innerHTML = `
+      <p class="text-danger mb-0">Failed to load visit</p>
     `;
   }
 }
@@ -527,7 +658,7 @@ document.getElementById("confirmBookingBtn").onclick = async () => {
       slot: selectedSlot,
       reason: reason, // <--- Save the reason
       status: "Pending",
-      createdAt: new Date(), // client-side timestamp
+      createdAt: new Date(),
     });
 
     alert(`Appointment booked: ${selectedDate} (${selectedSlot})`);
@@ -548,6 +679,8 @@ document.getElementById("confirmBookingBtn").onclick = async () => {
 /* -----------------------------------------------
    Load Patient Appointments
 ----------------------------------------------- */
+let selectedAppointmentId = null;
+
 async function loadAppointments() {
   try {
     const appointmentsList = document.getElementById("appointments-list");
@@ -645,6 +778,16 @@ async function loadAppointments() {
         }">
           ${appt.status ?? "Pending"}
         </span>
+
+        ${
+          appt.status === "Cancelled" && appt.cancelReason
+            ? `<small class="text-danger d-block mt-2">
+                <i class="fas fa-info-circle me-1"></i>
+                Reason: ${appt.cancelReason}
+              </small>`
+            : ``
+        }
+
       </div>
     </div>
   </div>
@@ -653,16 +796,14 @@ async function loadAppointments() {
       const cancelBtn = colDiv.querySelector(".cancel-btn");
 
       if (cancelBtn) {
-        cancelBtn.addEventListener("click", async () => {
-          try {
-            await updateDoc(doc(db, "appointments", appt.id), {
-              status: "Cancelled",
-            });
-            loadAppointments(); // refresh list
-          } catch (err) {
-            console.error(err);
-            alert("Failed to cancel appointment");
-          }
+        cancelBtn.addEventListener("click", () => {
+          selectedAppointmentId = appt.id;
+          document.getElementById("cancelReasonInput").value = "";
+
+          const modal = new bootstrap.Modal(
+            document.getElementById("cancelModal")
+          );
+          modal.show();
         });
       }
 
@@ -676,12 +817,126 @@ async function loadAppointments() {
     appointmentsList.innerHTML = `<p class="text-danger">Failed to load appointments.</p>`;
   }
 }
+document
+  .getElementById("confirmCancelBtn")
+  .addEventListener("click", async () => {
+    const reason = document.getElementById("cancelReasonInput").value.trim();
 
+    if (!reason) {
+      alert("Please provide a cancellation reason.");
+      return;
+    }
+
+    if (!selectedAppointmentId) return;
+
+    try {
+      await updateDoc(doc(db, "appointments", selectedAppointmentId), {
+        status: "Cancelled",
+        cancelReason: reason,
+        cancelledAt: new Date().toISOString(),
+      });
+
+      selectedAppointmentId = null;
+
+      bootstrap.Modal.getInstance(
+        document.getElementById("cancelModal")
+      ).hide();
+
+      loadAppointments();
+      loadNextAppointment(); // keep dashboard in sync
+    } catch (err) {
+      console.error(err);
+      alert("Failed to cancel appointment");
+    }
+  });
+
+// Render Next Appointment Summary on Dashboard
+async function loadNextAppointment() {
+  const nextApptDiv = document.getElementById("next-appointment");
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  nextApptDiv.innerHTML = `
+    <p class="text-muted mb-0">Loading...</p>
+  `;
+
+  if (!currentUserId) {
+    nextApptDiv.innerHTML = `
+      <p class="text-muted mb-0">No upcoming appointments</p>
+    `;
+    return;
+  }
+
+  try {
+    const q = query(
+      collection(db, "appointments"),
+      where("patientId", "==", currentUserId)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      nextApptDiv.innerHTML = `
+        <p class="text-muted mb-0">No upcoming appointments</p>
+      `;
+      return;
+    }
+
+    let appointments = [];
+    snap.forEach((docSnap) => {
+      appointments.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    // Filter upcoming + valid statuses
+    appointments = appointments.filter(
+      (appt) =>
+        appt.date >= todayStr &&
+        (appt.status === "Accepted" || appt.status === "Pending")
+    );
+
+    if (appointments.length === 0) {
+      nextApptDiv.innerHTML = `
+        <p class="text-muted mb-0">No upcoming appointments</p>
+      `;
+      return;
+    }
+
+    // Sort by date then slot
+    appointments.sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.slot.localeCompare(b.slot);
+    });
+
+    const appt = appointments[0];
+
+    nextApptDiv.innerHTML = `
+      <div class="mt-2">
+        <strong class="d-block">${appt.staffName}</strong>
+        <small class="text-secondary d-block">
+          ${formatDateLabel(appt.date)} (${appt.slot})
+        </small>
+        <small class="text-muted d-block">
+          Reason: ${appt.reason}
+        </small>
+        <span class="badge mt-2 ${
+          appt.status === "Accepted" ? "bg-primary" : "bg-secondary"
+        }">
+          ${appt.status}
+        </span>
+      </div>
+    `;
+  } catch (err) {
+    console.error("Error loading next appointment:", err);
+    nextApptDiv.innerHTML = `
+      <p class="text-danger mb-0">Failed to load appointment</p>
+    `;
+  }
+}
 // Call this after user is loaded
 onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUserId = user.uid;
     loadAppointments();
+    loadNextAppointment();
   }
 });
 

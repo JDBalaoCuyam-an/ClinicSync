@@ -703,6 +703,7 @@ function setCurrentConsultDateTime() {
 
   document.getElementById("consult-date").value = date;
   document.getElementById("consult-time").value = time;
+  document.getElementById("exam-date").value = date;
 }
 setCurrentConsultDateTime();
 // ============================================================

@@ -879,13 +879,13 @@
                     >PR: <input type="text" id="exam-pr" placeholder="75"
                   /></label>
                   <label
-                    >Weight (kg): <input type="number" id="exam-weight"
+                    >Weight (kg): <input type="number" min="10" max="250" id="exam-weight"
                   /></label>
                   <label
-                    >Height (cm): <input type="number" id="exam-height"
+                    >Height (cm): <input type="number" min="10" max="300" id="exam-height"
                   /></label>
                   <label
-                    >BMI: <input type="number" id="exam-bmi" step="0.1"
+                    >BMI: <input disabled type="number" id="exam-bmi" step="0.1"
                   /></label>
                   <label
                     >Visual Acuity (OS): <input type="text" id="exam-visual-os"
@@ -1004,6 +1004,7 @@
                       id="ovr-exam-bmi"
                       type="number"
                       step="0.1"
+                      readonly
                       disabled
                     />
                   </label>
@@ -1033,11 +1034,11 @@
                       disabled
                     ></textarea>
                   </div>
-                  <input type="hidden" id="ovr-exam-findings-raw" />
+                  <input disabled id="ovr-exam-findings-raw" />
                   <h4>🧪 Laboratory & Recommendations</h4>
                   <label
                     ><strong>Laboratory Procedure:</strong>
-                    <input id="ovr-exam-lab" type="text" disabled />
+                    <textarea id="ovr-exam-lab" type="text" disabled></textarea>
                   </label>
                   <label
                     ><strong>Recommendations:</strong>
