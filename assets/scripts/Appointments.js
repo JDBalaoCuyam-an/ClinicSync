@@ -57,6 +57,14 @@ function formatDateLabel(dateStr) {
     year: "numeric",
   });
 }
+
+function formatTime12(date) {
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // convert 0 -> 12
+  return `${hours}:${minutes} ${ampm}`;
+}
 /* ===================================== */
 /*            STAFF LIST                 */
 /* ===================================== */
@@ -770,12 +778,12 @@ async function loadClinicAppointments() {
             alert("Failed to accept appointment.");
           }
         });
-          // ✅ Reschedule Button
-  const rescheduleBtn = item.querySelector(".reschedule-btn");
-  rescheduleBtn.addEventListener("click", () => {
-    // Bind the appointment object to the modal
-    openRescheduleModal(appt);
-  });
+        // ✅ Reschedule Button
+        const rescheduleBtn = item.querySelector(".reschedule-btn");
+        rescheduleBtn.addEventListener("click", () => {
+          // Bind the appointment object to the modal
+          openRescheduleModal(appt);
+        });
         listGroup.appendChild(item);
       });
 
@@ -813,84 +821,103 @@ async function openRescheduleModal(appt) {
   const availability = staffSnap.data().availability || [];
 
   // Fetch existing appointments for this staff
-  const snap = await getDocs(query(collection(db, "appointments"), where("staffId", "==", staffId)));
+  const snap = await getDocs(
+    query(collection(db, "appointments"), where("staffId", "==", staffId))
+  );
   const bookedAppointments = [];
   snap.forEach((d) => bookedAppointments.push(d.data()));
 
   const today = new Date();
-  const futureAvailability = availability.filter((a) => new Date(a.date) >= today);
+  const futureAvailability = availability.filter(
+    (a) => new Date(a.date) >= today
+  );
 
   // Populate date dropdown
   futureAvailability.forEach((a) => {
     if (a.slots && a.slots.length) {
       const opt = document.createElement("option");
       opt.value = a.date;
-      opt.textContent = `${a.date} (${a.weekday})`;
+      opt.textContent = `${formatDateLabel(a.date)} (${a.weekday})`;
       daySelect.appendChild(opt);
     }
   });
   function parseTime(timeStr) {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-}
-/* Helper: format Date object → "HH:MM" */
-function formatTime(date) {
-  return date.toTimeString().slice(0, 5);
-}
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  }
+  /* Helper: format Date object → "HH:MM" */
+  function formatTime(date) {
+    return date.toTimeString().slice(0, 5);
+  }
   function generateSlotsForDate(selectedDate) {
     slotContainer.innerHTML = "";
     rescheduleSelectedSlot = null;
 
     const avail = futureAvailability.find((a) => a.date === selectedDate);
     if (!avail || !avail.slots?.length) {
-      slotContainer.innerHTML = "<p class='text-muted'>No slots for this date.</p>";
+      slotContainer.innerHTML =
+        "<p class='text-muted'>No slots for this date.</p>";
       return;
     }
 
     avail.slots.forEach((slot) => {
-      let startTime = parseTime(slot.start);
-      const endTime = parseTime(slot.end);
+  let startTime = parseTime(slot.start);
+  const endTime = parseTime(slot.end);
 
-      while (startTime < endTime) {
-        const nextTime = new Date(startTime.getTime() + 30 * 60000);
-        const slotLabel = `${formatTime(startTime)} - ${formatTime(nextTime)}`;
+  while (startTime < endTime) {
+    const nextTime = new Date(startTime.getTime() + 30 * 60000);
 
-        const isBooked = bookedAppointments.some((a) => a.date === selectedDate && a.slot === slotLabel);
+    // Display label (AM/PM)
+    const displayLabel = `${formatTime12(startTime)} - ${formatTime12(nextTime)}`;
 
-        const btn = document.createElement("button");
-        btn.className = "btn btn-sm me-2 mb-2";
-        btn.textContent = slotLabel;
+    // Value for comparison and saving (24-hour)
+    const valueLabel = `${formatTime(startTime)} - ${formatTime(nextTime)}`;
 
-        if (isBooked) {
-          btn.disabled = true;
-          btn.classList.add("btn-secondary");
-        } else {
-          btn.classList.add("btn-outline-primary");
-          btn.addEventListener("click", () => {
-            rescheduleSelectedSlot = slotLabel;
-            slotContainer.querySelectorAll("button").forEach((b) => {
-              b.classList.remove("btn-primary", "text-white");
-              if (!b.disabled) b.classList.add("btn-outline-primary");
-            });
-            btn.classList.remove("btn-outline-primary");
-            btn.classList.add("btn-primary", "text-white");
-          });
-        }
+    // Check if this slot is already booked (compare using 24-hour format)
+    const isBooked = bookedAppointments.some(
+      (a) => a.date === selectedDate && a.slot === valueLabel
+    );
 
-        slotContainer.appendChild(btn);
-        startTime = nextTime;
-      }
-    });
+    const btn = document.createElement("button");
+    btn.className = "btn btn-sm me-2 mb-2";
+    btn.textContent = displayLabel;
+
+    if (isBooked) {
+      btn.disabled = true;
+      btn.classList.add("btn-secondary");
+    } else {
+      btn.classList.add("btn-outline-primary");
+      btn.addEventListener("click", () => {
+        rescheduleSelectedSlot = valueLabel; // save 24-hour value for Firestore
+
+        // Highlight selected button
+        slotContainer.querySelectorAll("button").forEach((b) => {
+          b.classList.remove("btn-primary", "text-white");
+          if (!b.disabled) b.classList.add("btn-outline-primary");
+        });
+        btn.classList.remove("btn-outline-primary");
+        btn.classList.add("btn-primary", "text-white");
+      });
+    }
+
+    slotContainer.appendChild(btn);
+    startTime = nextTime;
+  }
+});
+
 
     if (!slotContainer.querySelector("button:not(:disabled)")) {
-      slotContainer.innerHTML = "<p class='text-muted'>All slots for this date are booked.</p>";
+      slotContainer.innerHTML =
+        "<p class='text-muted'>All slots for this date are booked.</p>";
     }
   }
 
   // On date change
-  daySelect.addEventListener("change", () => generateSlotsForDate(daySelect.value));
+  daySelect.addEventListener("change", () =>
+    generateSlotsForDate(daySelect.value)
+  );
 
   // Load first date's slots
   if (daySelect.options.length > 0) {
@@ -901,30 +928,67 @@ function formatTime(date) {
   new bootstrap.Modal(document.getElementById("rescheduleModal")).show();
 }
 
-document.getElementById("rescheduleSaveBtn").addEventListener("click", async () => {
-  const apptId = document.getElementById("rescheduleApptId").value;
-  const daySelect = document.getElementById("rescheduleDay");
-  const newDate = daySelect.value;
-  const newSlot = rescheduleSelectedSlot;
+document
+  .getElementById("rescheduleSaveBtn")
+  .addEventListener("click", async () => {
+    const apptId = document.getElementById("rescheduleApptId").value;
+    const daySelect = document.getElementById("rescheduleDay");
+    const newDate = daySelect.value;
+    const newSlot = rescheduleSelectedSlot;
 
-  if (!newDate || !newSlot) return alert("Please select a date and slot");
+    if (!newDate || !newSlot) return alert("Please select a date and slot");
 
-  try {
-    await updateDoc(doc(db, "appointments", apptId), {
-      date: newDate,
-      slot: newSlot
-    });
+    try {
+      // 1️⃣ Update appointment in Firestore
+      await updateDoc(doc(db, "appointments", apptId), {
+        date: newDate,
+        slot: newSlot,
+        status: "Accepted",
+      });
 
-    bootstrap.Modal.getInstance(document.getElementById("rescheduleModal")).hide();
-    loadClinicAppointments(); // refresh list
-    console.log("Appointment rescheduled successfully");
-  } catch (err) {
-    console.error("Failed to reschedule:", err);
-    alert("Failed to reschedule appointment");
-  }
-});
+      // 2️⃣ Fetch appointment to get patientId
+      const apptSnap = await getDoc(doc(db, "appointments", apptId));
+      if (!apptSnap.exists()) return console.error("Appointment not found");
+      const apptData = apptSnap.data();
 
+      // 3️⃣ Fetch patient info
+      const userSnap = await getDoc(doc(db, "users", apptData.patientId));
+      if (!userSnap.exists()) return console.error("Patient not found");
+      const userData = userSnap.data();
+      const patientEmail = userData.email;
+      const patientName = `${userData.lastName}, ${userData.firstName}`;
 
+      // 4️⃣ Prepare EmailJS params
+      const emailParams = {
+        patient_name: patientName,
+        date: formatDateLabel(newDate),
+        slot: formatTimeRange(newSlot),
+        status: "Accepted (Rescheduled)",
+        to_email: patientEmail,
+        name: "KCP ClinicSync",
+      };
+
+      // 5️⃣ Send EmailJS notification
+      emailjs
+        .send("service_rfw77oo", "template_tpgmqni", emailParams)
+        .then(() => {
+          console.log("Reschedule email sent successfully.");
+        })
+        .catch((err) => {
+          console.error("Failed to send reschedule email:", err);
+        });
+
+      // 6️⃣ Close modal and refresh appointments
+      bootstrap.Modal.getInstance(
+        document.getElementById("rescheduleModal")
+      ).hide();
+      loadClinicAppointments();
+      console.log("Appointment rescheduled successfully");
+    } catch (err) {
+      console.error("Failed to reschedule:", err);
+      alert("Failed to reschedule appointment");
+    }
+  });
 
 async function loadAcceptedAppointments() {
   try {

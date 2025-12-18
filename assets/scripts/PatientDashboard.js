@@ -37,6 +37,13 @@ function formatTimeFromString(timeStr) {
   // Remove leading zero and format minutes (keep 2 digits)
   return `${hour}:${minutes} ${period}`;
 }
+function formatTime12(date) {
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // convert 0 -> 12
+  return `${hours}:${minutes} ${ampm}`;
+}
 /* -----------------------------------------------
    Patient Info Display
   ----------------------------------------------- */
@@ -383,7 +390,7 @@ async function openAppointmentModal(id, fullName) {
     if (a.slots && a.slots.length) {
       const opt = document.createElement("option");
       opt.value = a.date; // "YYYY-MM-DD"
-      opt.textContent = `${a.date} (${a.weekday})`;
+      opt.textContent = `${formatDateLabel(a.date)} (${a.weekday})`;
       apptDay.appendChild(opt);
     }
   });
@@ -428,16 +435,23 @@ function generateTimeSlots(slots, bookedAppointments, date) {
 
     while (startTime < endTime) {
       const nextTime = new Date(startTime.getTime() + 30 * 60000); // +30 minutes
-      const slotLabel = `${formatTime(startTime)} - ${formatTime(nextTime)}`;
+
+      // Display format (AM/PM) for user
+      const displayLabel = `${formatTime12(startTime)} - ${formatTime12(
+        nextTime
+      )}`;
+
+      // Value format (24-hour) for checking booked slots
+      const valueLabel = `${formatTime(startTime)} - ${formatTime(nextTime)}`;
 
       // Check if this 30-min slot is already booked
       const isBooked = bookedAppointments.some(
-        (a) => a.date === date && a.slot === slotLabel
+        (a) => a.date === date && a.slot === valueLabel
       );
 
       const slotBtn = document.createElement("button");
       slotBtn.className = "btn btn-sm me-2 mb-2";
-      slotBtn.textContent = slotLabel;
+      slotBtn.textContent = displayLabel;
 
       if (isBooked) {
         slotBtn.disabled = true;
@@ -445,7 +459,7 @@ function generateTimeSlots(slots, bookedAppointments, date) {
       } else {
         slotBtn.classList.add("btn-outline-primary");
         slotBtn.addEventListener("click", () => {
-          selectedSlot = slotLabel;
+          selectedSlot = valueLabel; // save 24-hour value for Firestore
 
           // Remove highlight from all buttons
           apptSlot.querySelectorAll("button").forEach((b) => {
@@ -559,7 +573,9 @@ async function loadAppointments() {
 
     // Collect appointments and sort by date (client-side)
     let appointments = [];
-    snap.forEach((docSnap) => appointments.push({ id: docSnap.id, ...docSnap.data() }));
+    snap.forEach((docSnap) =>
+      appointments.push({ id: docSnap.id, ...docSnap.data() })
+    );
     const statusPriority = {
       Accepted: 1,
       Pending: 2,
@@ -617,11 +633,15 @@ async function loadAppointments() {
         </small>
 
         <span class="badge mt-2 ${
-          appt.status === "Finished" ? "bg-success" :
-          appt.status === "No Show" ? "bg-warning text-dark" :
-          appt.status === "Accepted" ? "bg-primary" :
-          appt.status === "Cancelled" ? "bg-danger" :
-          "bg-secondary"
+          appt.status === "Finished"
+            ? "bg-success"
+            : appt.status === "No Show"
+            ? "bg-warning text-dark"
+            : appt.status === "Accepted"
+            ? "bg-primary"
+            : appt.status === "Cancelled"
+            ? "bg-danger"
+            : "bg-secondary"
         }">
           ${appt.status ?? "Pending"}
         </span>
@@ -629,7 +649,6 @@ async function loadAppointments() {
     </div>
   </div>
 `;
-
 
       const cancelBtn = colDiv.querySelector(".cancel-btn");
 
