@@ -37,7 +37,7 @@ function formatDateLabel(dateStr) {
 /* -----------------------------------------------
      🔹 LOAD PATIENT DATA (with medicalHistory subcollection)
   ----------------------------------------------- */
-// Helper: calculate age from birthdate string "YYYY-MM-DD"
+  // Helper: calculate age from birthdate string "YYYY-MM-DD"
 function calculateAge(birthdateStr) {
   if (!birthdateStr) return "";
   const today = new Date();
@@ -49,7 +49,6 @@ function calculateAge(birthdateStr) {
   }
   return age;
 }
-
 async function loadPatient() {
   if (!patientId) return;
 
@@ -84,6 +83,7 @@ async function loadPatient() {
       extName: data.extName || "",
       gender: data.gender || "",
       birthdate: data.birthdate || "",
+      age: data.age || "",
       civilStatus: data.civilStatus || "",
       nationality: data.nationality || "",
       religion: data.religion || "",
@@ -95,22 +95,10 @@ async function loadPatient() {
       if (input) input.value = infoFields[key];
     });
 
-    /* 🧩 Calculate age from birthdate */
-    const ageInput = document.getElementById("age");
-    ageInput.value = calculateAge(data.birthdate);
-
-    // Update age when birthdate changes
-    const birthdateInput = document.getElementById("birthdate");
-    if (birthdateInput) {
-      birthdateInput.addEventListener("change", () => {
-        ageInput.value = calculateAge(birthdateInput.value);
-      });
-    }
-
     /* 🧩 Select fields */
     document.getElementById("department").value = data.department || "";
     document.getElementById("course").value = data.course || "";
-    document.getElementById("year").value = data.yearLevel || "";
+    document.getElementById("yearLevel").value = data.yearLevel || "";
 
     /* 🧩 Parent Info */
     const parentFields = {
@@ -197,7 +185,6 @@ async function loadPatient() {
     console.error("Error fetching patient:", err);
   }
 }
-
 
 /* -----------------------------------------------
      🔹 EDIT/SAVE CONTACT DETAILS
