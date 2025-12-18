@@ -725,28 +725,36 @@ async function loadClinicAppointments() {
             });
 
             // 2️⃣ Refresh accepted appointments UI
-            loadAcceptedAppointments();
+            loadClinicAppointments();
 
             // 3️⃣ Remove card from Pending list
             item.remove();
 
-            // 4️⃣ Send EmailJS notification to patient
-            const dateObj = new Date(appt.date);
+            // 4️⃣ Fetch patient email from users collection
+            const userDoc = await getDoc(doc(db, "users", appt.patientId));
+            if (!userDoc.exists()) {
+              console.error("Patient user not found");
+              return;
+            }
+
+            // ← Add this line
+            const userData = userDoc.data();
+
+            const patientEmail = userData.email;
+            const patientName = `${userData.lastName}, ${userData.firstName}`;
+
+            // 5️⃣ Send EmailJS notification
             const emailParams = {
-              patient_name: appt.patientName,
-              day: dateObj.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              }),
-              weekday: dateObj.toLocaleDateString("en-US", { weekday: "long" }),
-              slot: appt.slot,
+              patient_name: patientName,
+              date: formatDateLabel(appt.date),
+              slot: formatTimeRange(appt.slot),
               status: "Accepted",
-              patient_email: appt.patientEmail, // Make sure you have the patient email stored in the appointment
+              to_email: patientEmail, // fetched from users collection
+              name: "KCP ClinicSync",
             };
 
             emailjs
-              .send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", emailParams)
+              .send("service_rfw77oo", "template_n37ttab", emailParams)
               .then(() => {
                 console.log("Email sent to patient successfully.");
               })
@@ -762,7 +770,12 @@ async function loadClinicAppointments() {
             alert("Failed to accept appointment.");
           }
         });
-
+          // ✅ Reschedule Button
+  const rescheduleBtn = item.querySelector(".reschedule-btn");
+  rescheduleBtn.addEventListener("click", () => {
+    // Bind the appointment object to the modal
+    openRescheduleModal(appt);
+  });
         listGroup.appendChild(item);
       });
 
@@ -776,6 +789,142 @@ async function loadClinicAppointments() {
   }
 }
 loadClinicAppointments();
+
+let rescheduleSelectedSlot = null;
+
+async function openRescheduleModal(appt) {
+  const staffId = appt.staffId;
+  const apptId = appt.id;
+
+  document.getElementById("rescheduleApptId").value = apptId;
+  document.getElementById("rescheduleStaffId").value = staffId;
+
+  const daySelect = document.getElementById("rescheduleDay");
+  const slotContainer = document.getElementById("rescheduleSlot");
+
+  daySelect.innerHTML = "";
+  slotContainer.innerHTML = "";
+  rescheduleSelectedSlot = null;
+
+  // Fetch staff availability
+  const staffSnap = await getDoc(doc(db, "users", staffId));
+  if (!staffSnap.exists()) return alert("Staff not found");
+
+  const availability = staffSnap.data().availability || [];
+
+  // Fetch existing appointments for this staff
+  const snap = await getDocs(query(collection(db, "appointments"), where("staffId", "==", staffId)));
+  const bookedAppointments = [];
+  snap.forEach((d) => bookedAppointments.push(d.data()));
+
+  const today = new Date();
+  const futureAvailability = availability.filter((a) => new Date(a.date) >= today);
+
+  // Populate date dropdown
+  futureAvailability.forEach((a) => {
+    if (a.slots && a.slots.length) {
+      const opt = document.createElement("option");
+      opt.value = a.date;
+      opt.textContent = `${a.date} (${a.weekday})`;
+      daySelect.appendChild(opt);
+    }
+  });
+  function parseTime(timeStr) {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+}
+/* Helper: format Date object → "HH:MM" */
+function formatTime(date) {
+  return date.toTimeString().slice(0, 5);
+}
+  function generateSlotsForDate(selectedDate) {
+    slotContainer.innerHTML = "";
+    rescheduleSelectedSlot = null;
+
+    const avail = futureAvailability.find((a) => a.date === selectedDate);
+    if (!avail || !avail.slots?.length) {
+      slotContainer.innerHTML = "<p class='text-muted'>No slots for this date.</p>";
+      return;
+    }
+
+    avail.slots.forEach((slot) => {
+      let startTime = parseTime(slot.start);
+      const endTime = parseTime(slot.end);
+
+      while (startTime < endTime) {
+        const nextTime = new Date(startTime.getTime() + 30 * 60000);
+        const slotLabel = `${formatTime(startTime)} - ${formatTime(nextTime)}`;
+
+        const isBooked = bookedAppointments.some((a) => a.date === selectedDate && a.slot === slotLabel);
+
+        const btn = document.createElement("button");
+        btn.className = "btn btn-sm me-2 mb-2";
+        btn.textContent = slotLabel;
+
+        if (isBooked) {
+          btn.disabled = true;
+          btn.classList.add("btn-secondary");
+        } else {
+          btn.classList.add("btn-outline-primary");
+          btn.addEventListener("click", () => {
+            rescheduleSelectedSlot = slotLabel;
+            slotContainer.querySelectorAll("button").forEach((b) => {
+              b.classList.remove("btn-primary", "text-white");
+              if (!b.disabled) b.classList.add("btn-outline-primary");
+            });
+            btn.classList.remove("btn-outline-primary");
+            btn.classList.add("btn-primary", "text-white");
+          });
+        }
+
+        slotContainer.appendChild(btn);
+        startTime = nextTime;
+      }
+    });
+
+    if (!slotContainer.querySelector("button:not(:disabled)")) {
+      slotContainer.innerHTML = "<p class='text-muted'>All slots for this date are booked.</p>";
+    }
+  }
+
+  // On date change
+  daySelect.addEventListener("change", () => generateSlotsForDate(daySelect.value));
+
+  // Load first date's slots
+  if (daySelect.options.length > 0) {
+    daySelect.value = daySelect.options[0].value;
+    generateSlotsForDate(daySelect.value);
+  }
+
+  new bootstrap.Modal(document.getElementById("rescheduleModal")).show();
+}
+
+document.getElementById("rescheduleSaveBtn").addEventListener("click", async () => {
+  const apptId = document.getElementById("rescheduleApptId").value;
+  const daySelect = document.getElementById("rescheduleDay");
+  const newDate = daySelect.value;
+  const newSlot = rescheduleSelectedSlot;
+
+  if (!newDate || !newSlot) return alert("Please select a date and slot");
+
+  try {
+    await updateDoc(doc(db, "appointments", apptId), {
+      date: newDate,
+      slot: newSlot
+    });
+
+    bootstrap.Modal.getInstance(document.getElementById("rescheduleModal")).hide();
+    loadClinicAppointments(); // refresh list
+    console.log("Appointment rescheduled successfully");
+  } catch (err) {
+    console.error("Failed to reschedule:", err);
+    alert("Failed to reschedule appointment");
+  }
+});
+
+
 
 async function loadAcceptedAppointments() {
   try {
