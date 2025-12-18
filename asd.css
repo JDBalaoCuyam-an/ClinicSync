@@ -88,42 +88,42 @@
 /* ======================================================
    🔹 PATIENT CONTACTS - CONSISTENT DESIGN
 ====================================================== */
-.patient-contacts {
+/* .patient-contacts {
   border: 2px solid #3498db;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Ensure buttons are always clickable */
+
 .patient-contacts button {
   z-index: 1001;
 }
 
-/* Disabled input */
+
 .patient-contacts input:disabled {
   background-color: #f8f9fa;
   border-color: #ecf0f1;
   color: #2c3e50;
 }
 
-/* Enabled input */
+
 .patient-contacts input:enabled {
   border-color: #3498db;
   background: white;
 }
 
-/* Focus state */
+
 .patient-contacts input:enabled:focus {
   outline: none;
   border-color: #2980b9;
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
+} */
 
 
 /* ======================================================
    🔹 PATIENT RECORDS (Tabs) - CONSISTENT DESIGN
 ====================================================== */
-.patient-records {
+/* .patient-records {
   width: 100%;
   background: white;
   border: 2px solid #3498db;
@@ -132,12 +132,12 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Hide radio buttons */
+
 .patient-records input[type="radio"] {
   display: none;
 }
 
-/* Tab labels */
+
 .patient-records .radio-tabs {
   display: inline-block;
   padding: 15px 20px;
@@ -154,7 +154,7 @@
   transition: all 0.3s ease-in-out;
 }
 
-/* Active tab */
+
 .patient-records input:checked+.radio-tabs {
   background: #3498db;
   color: white;
@@ -174,8 +174,8 @@
   color: #3498db;
 }
 
-/* Tab content */
-/* .tab-content {
+
+.tab-content {
   display: none;
   padding: 25px;
 } */
@@ -196,7 +196,7 @@
 /* ======================================================
    🔹 PATIENT DOCUMENTS - CONSISTENT DESIGN
 ====================================================== */
-.patient-documents {
+/* .patient-documents {
   width: 100%;
   background: white;
   border: 2px solid #3498db;
@@ -219,7 +219,7 @@
 .patient-documents ul li:hover {
   background-color: #e9ecef;
   transform: translateX(5px);
-}
+} */
 
 /* ======================================================
    🔹 PATIENT INFO SECTION - CONSISTENT DESIGN

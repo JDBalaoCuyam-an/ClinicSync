@@ -17,6 +17,11 @@ import {
   onSnapshot,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+  tab.addEventListener('shown.bs.tab', event => {
+    console.log('Tab changed to:', event.target.id);
+  });
+});
 
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");

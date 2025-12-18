@@ -1,135 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>View Patient</title>
-    <script type="module" src="../../firebaseconfig.js"></script>
-    <link rel="stylesheet" href="../../assets/styles/ViewPatient.css" />
-    <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-  </head>
-  <body>
-    <!-- NavBar -->
-    <header class="navbar">
-      <div class="container-fluid">
-        <!-- LEFT SIDE – Your exact menu icon + title -->
-        <div class="left-header d-flex align-items-center">
-          <!-- This is your original ☰ icon – unchanged -->
+<div class="view-patient-container">
+      <div class="left-container">
+        <div class="patient-contacts card">
           <div
-            class="menu-icon text-white me-3"
-            onclick="toggleSidebar()"
-            style="font-size: 28px; cursor: pointer; padding: 0 10px"
+            class="card-header d-flex align-items-center justify-content-between"
           >
-            &#9776;
-          </div>
-          <h1 class="mb-0 text-white fs-4 fw-bold">ClinicSync</h1>
-        </div>
+            <h5 class="mb-0">Contact Details</h5>
 
-        <!-- RIGHT SIDE – User info + logout (still responsive) -->
-        <div class="right-header d-flex align-items-center gap-3">
-          <div class="user-name text-white d-none d-sm-block" id="displayName">
-            Dr. Juan Dela Cruz
-          </div>
-
-          <div
-            class="rounded-circle"
-            style="
-              width: 40px;
-              height: 40px;
-              background-color: aliceblue;
-              border: 2px solid rgba(255, 255, 255, 0.3);
-            "
-          ></div>
-
-          <div class="logout-container">
-            <form class="m-0">
+            <!-- Buttons container -->
+            <div class="d-flex align-items-center gap-2">
               <button
-                type="submit"
-                id="logout-button"
-                class="btn btn-link text-white p-0"
-                title="Logout"
+                id="edit-contacts"
+                class="btn btn-primary btn-sm"
+                type="button"
               >
-                <i class="fa-solid fa-right-from-bracket fa-lg"></i>
+                ✏️ Edit
               </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </header>
 
-    <!-- SideBar -->
-    <div id="sidebar-container"></div>
-    <div id="overlay" class="overlay"></div>
-
-    <div
-      class="view-patient-controls"
-      style="display: flex; justify-content: space-between; align-items: center"
-    >
-      <button id="back-to-lists" onclick="window.location.href='Patients.html'">
-        Back
-      </button>
-      <h2></h2>
-      <button id="exportPDF">Export PDF</button>
-    </div>
-
-    <div class="view-patient-container container-fluid mt-3">
-  <div class="row">
-    <!-- Left Container -->
-    <div class="left-container col-lg-4 col-md-5 mb-4">
-      <div class="patient-contacts card mb-4">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <h5 class="mb-0">Contact Details</h5>
-          <div class="d-flex align-items-center gap-2">
-            <button id="edit-contacts" class="btn btn-primary btn-sm" type="button">
-              ✏️ Edit
-            </button>
-            <button id="cancel-contact-edit-btn" class="btn btn-outline-danger btn-sm" type="button" style="display: none">
-              ❌ Cancel
-            </button>
-          </div>
-        </div>
-        
-        <div class="card-body">
-          <div class="mb-3">
-            <label class="form-label">Phone Number</label>
-            <input type="text" id="phone-number" class="form-control" placeholder="Phone Number" disabled>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Email Address</label>
-            <input type="email" id="email-address" class="form-control" placeholder="Email Address" disabled>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Home Address</label>
-            <input type="text" id="home-address" class="form-control" placeholder="Home Address" disabled>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Guardian's Name</label>
-              <input type="text" id="guardian-name" class="form-control" placeholder="Guardian's Name" disabled>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Guardian's Contact</label>
-              <input type="text" id="guardian-phone" class="form-control" placeholder="Guardian's Phone Number" disabled>
+              <button
+                id="cancel-contact-edit-btn"
+                class="btn btn-outline-danger btn-sm"
+                type="button"
+                style="display: none"
+              >
+                ❌ Cancel
+              </button>
             </div>
           </div>
+
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Phone Number</label>
+              <input
+                type="text"
+                id="phone-number"
+                class="form-control"
+                placeholder="Phone Number"
+                disabled
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Email Address</label>
+              <input
+                type="email"
+                id="email-address"
+                class="form-control"
+                placeholder="Email Address"
+                disabled
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Home Address</label>
+              <input
+                type="text"
+                id="home-address"
+                class="form-control"
+                placeholder="Home Address"
+                disabled
+              />
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Guardian's Name</label>
+                <input
+                  type="text"
+                  id="guardian-name"
+                  class="form-control"
+                  placeholder="Guardian's Name"
+                  disabled
+                />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Guardian's Contact</label>
+                <input
+                  type="text"
+                  id="guardian-phone"
+                  class="form-control"
+                  placeholder="Guardian's Phone Number"
+                  disabled
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <!-- Document Files -->
-      <div class="patient-documents card">
+
+        <!-- Document Files -->
         <div class="patient-documents">
           <h3>Documents :</h3>
 
@@ -166,60 +124,42 @@
           <button id="cancel-upload-btn">Cancel</button>
         </div>
       </div>
-      
-      <!-- Upload Category Selection -->
-      <div class="upload-select-category card mt-3 d-none" id="upload-category-card">
-        <div class="card-body">
-          <h3 class="card-title">Select Document Category:</h3>
-          <select id="document-category" class="form-select mb-3">
-            <option value="Laboratory">Laboratory</option>
-            <option value="Radiology">Radiology</option>
-            <option value="Others">Others</option>
-          </select>
-          <div class="d-flex gap-2">
-            <button id="confirm-upload-btn" class="btn btn-primary flex-fill">Upload</button>
-            <button id="cancel-upload-btn" class="btn btn-outline-secondary flex-fill">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Right Container -->
-    <div class="right-container col-lg-8 col-md-7">
-      <div class="patient-records card">
-        <div class="card-body">
-          <!-- Bootstrap Tabs Navigation -->
-          <ul class="nav nav-tabs" id="patientRecordsTab" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="patient-info-tab" data-bs-toggle="tab" data-bs-target="#patient-info-content" type="button" role="tab" aria-controls="patient-info-content" aria-selected="true">Patient Info</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="medical-history-tab" data-bs-toggle="tab" data-bs-target="#medical-history-content" type="button" role="tab" aria-controls="medical-history-content" aria-selected="false">Medical History</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="medical-consultation-tab" data-bs-toggle="tab" data-bs-target="#medical-consultation-content" type="button" role="tab" aria-controls="medical-consultation-content" aria-selected="false">Medical Consultation Records</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="vital-signs-tab" data-bs-toggle="tab" data-bs-target="#vital-signs-content" type="button" role="tab" aria-controls="vital-signs-content" aria-selected="false">Vital Signs</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="doctor-notes-tab" data-bs-toggle="tab" data-bs-target="#doctor-notes-content" type="button" role="tab" aria-controls="doctor-notes-content" aria-selected="false">Doctor's Notes</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="nurse-notes-tab" data-bs-toggle="tab" data-bs-target="#nurse-notes-content" type="button" role="tab" aria-controls="nurse-notes-content" aria-selected="false">Nurse's Notes</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="dental-records-tab" data-bs-toggle="tab" data-bs-target="#dental-records-content" type="button" role="tab" aria-controls="dental-records-content" aria-selected="false">Dental Records</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="physical-examination-tab" data-bs-toggle="tab" data-bs-target="#physical-examination-content" type="button" role="tab" aria-controls="physical-examination-content" aria-selected="false">Physical Examination</button>
-            </li>
-          </ul>
-          
+      <!-- Patient Records -->
+      <div class="right-container">
+        <div class="patient-records">
+          <!-- Tabs -->
+          <input type="radio" id="patient-info" name="tab" checked />
+          <label class="radio-tabs" for="patient-info">Patient Info</label>
+
+          <input type="radio" id="medical-history" name="tab" />
+          <label class="radio-tabs" for="medical-history"
+            >Medical History</label
+          >
+
+          <input type="radio" id="medical-consultation" name="tab" />
+          <label class="radio-tabs" for="medical-consultation"
+            >Medical Consultation Records</label
+          >
+
+          <input type="radio" id="vital-signs" name="tab" />
+          <label class="radio-tabs" for="vital-signs">Vital Signs</label>
+
+          <input type="radio" id="doctor-notes" name="tab" />
+          <label class="radio-tabs" for="doctor-notes">Doctor's Notes</label>
+
+          <input type="radio" id="nurse-notes" name="tab" />
+          <label class="radio-tabs" for="nurse-notes">Nurse's Notes</label>
+
+          <input type="radio" id="dental-records" name="tab" />
+          <label class="radio-tabs" for="dental-records">Dental Records</label>
+
+          <input type="radio" id="physical-examination" name="tab" />
+          <label class="radio-tabs" for="physical-examination"
+            >Physical Examination</label
+          >
           <!-- Tab Contents -->
-          <div class="tab-content p-3" id="patientRecordsTabContent">
-            <div class="tab-pane fade show active patient-info-content" id="patient-info-content" role="tabpanel" aria-labelledby="patient-info-tab">
-              <div class="header-row">
+          <div class="tab-content patient-info-content">
+            <div class="header-row">
               <h2>Patient Information</h2>
               <button class="edit-btn">✏️ Edit</button>
               <button
@@ -405,11 +345,10 @@
                 <input id="motherHealth" type="text" disabled
               /></label>
             </div>
-            </div>
-            
-            <div class="tab-pane fade medical-history-content" id="medical-history-content" role="tabpanel" aria-labelledby="medical-history-tab">
-              <div class="card">
-                <div class="header-row">
+          </div>
+
+          <div class="tab-content medical-history-content">
+            <div class="header-row">
               <h2>Medical History :</h2>
               <button class="edit-btn">✏️ Edit</button>
               <button
@@ -581,11 +520,10 @@
                 </ul>
               </div>
             </div>
-              </div>
-            </div>
-            
-            <div class="tab-pane fade medical-consultation-content" id="medical-consultation-content" role="tabpanel" aria-labelledby="medical-consultation-tab">
-              <h2>Medical Consultation Records :</h2>
+          </div>
+
+          <div class="tab-content medical-consultation-content">
+            <h2>Medical Consultation Records :</h2>
 
             <button onclick="addConsultationRecordOverlay()" class="new-btn">
               + New
@@ -638,8 +576,8 @@
                 </ul>
               </div>
             </div>
-            </div>
-            <!-- New Consultation Record -->
+          </div>
+          <!-- New Consultation Record -->
           <div id="add-consultation-record">
             <h2>New Consultation Record</h2>
 
@@ -781,432 +719,9 @@
               
             </div>
           </div>
-            <div class="tab-pane fade vital-signs-content" id="vital-signs-content" role="tabpanel" aria-labelledby="vital-signs-tab">
-               <h2>Vitals Records :</h2>
 
-            <button
-              class="new-btn btn btn-primary mb-3"
-              data-bs-toggle="modal"
-              data-bs-target="#vitalsModal"
-            >
-              + New
-            </button>
-
-            <div class="table-responsive">
-              <table
-                class="table table-striped table-bordered table-hover align-middle"
-              >
-                <thead class="table-primary">
-                  <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Taken By</th>
-                    <th>Temp (°C)</th>
-                    <th>BP</th>
-                    <th>PR</th>
-                    <th>SpO2 (%)</th>
-                    <th>LMP</th>
-                  </tr>
-                </thead>
-                <tbody id="vitals-list">
-                  <!-- Vitals data will load here -->
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Action History -->
-            <div class="mt-4">
-              <a
-                class="text-decoration-none"
-                data-bs-toggle="collapse"
-                href="#vitalsActionHistory"
-                role="button"
-                aria-expanded="true"
-                aria-controls="vitalsActionHistory"
-              >
-                <h5
-                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
-                >
-                  Action History
-                  <span
-                    id="vitals-logs-count"
-                    class="badge bg-primary rounded-pill"
-                  >
-                    0
-                  </span>
-                </h5>
-              </a>
-
-              <div class="collapse show mt-2" id="vitalsActionHistory">
-                <ul id="vitals-action-history" class="list-group">
-                  <li class="list-group-item text-muted">No actions yet</li>
-                </ul>
-              </div>
-            </div>
-            </div>
-            <div
-            class="modal fade"
-            id="vitalsModal"
-            tabindex="-1"
-            aria-labelledby="vitalsModalLabel"
-            aria-hidden="true"
-          >
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="vitalsModalLabel">Add Vitals</h5>
-                  <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
-                </div>
-
-                <form id="addVitalsForm">
-                  <div class="modal-body">
-                    <div class="row g-3">
-                      <div class="col-md-6">
-                        <label class="form-label">Date</label>
-                        <input
-                          type="date"
-                          id="v-date"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-6">
-                        <label class="form-label">Time</label>
-                        <input
-                          type="time"
-                          id="v-time"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-4">
-                        <label class="form-label">Temp (°C)</label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          id="v-temp"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-4">
-                        <label class="form-label">BP</label>
-                        <input
-                          type="text"
-                          id="v-bp"
-                          class="form-control"
-                          placeholder="120/80"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-4">
-                        <label class="form-label">Pulse Rate</label>
-                        <input
-                          type="number"
-                          id="v-pr"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-6">
-                        <label class="form-label">SpO2 (%)</label>
-                        <input
-                          type="number"
-                          id="v-spo2"
-                          class="form-control"
-                          required
-                        />
-                      </div>
-
-                      <div class="col-md-6">
-                        <label class="form-label">LMP (Optional)</label>
-                        <input type="date" id="v-lmp" class="form-control" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button
-                      type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-            <div class="tab-pane fade doctor-notes-content" id="doctor-notes-content" role="tabpanel" aria-labelledby="doctor-notes-tab">
-              <h2>Doctor's Notes</h2>
-
-            <button
-              class="btn btn-primary mb-3"
-              data-bs-toggle="modal"
-              data-bs-target="#doctorNotesModal"
-            >
-              + New Note
-            </button>
-
-            <!-- Cards Container -->
-            <div id="doctor-notes-list" class="d-flex flex-column gap-3">
-              <!-- Doctor note cards will load here -->
-            </div>
-            </div>
-            <div class="modal fade" id="doctorNotesModal" tabindex="-1">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <form id="addDoctorNoteForm">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Add Doctor's Note</h5>
-                    <button
-                      type="button"
-                      class="btn-close"
-                      data-bs-dismiss="modal"
-                    ></button>
-                  </div>
-
-                  <div class="modal-body">
-                    <div class="mb-2">
-                      <label>Date</label>
-                      <input
-                        type="date"
-                        id="dn-date"
-                        class="form-control"
-                        required
-                      />
-                    </div>
-
-                    <div class="mb-2">
-                      <label>Time</label>
-                      <input
-                        type="time"
-                        id="dn-time"
-                        class="form-control"
-                        required
-                      />
-                    </div>
-
-                    <div class="mb-2">
-                      <label>Notes</label>
-                      <textarea
-                        id="dn-note"
-                        class="form-control"
-                        rows="4"
-                        required
-                      ></textarea>
-                    </div>
-                  </div>
-
-                  <div class="modal-footer">
-                    <button class="btn btn-primary" type="submit">Save</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-            <div class="tab-pane fade nurse-notes-content" id="nurse-notes-content" role="tabpanel" aria-labelledby="nurse-notes-tab">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-              <h2>Nurse Notes</h2>
-
-              <button
-                class="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#nurseNoteModal"
-              >
-                + Add Note
-              </button>
-            </div>
-
-            <div id="nurse-notes-container" class="d-flex flex-wrap gap-3">
-              <!-- Nurse note cards load here -->
-            </div>
-            </div>
-            <div class="modal fade" id="nurseNoteModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content">
-                <form id="addNurseNoteForm">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Add Nurse Note</h5>
-                    <button
-                      type="button"
-                      class="btn-close"
-                      data-bs-dismiss="modal"
-                    ></button>
-                  </div>
-
-                  <div class="modal-body">
-                    <textarea
-                      id="nurse-note-text"
-                      class="form-control"
-                      rows="4"
-                      placeholder="Enter nurse note..."
-                      required
-                    ></textarea>
-                  </div>
-
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button
-                      type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-            <div class="tab-pane fade dental-records-content" id="dental-records-content" role="tabpanel" aria-labelledby="dental-records-tab">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-              <h2>Dental Records</h2>
-              <button
-                class="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#dentalModal"
-              >
-                + New Dental Record
-              </button>
-            </div>
-
-            <div id="dental-records-container" class="d-flex flex-wrap gap-3">
-              <!-- Dental cards load here -->
-            </div>
-            </div>
-             <div class="modal fade" id="dentalModal" tabindex="-1">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-              <div class="modal-content">
-                <form id="addDentalForm">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Add Dental Record</h5>
-                    <button
-                      type="button"
-                      class="btn-close"
-                      data-bs-dismiss="modal"
-                    ></button>
-                  </div>
-
-                  <div class="modal-body">
-                    <!-- Procedure -->
-                    <div class="mb-3">
-                      <label class="form-label">Dental Procedure</label>
-                      <select class="form-select" id="d-procedure" required>
-                        <option value="">Select Procedure</option>
-                        <option>Dental Filling</option>
-                        <option>Tooth Extraction</option>
-                        <option>Oral Prophylaxis</option>
-                      </select>
-                    </div>
-
-                    <!-- Teeth -->
-                    <div class="mb-3">
-                      <label class="form-label">Teeth Affected</label>
-                      <select
-                        class="form-select"
-                        id="d-teeth"
-                        multiple
-                        required
-                      >
-                        <optgroup label="Upper Right">
-                          <option>11</option>
-                          <option>12</option>
-                          <option>13</option>
-                          <option>14</option>
-                          <option>15</option>
-                          <option>16</option>
-                          <option>17</option>
-                          <option>18</option>
-                        </optgroup>
-                        <optgroup label="Upper Left">
-                          <option>21</option>
-                          <option>22</option>
-                          <option>23</option>
-                          <option>24</option>
-                          <option>25</option>
-                          <option>26</option>
-                          <option>27</option>
-                          <option>28</option>
-                        </optgroup>
-                        <optgroup label="Lower Left">
-                          <option>31</option>
-                          <option>32</option>
-                          <option>33</option>
-                          <option>34</option>
-                          <option>35</option>
-                          <option>36</option>
-                          <option>37</option>
-                          <option>38</option>
-                        </optgroup>
-                        <optgroup label="Lower Right">
-                          <option>41</option>
-                          <option>42</option>
-                          <option>43</option>
-                          <option>44</option>
-                          <option>45</option>
-                          <option>46</option>
-                          <option>47</option>
-                          <option>48</option>
-                        </optgroup>
-                      </select>
-                      <small class="text-muted"
-                        >Hold Ctrl / Cmd to select multiple teeth</small
-                      >
-                    </div>
-                    <hr />
-                    <!-- Medications Section -->
-                    <div class="mt-4">
-                      <label class="form-label fw-bold">Medications:</label>
-                      <div class="d-flex flex-column gap-2 meds-list"></div>
-                      <button
-                        type="button"
-                        class="btn btn-primary btn-sm mt-2 add-med-btn"
-                      >
-                        + Add Medicine
-                      </button>
-                    </div>
-
-                    <!-- Notes -->
-                    <div class="mb-3">
-                      <label class="form-label">Notes</label>
-                      <textarea
-                        class="form-control"
-                        id="d-notes"
-                        rows="3"
-                        placeholder="Additional details (optional)"
-                      ></textarea>
-                    </div>
-                  </div>
-
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button
-                      type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-            <div class="tab-pane fade physical-examination-content" id="physical-examination-content" role="tabpanel" aria-labelledby="physical-examination-tab">
-             <h2>Physical Examination :</h2>
+          <div class="tab-content physical-examination-content">
+            <h2>Physical Examination :</h2>
 
             <button onclick="addPhysicalExamOverlay()" class="new-btn">
               + New
@@ -1453,47 +968,433 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div class="tab-content vital-signs-content">
+            <h2>Vitals Records :</h2>
+
+            <button
+              class="new-btn btn btn-primary mb-3"
+              data-bs-toggle="modal"
+              data-bs-target="#vitalsModal"
+            >
+              + New
+            </button>
+
+            <div class="table-responsive">
+              <table
+                class="table table-striped table-bordered table-hover align-middle"
+              >
+                <thead class="table-primary">
+                  <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Taken By</th>
+                    <th>Temp (°C)</th>
+                    <th>BP</th>
+                    <th>PR</th>
+                    <th>SpO2 (%)</th>
+                    <th>LMP</th>
+                  </tr>
+                </thead>
+                <tbody id="vitals-list">
+                  <!-- Vitals data will load here -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Action History -->
+            <div class="mt-4">
+              <a
+                class="text-decoration-none"
+                data-bs-toggle="collapse"
+                href="#vitalsActionHistory"
+                role="button"
+                aria-expanded="true"
+                aria-controls="vitalsActionHistory"
+              >
+                <h5
+                  class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                >
+                  Action History
+                  <span
+                    id="vitals-logs-count"
+                    class="badge bg-primary rounded-pill"
+                  >
+                    0
+                  </span>
+                </h5>
+              </a>
+
+              <div class="collapse show mt-2" id="vitalsActionHistory">
+                <ul id="vitals-action-history" class="list-group">
+                  <li class="list-group-item text-muted">No actions yet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div
+            class="modal fade"
+            id="vitalsModal"
+            tabindex="-1"
+            aria-labelledby="vitalsModalLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="vitalsModalLabel">Add Vitals</h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+
+                <form id="addVitalsForm">
+                  <div class="modal-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Date</label>
+                        <input
+                          type="date"
+                          id="v-date"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Time</label>
+                        <input
+                          type="time"
+                          id="v-time"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">Temp (°C)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          id="v-temp"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">BP</label>
+                        <input
+                          type="text"
+                          id="v-bp"
+                          class="form-control"
+                          placeholder="120/80"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">Pulse Rate</label>
+                        <input
+                          type="number"
+                          id="v-pr"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">SpO2 (%)</label>
+                        <input
+                          type="number"
+                          id="v-spo2"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">LMP (Optional)</label>
+                        <input type="date" id="v-lmp" class="form-control" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content doctor-notes-content">
+            <h2>Doctor's Notes</h2>
+
+            <button
+              class="btn btn-primary mb-3"
+              data-bs-toggle="modal"
+              data-bs-target="#doctorNotesModal"
+            >
+              + New Note
+            </button>
+
+            <!-- Cards Container -->
+            <div id="doctor-notes-list" class="d-flex flex-column gap-3">
+              <!-- Doctor note cards will load here -->
+            </div>
+          </div>
+          <div class="modal fade" id="doctorNotesModal" tabindex="-1">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form id="addDoctorNoteForm">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Add Doctor's Note</h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                    ></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <div class="mb-2">
+                      <label>Date</label>
+                      <input
+                        type="date"
+                        id="dn-date"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+
+                    <div class="mb-2">
+                      <label>Time</label>
+                      <input
+                        type="time"
+                        id="dn-time"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+
+                    <div class="mb-2">
+                      <label>Notes</label>
+                      <textarea
+                        id="dn-note"
+                        class="form-control"
+                        rows="4"
+                        required
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content nurse-notes-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2>Nurse Notes</h2>
+
+              <button
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#nurseNoteModal"
+              >
+                + Add Note
+              </button>
+            </div>
+
+            <div id="nurse-notes-container" class="d-flex flex-wrap gap-3">
+              <!-- Nurse note cards load here -->
+            </div>
+          </div>
+          <div class="modal fade" id="nurseNoteModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <form id="addNurseNoteForm">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Add Nurse Note</h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                    ></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <textarea
+                      id="nurse-note-text"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Enter nurse note..."
+                      required
+                    ></textarea>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="tab-content dental-records-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2>Dental Records</h2>
+              <button
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#dentalModal"
+              >
+                + New Dental Record
+              </button>
+            </div>
+
+            <div id="dental-records-container" class="d-flex flex-wrap gap-3">
+              <!-- Dental cards load here -->
+            </div>
+          </div>
+          <div class="modal fade" id="dentalModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+              <div class="modal-content">
+                <form id="addDentalForm">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Add Dental Record</h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                    ></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <!-- Procedure -->
+                    <div class="mb-3">
+                      <label class="form-label">Dental Procedure</label>
+                      <select class="form-select" id="d-procedure" required>
+                        <option value="">Select Procedure</option>
+                        <option>Dental Filling</option>
+                        <option>Tooth Extraction</option>
+                        <option>Oral Prophylaxis</option>
+                      </select>
+                    </div>
+
+                    <!-- Teeth -->
+                    <div class="mb-3">
+                      <label class="form-label">Teeth Affected</label>
+                      <select
+                        class="form-select"
+                        id="d-teeth"
+                        multiple
+                        required
+                      >
+                        <optgroup label="Upper Right">
+                          <option>11</option>
+                          <option>12</option>
+                          <option>13</option>
+                          <option>14</option>
+                          <option>15</option>
+                          <option>16</option>
+                          <option>17</option>
+                          <option>18</option>
+                        </optgroup>
+                        <optgroup label="Upper Left">
+                          <option>21</option>
+                          <option>22</option>
+                          <option>23</option>
+                          <option>24</option>
+                          <option>25</option>
+                          <option>26</option>
+                          <option>27</option>
+                          <option>28</option>
+                        </optgroup>
+                        <optgroup label="Lower Left">
+                          <option>31</option>
+                          <option>32</option>
+                          <option>33</option>
+                          <option>34</option>
+                          <option>35</option>
+                          <option>36</option>
+                          <option>37</option>
+                          <option>38</option>
+                        </optgroup>
+                        <optgroup label="Lower Right">
+                          <option>41</option>
+                          <option>42</option>
+                          <option>43</option>
+                          <option>44</option>
+                          <option>45</option>
+                          <option>46</option>
+                          <option>47</option>
+                          <option>48</option>
+                        </optgroup>
+                      </select>
+                      <small class="text-muted"
+                        >Hold Ctrl / Cmd to select multiple teeth</small
+                      >
+                    </div>
+                    <hr />
+                    <!-- Medications Section -->
+                    <div class="mt-4">
+                      <label class="form-label fw-bold">Medications:</label>
+                      <div class="d-flex flex-column gap-2 meds-list"></div>
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm mt-2 add-med-btn"
+                      >
+                        + Add Medicine
+                      </button>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                      <label class="form-label">Notes</label>
+                      <textarea
+                        class="form-control"
+                        id="d-notes"
+                        rows="3"
+                        placeholder="Additional details (optional)"
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
-    <div id="footer-container"></div>
-  </body>
-  <script src="../../assets/scripts/modal.js"></script>
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script src="../../assets/scripts/ViewPatient.js" type="module"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Wait for the DOM to fully load
-    document.addEventListener("DOMContentLoaded", () => {
-      // Select the back-to-top button
-      const backToTopBtn = document.querySelector(".backToTop");
-
-      // Check if button exists (important if footer is dynamically imported)
-      if (backToTopBtn) {
-        // Scroll smoothly to top when clicked
-        backToTopBtn.addEventListener("click", () => {
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          });
-        });
-
-        // Optional: Show/hide button based on scroll position
-        window.addEventListener("scroll", () => {
-          if (window.scrollY > 300) {
-            backToTopBtn.style.display = "block"; // Show button
-          } else {
-            backToTopBtn.style.display = "none"; // Hide button
-          }
-        });
-
-        // Initially hide the button
-        backToTopBtn.style.display = "none";
-      }
-    });
-  </script>
-</html>
