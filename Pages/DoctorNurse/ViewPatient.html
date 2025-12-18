@@ -806,185 +806,164 @@
                   role="tabpanel"
                   aria-labelledby="medical-history-tab"
                 >
-                  <div class="card">
-                    <div class="header-row">
-                      <h2>Medical History :</h2>
-                      <button class="edit-btn">✏️ Edit</button>
-                      <button
-                        id="cancelHistoryBtn"
-                        style="display: none; margin-top: 10px"
-                      >
-                        ❌ Cancel
-                      </button>
-                    </div>
+                  <div class="card p-3">
+  <!-- Header Row -->
+  <div class="d-flex align-items-center mb-3 flex-wrap">
+  <h2 class="mb-0">Medical History :</h2>
+  <div class="ms-auto d-flex gap-2">
+    <button id="editHistoryBtn" class="btn btn-primary btn-sm">✏️ Edit</button>
+    <button id="cancelHistoryBtn" class="btn btn-outline-danger btn-sm" style="display: none;">❌ Cancel</button>
+  </div>
+</div>
 
-                    <div class="history-grid">
-                      <div class="history-card">
-                        <h3>Past Medical History</h3>
-                        <textarea disabled>---</textarea>
-                      </div>
 
-                      <div class="history-card">
-                        <h3>Family History</h3>
-                        <textarea disabled>---</textarea>
-                      </div>
 
-                      <div class="history-card">
-                        <h3>Past Surgical History</h3>
-                        <textarea disabled></textarea>
-                      </div>
-                    </div>
-                    <!-- end of history-grid -->
+  <!-- History Grid -->
+  <div class="row g-3">
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card p-2 h-100">
+        <h5>Past Medical History</h5>
+        <textarea class="form-control" disabled>---</textarea>
+      </div>
+    </div>
 
-                    <!-- Additional Medical Info Section -->
-                    <div class="additional-info">
-                      <div class="history-card">
-                        <h3>
-                          Nutritional Supplements / Vitamins / Other Medications
-                        </h3>
-                        <textarea
-                          disabled
-                          placeholder="Enter details here..."
-                        ></textarea>
-                      </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card p-2 h-100">
+        <h5>Family History</h5>
+        <textarea class="form-control" disabled>---</textarea>
+      </div>
+    </div>
 
-                      <div class="history-card">
-                        <h3>Allergies</h3>
-                        <textarea
-                          disabled
-                          placeholder="List allergies here..."
-                        ></textarea>
-                      </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card p-2 h-100">
+        <h5>Past Surgical History</h5>
+        <textarea class="form-control" disabled></textarea>
+      </div>
+    </div>
+  </div>
 
-                      <!-- 🔹 Immunization Section -->
-                      <div class="history-card immunization-card">
-                        <h3>Immunization</h3>
-                        <div class="immunization-form">
-                          <div class="immunization-row">
-                            <label>BCG:</label
-                            ><input name="bcg" type="text" disabled />
-                            <label>DPT:</label
-                            ><input name="dpt" type="text" disabled />
-                            <label>OPV:</label
-                            ><input name="opv" type="text" disabled />
-                          </div>
-                          <div class="immunization-row">
-                            <label>HEP. B:</label
-                            ><input name="hepb" type="text" disabled />
-                            <label>MMR:</label
-                            ><input name="mmr" type="text" disabled />
-                            <label>MEASLES:</label
-                            ><input name="measles" type="text" disabled />
-                          </div>
-                          <div class="immunization-row">
-                            <label>OTHERS:</label
-                            ><input
-                              type="text"
-                              name="others"
-                              disabled
-                              style="flex: 1"
-                            />
-                          </div>
-                        </div>
-                      </div>
+  <!-- Additional Medical Info -->
+  <div class="row g-3 mt-3">
+    <div class="col-12 col-md-6">
+      <div class="card p-2 h-100">
+        <h5>Nutritional Supplements / Vitamins / Other Medications</h5>
+        <textarea class="form-control" disabled placeholder="Enter details here..."></textarea>
+      </div>
+    </div>
 
-                      <!-- 🔹 OB-GYNE History Section -->
-                      <div class="history-card obgyne-card">
-                        <h3>OB-GYNE History (Female Only)</h3>
-                        <div class="obgyne-form">
-                          <div class="ob-row">
-                            <label>Age of First Menstrual Period:</label>
-                            <input type="text" name="menarcheAge" disabled />
-                          </div>
+    <div class="col-12 col-md-6">
+      <div class="card p-2 h-100">
+        <h5>Allergies</h5>
+        <textarea class="form-control" disabled placeholder="List allergies here..."></textarea>
+      </div>
+    </div>
 
-                          <div class="ob-row">
-                            <label>Duration/Days:</label>
-                            <input type="text" name="durationDays" disabled />
-                            <label>Napkin/s per Day:</label>
-                            <input type="text" name="napkinsPerDay" disabled />
-                            <label>Interval:</label>
-                            <input type="text" name="interval" disabled />
-                          </div>
+    <!-- Immunization Section -->
+    <div class="col-12">
+      <div class="card p-2">
+        <h5>Immunization</h5>
+        <div class="row g-2">
+          <div class="col-6 col-md-4">
+            <label class="form-label">BCG:</label>
+            <input name="bcg" type="text" class="form-control" disabled />
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label">DPT:</label>
+            <input name="dpt" type="text" class="form-control" disabled />
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label">OPV:</label>
+            <input name="opv" type="text" class="form-control" disabled />
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label">HEP. B:</label>
+            <input name="hepb" type="text" class="form-control" disabled />
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label">MMR:</label>
+            <input name="mmr" type="text" class="form-control" disabled />
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label">MEASLES:</label>
+            <input name="measles" type="text" class="form-control" disabled />
+          </div>
+          <div class="col-12">
+            <label class="form-label">OTHERS:</label>
+            <input type="text" name="others" class="form-control" disabled />
+          </div>
+        </div>
+      </div>
+    </div>
 
-                          <div class="ob-row dysmenorrhea-row">
-                            <label>Dysmenorrhea:</label>
-                            <div class="radio-group">
-                              <label
-                                ><input
-                                  type="radio"
-                                  name="dysmenorrhea"
-                                  value="No"
-                                  disabled
-                                />
-                                No</label
-                              >
-                              <label
-                                ><input
-                                  type="radio"
-                                  name="dysmenorrhea"
-                                  value="Sometimes"
-                                  disabled
-                                />
-                                Sometimes</label
-                              >
-                              <label
-                                ><input
-                                  type="radio"
-                                  name="dysmenorrhea"
-                                  value="Moderate"
-                                  disabled
-                                />
-                                Moderate</label
-                              >
-                              <label
-                                ><input
-                                  type="radio"
-                                  name="dysmenorrhea"
-                                  value="Severe"
-                                  disabled
-                                />
-                                Severe</label
-                              >
-                            </div>
-                          </div>
+    <!-- OB-GYNE History -->
+    <div class="col-12">
+      <div class="card p-2">
+        <h5>OB-GYNE History (Female Only)</h5>
+        <div class="row g-2 mb-2">
+          <div class="col-12 col-md-4">
+            <label class="form-label">Age of First Menstrual Period:</label>
+            <input type="text" name="menarcheAge" class="form-control" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label">Duration/Days:</label>
+            <input type="text" name="durationDays" class="form-control" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label">Napkin/s per Day:</label>
+            <input type="text" name="napkinsPerDay" class="form-control" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label">Interval:</label>
+            <input type="text" name="interval" class="form-control" disabled />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Dysmenorrhea:</label>
+            <div class="d-flex flex-wrap gap-2">
+              <div class="form-check">
+                <input type="radio" name="dysmenorrhea" value="No" class="form-check-input" disabled />
+                <label class="form-check-label">No</label>
+              </div>
+              <div class="form-check">
+                <input type="radio" name="dysmenorrhea" value="Sometimes" class="form-check-input" disabled />
+                <label class="form-check-label">Sometimes</label>
+              </div>
+              <div class="form-check">
+                <input type="radio" name="dysmenorrhea" value="Moderate" class="form-check-input" disabled />
+                <label class="form-check-label">Moderate</label>
+              </div>
+              <div class="form-check">
+                <input type="radio" name="dysmenorrhea" value="Severe" class="form-check-input" disabled />
+                <label class="form-check-label">Severe</label>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label">Last Menstrual:</label>
+            <input type="date" name="lastMenstrual" class="form-control" disabled />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                          <div class="ob-row">
-                            <label>Last Menstrual:</label>
-                            <input type="date" name="lastMenstrual" disabled />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="mt-4">
-                      <a
-                        class="text-decoration-none"
-                        data-bs-toggle="collapse"
-                        href="#medicalHistoryLogs"
-                        role="button"
-                        aria-expanded="true"
-                        aria-controls="medicalHistoryLogs"
-                      >
-                        <h5
-                          class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
-                        >
-                          Action History
-                          <span
-                            id="medical-history-logs-count"
-                            class="badge bg-primary rounded-pill"
-                            >0</span
-                          >
-                        </h5>
-                      </a>
+  <!-- Action History -->
+  <div class="mt-4">
+    <a class="text-decoration-none" data-bs-toggle="collapse" href="#medicalHistoryLogs" role="button"
+      aria-expanded="true" aria-controls="medicalHistoryLogs">
+      <h5 class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center">
+        Action History
+        <span id="medical-history-logs-count" class="badge bg-primary rounded-pill">0</span>
+      </h5>
+    </a>
 
-                      <div class="collapse show mt-2" id="medicalHistoryLogs">
-                        <ul id="medical-history-logs" class="list-group">
-                          <li class="list-group-item text-muted">
-                            No actions yet
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+    <div class="collapse show mt-2" id="medicalHistoryLogs">
+      <ul id="medical-history-logs" class="list-group">
+        <li class="list-group-item text-muted">No actions yet</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
                 </div>
 
                 <div

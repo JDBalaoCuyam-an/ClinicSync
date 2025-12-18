@@ -17,11 +17,6 @@ import {
   onSnapshot,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-  tab.addEventListener('shown.bs.tab', event => {
-    console.log('Tab changed to:', event.target.id);
-  });
-});
 
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");
@@ -196,7 +191,6 @@ async function loadPatient() {
   }
 }
 
-
 /* -----------------------------------------------
      🔹 EDIT/SAVE CONTACT DETAILS
   ----------------------------------------------- */
@@ -271,83 +265,94 @@ cancelContactEditBtn.addEventListener("click", () => {
 });
 
 /* -----------------------------------------------
-     🔹 EDIT/SAVE MEDICAL HISTORY (Update or Create)
-  ----------------------------------------------- */
-
-const editHistoryBtn = document.querySelector(
-  ".medical-history-content .edit-btn"
-);
-
-// Create Cancel button dynamically below the Edit/Save button
-let cancelHistoryBtn = document.createElement("button");
-cancelHistoryBtn.textContent = "❌ Cancel";
-cancelHistoryBtn.style.display = "none";
-cancelHistoryBtn.style.marginTop = "10px";
-editHistoryBtn.insertAdjacentElement("afterend", cancelHistoryBtn);
+     🔹 EDIT / CANCEL MEDICAL HISTORY
+----------------------------------------------- */
+const editHistoryBtn = document.getElementById("editHistoryBtn");
+const cancelHistoryBtn = document.getElementById("cancelHistoryBtn");
 
 let isEditingHistory = false;
-let originalHistoryData = {};
-let currentHistoryId = null; // 🆔 keep track of the latest doc
+let originalHistoryData = {}; // Stores Firestore-loaded values
+let currentHistoryId = null; // Latest medicalHistory doc ID
 
+// --------------------------
+// Store original values after loading from Firestore
+// Call this after populating the form in loadPatient()
+function storeOriginalHistoryData() {
+  const editableFields = document.querySelectorAll(
+    ".medical-history-content textarea, .medical-history-content input"
+  );
+
+  editableFields.forEach((el) => {
+    if (el.type === "radio") {
+      originalHistoryData[el.name] =
+        document.querySelector(`.obgyne-form input[name="${el.name}"]:checked`)
+          ?.value || "";
+    } else {
+      originalHistoryData[el.name] = el.value;
+    }
+  });
+}
+
+// --------------------------
+// Enable Edit Mode
 editHistoryBtn.addEventListener("click", async () => {
   const editableFields = document.querySelectorAll(
     ".medical-history-content textarea, .medical-history-content input"
   );
 
   if (!isEditingHistory) {
-    // Store original values
-    originalHistoryData = {};
-    editableFields.forEach((el) => {
-      if (el.type === "radio") {
-        originalHistoryData[el.name] =
-          document.querySelector(
-            `.obgyne-form input[name="${el.name}"]:checked`
-          )?.value || "";
-      } else {
-        originalHistoryData[el.name] = el.value;
-      }
-    });
-
     // Enable editing
     editableFields.forEach((el) => el.removeAttribute("disabled"));
     editHistoryBtn.textContent = "💾 Save";
-    cancelHistoryBtn.style.display = "block";
+    cancelHistoryBtn.style.display = "inline-block";
     isEditingHistory = true;
 
-    // 🩺 Get latest medicalHistory document ID for updating later
+    // Get latest doc ID for update
     const historyRef = collection(db, "users", patientId, "medicalHistory");
     const historySnap = await getDocs(
       query(historyRef, orderBy("updatedAt", "desc"), limit(1))
     );
-    if (!historySnap.empty) {
-      currentHistoryId = historySnap.docs[0].id;
-    } else {
-      currentHistoryId = null; // none yet
-    }
+    currentHistoryId = !historySnap.empty ? historySnap.docs[0].id : null;
   } else {
-    // Gather updated values
+    // Save updated values
     const [pastMedical, familyHistory, pastSurgical, supplements, allergies] =
       Array.from(
         document.querySelectorAll(".medical-history-content textarea")
       ).map((ta) => ta.value.trim());
 
     // Immunization
+    const immunizationInputs = [
+      "bcg",
+      "dpt",
+      "opv",
+      "hepb",
+      "mmr",
+      "measles",
+      "others",
+    ];
     const immunizationData = {};
-    document
-      .querySelectorAll(".immunization-form input")
-      .forEach((input) => (immunizationData[input.name] = input.value.trim()));
+    immunizationInputs.forEach((name) => {
+      const input = document.querySelector(`input[name="${name}"]`);
+      if (input) immunizationData[name] = input.value.trim();
+    });
 
     // OB-GYNE
+    const obgyneInputs = [
+      "menarcheAge",
+      "durationDays",
+      "napkinsPerDay",
+      "interval",
+      "lastMenstrual",
+    ];
     const obgyneData = {};
-    document
-      .querySelectorAll(
-        ".obgyne-form input[type='text'], .obgyne-form input[type='date']"
-      )
-      .forEach((input) => (obgyneData[input.name] = input.value.trim()));
+    obgyneInputs.forEach((name) => {
+      const input = document.querySelector(`input[name="${name}"]`);
+      if (input) obgyneData[name] = input.value.trim();
+    });
 
+    // Dysmenorrhea radio
     const dysmenorrhea =
-      document.querySelector(".obgyne-form input[type='radio']:checked")
-        ?.value || "";
+      document.querySelector('input[name="dysmenorrhea"]:checked')?.value || "";
 
     const historyData = {
       pastMedicalHistory: pastMedical,
@@ -365,16 +370,15 @@ editHistoryBtn.addEventListener("click", async () => {
       const historyRef = collection(db, "users", patientId, "medicalHistory");
 
       if (currentHistoryId) {
-        // ✅ Update existing document
+        // Update existing document
         const historyDocRef = doc(historyRef, currentHistoryId);
         await updateDoc(historyDocRef, historyData);
-        console.log("Existing medical history updated.");
       } else {
-        // 🆕 No record yet — create one
+        // Create new document
         await addDoc(historyRef, historyData);
-        console.log("New medical history created.");
       }
-      // ✅ Save edit log in subcollection
+
+      // Save Edit Log
       const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
         message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
@@ -392,11 +396,17 @@ editHistoryBtn.addEventListener("click", async () => {
         editor: currentUserName,
         section: "Medical History",
       });
+
       alert("Medical History saved successfully!");
+
+      // Disable all fields
       editableFields.forEach((el) => el.setAttribute("disabled", "true"));
       editHistoryBtn.textContent = "✏️ Edit";
       cancelHistoryBtn.style.display = "none";
       isEditingHistory = false;
+
+      // Refresh original data after save
+      storeOriginalHistoryData();
     } catch (err) {
       console.error("Error saving medical history:", err);
       alert("Failed to save medical history.");
@@ -404,23 +414,22 @@ editHistoryBtn.addEventListener("click", async () => {
   }
 });
 
-// Cancel button handler
+// --------------------------
+// Cancel edits
 cancelHistoryBtn.addEventListener("click", () => {
   const editableFields = document.querySelectorAll(
     ".medical-history-content textarea, .medical-history-content input"
   );
 
-  // Restore original values
   editableFields.forEach((el) => {
     if (el.type === "radio") {
       el.checked = el.value === originalHistoryData[el.name];
-    } else {
+    } else if (originalHistoryData.hasOwnProperty(el.name)) {
       el.value = originalHistoryData[el.name];
     }
     el.setAttribute("disabled", "true");
   });
 
-  // Reset buttons
   editHistoryBtn.textContent = "✏️ Edit";
   cancelHistoryBtn.style.display = "none";
   isEditingHistory = false;
@@ -437,27 +446,31 @@ let originalPatientInfoData = {};
 
 // Helper: get all editable inputs & selects
 function getPatientInfoFields() {
-  return document.querySelectorAll(".patient-info-content input, .patient-info-content select");
+  return document.querySelectorAll(
+    ".patient-info-content input, .patient-info-content select"
+  );
 }
-
 
 // Store original values
 function storeOriginalPatientInfo(fields) {
   originalPatientInfoData = {};
-  fields.forEach(el => originalPatientInfoData[el.id || el.name] = el.value);
+  fields.forEach(
+    (el) => (originalPatientInfoData[el.id || el.name] = el.value)
+  );
 }
 
 // Restore original values
 function restoreOriginalPatientInfo(fields) {
-  fields.forEach(el => {
+  fields.forEach((el) => {
     const key = el.id || el.name;
-    if (originalPatientInfoData[key] !== undefined) el.value = originalPatientInfoData[key];
+    if (originalPatientInfoData[key] !== undefined)
+      el.value = originalPatientInfoData[key];
   });
 }
 
 // Enable editing
 function enablePatientInfoEditing(fields) {
-  fields.forEach(el => {
+  fields.forEach((el) => {
     el.removeAttribute("disabled");
     el.removeAttribute("readonly"); // <- this ensures Bootstrap read-only styling is removed
   });
@@ -466,10 +479,9 @@ function enablePatientInfoEditing(fields) {
   isEditingPatientInfo = true;
 }
 
-
 // Disable editing
 function disablePatientInfoEditing(fields) {
-  fields.forEach(el => {
+  fields.forEach((el) => {
     el.setAttribute("disabled", "true");
     // optional: el.setAttribute("readonly", "true");
   });
@@ -477,7 +489,6 @@ function disablePatientInfoEditing(fields) {
   cancelPatientInfoBtn.style.display = "none";
   isEditingPatientInfo = false;
 }
-
 
 // Edit/Save button click
 editPatientInfoBtn.addEventListener("click", async () => {
@@ -488,7 +499,7 @@ editPatientInfoBtn.addEventListener("click", async () => {
     enablePatientInfoEditing(fields);
   } else {
     const updatedData = {};
-    fields.forEach(f => updatedData[f.id] = f.value);
+    fields.forEach((f) => (updatedData[f.id] = f.value));
 
     try {
       await updateDoc(doc(db, "users", patientId), updatedData);
@@ -507,7 +518,6 @@ cancelPatientInfoBtn.addEventListener("click", () => {
   restoreOriginalPatientInfo(fields);
   disablePatientInfoEditing(fields);
 });
-
 
 /* -----------------------------------------------
      🔹 CONSULTATION FORM SUBMIT
@@ -687,9 +697,9 @@ document.getElementById("consult-diagnosis").addEventListener("change", () => {
 });
 loadDiagnoses();
 // ============================================================
-// Set Default Time/Date For Consultation Form
+// Set Default Time/Date Helper
 // ============================================================
-function setCurrentConsultDateTime() {
+function setToCurrentDate() {
   const now = new Date();
 
   // Format date (YYYY-MM-DD)
@@ -706,7 +716,7 @@ function setCurrentConsultDateTime() {
   document.getElementById("consult-time").value = time;
   document.getElementById("exam-date").value = date;
 }
-setCurrentConsultDateTime();
+setToCurrentDate();
 // ============================================================
 // Consultation Form Submission
 // ============================================================
@@ -1799,11 +1809,11 @@ document
       const dentalRef = collection(db, "users", patientId, "dentalRecords");
       const now = new Date();
 
-const date = now.toLocaleDateString("en-CA"); // YYYY-MM-DD (local)
-const time = now.toLocaleTimeString("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-}); // 
+      const date = now.toLocaleDateString("en-CA"); // YYYY-MM-DD (local)
+      const time = now.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }); //
 
       await addDoc(dentalRef, {
         procedure,
@@ -1987,7 +1997,10 @@ let selectedFile = null;
 
 // Bootstrap modal instance
 const categoryModalEl = document.getElementById("categoryModal");
-const bsCategoryModal = new bootstrap.Modal(categoryModalEl, { backdrop: 'static', keyboard: false });
+const bsCategoryModal = new bootstrap.Modal(categoryModalEl, {
+  backdrop: "static",
+  keyboard: false,
+});
 
 // 1️⃣ Open file picker
 uploadBtn.addEventListener("click", () => fileInput.click());

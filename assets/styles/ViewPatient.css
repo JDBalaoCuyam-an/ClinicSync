@@ -88,7 +88,7 @@
 /* ======================================================
    🔹 MEDICAL HISTORY / SHARED CARD STYLE - CONSISTENT DESIGN
 ====================================================== */
-.history-grid {
+/* .history-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
@@ -143,24 +143,24 @@
   color: #2c3e50;
 }
 
-/* Disabled look */
+
 .history-card textarea:disabled {
   background-color: #f8f9fa;
   border-color: #ecf0f1;
   color: #2c3e50;
 }
 
-/* Editing mode */
+
 .editing .history-card textarea {
   border: 1px solid #3498db;
   background: #fff;
   padding: 10px;
-}
+} */
 
 /* ======================================================
    🔹 IMMUNIZATION SECTION - CONSISTENT DESIGN
 ====================================================== */
-.immunization-form {
+/* .immunization-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -199,12 +199,12 @@
   background-color: #f8f9fa;
   border-color: #ecf0f1;
   color: #2c3e50;
-}
+} */
 
 /* ======================================================
    🔹 OB-GYNE SECTION - CONSISTENT DESIGN
 ====================================================== */
-.obgyne-form {
+/* .obgyne-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -248,7 +248,7 @@
   color: #2c3e50;
 }
 
-/* Radio buttons */
+
 .radio-group {
   display: flex;
   flex-wrap: wrap;
@@ -268,7 +268,7 @@
 .radio-group input[type="radio"] {
   accent-color: #3498db;
   display: block;
-}
+} */
 
 /* ======================================================
    🔹 MEDICAL CONSULTATION - CONSISTENT DESIGN
