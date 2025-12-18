@@ -703,7 +703,7 @@ function setToCurrentDate() {
   const now = new Date();
 
   // Format date (YYYY-MM-DD)
-  const date = now.toISOString().split("T")[0];
+  const date = now.toLocaleDateString("en-CA");
 
   // Format time (HH:MM 24-hour)
   const time = now.toLocaleTimeString([], {
@@ -720,209 +720,153 @@ setToCurrentDate();
 // ============================================================
 // Consultation Form Submission
 // ============================================================
-document
-  .getElementById("consultation-form")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const doctorSelect = document.getElementById("consult-doctor");
-    const doctorName =
-      doctorSelect.options[doctorSelect.selectedIndex]?.textContent || "";
-    const submitBtn = document
-      .getElementById("consultation-form")
-      .querySelector('button[type="submit"]');
-    submitBtn.disabled = true; // prevent double click
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = "Saving..."; // optional loading text
+// Bootstrap modal instance
+const addConsultationModalEl = document.getElementById('addConsultationModal');
+const addConsultationModal = new bootstrap.Modal(addConsultationModalEl);
 
-    const now = new Date();
-    const medDate = now.toISOString().split("T")[0];
-    const medTime = now.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
+// Handle form submission
+document.getElementById("consultation-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const doctorSelect = document.getElementById("consult-doctor");
+  const doctorName = doctorSelect.options[doctorSelect.selectedIndex]?.textContent || "";
+
+  const submitBtn = document.querySelector('#addConsultationModal button[type="submit"]');
+  submitBtn.disabled = true;
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = "Saving...";
+
+  const now = new Date();
+  const medDate = now.toISOString().split("T")[0];
+  const medTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  // Collect medicines
+  const medsDispensed = Array.from(document.querySelectorAll(".med-row")).map(row => ({
+    name: row.querySelector(".med-name").value,
+    quantity: parseInt(row.querySelector(".med-qty").value) || 0,
+    type: row.querySelector(".med-type")?.value || "",
+    remarks: row.querySelector(".med-remarks")?.value || "",
+    NurseOnDuty: currentUserName,
+    date: medDate,
+    time: medTime,
+  })).filter(med => med.name !== "");
+
+  // Capitalize helper
+  function capitalizeFirstLetter(text) {
+    if (!text) return "";
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  // Handle Complaint
+  let complaintValue = document.getElementById("consult-complaint").value;
+  let newComplaintText = document.getElementById("new-complaint-input").value.trim();
+  let finalComplaint = complaintValue === "__add_new__" ? capitalizeFirstLetter(newComplaintText) : capitalizeFirstLetter(complaintValue);
+
+  if (complaintValue === "__add_new__" && finalComplaint === "") {
+    alert("Please enter a new complaint.");
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+    return;
+  }
+
+  // Save new complaint if needed
+  if (complaintValue === "__add_new__") {
+    const complaintsRef = collection(db, "complaints");
+    const snap = await getDocs(query(complaintsRef, where("name", "==", finalComplaint)));
+    if (snap.empty) {
+      await addDoc(complaintsRef, { name: finalComplaint, createdAt: new Date() });
+    }
+  }
+
+  // Handle Diagnosis
+  let diagnosisValue = document.getElementById("consult-diagnosis").value;
+  let newDiagnosisText = document.getElementById("new-diagnosis-input").value.trim();
+  let finalDiagnosis = diagnosisValue === "__add_new__" ? capitalizeFirstLetter(newDiagnosisText) : capitalizeFirstLetter(diagnosisValue);
+
+  if (diagnosisValue === "__add_new__" && finalDiagnosis === "") {
+    alert("Please enter a new diagnosis.");
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+    return;
+  }
+
+  // Save new diagnosis if needed
+  if (diagnosisValue === "__add_new__") {
+    const diagRef = collection(db, "diagnoses");
+    const snap = await getDocs(query(diagRef, where("name", "==", finalDiagnosis)));
+    if (snap.empty) {
+      await addDoc(diagRef, { name: finalDiagnosis, createdAt: new Date() });
+    }
+  }
+
+  // Prepare consultation data
+  const consultData = {
+    consultingDoctor: doctorName,
+    date: document.getElementById("consult-date").value,
+    time: document.getElementById("consult-time").value,
+    complaint: finalComplaint,
+    diagnosis: finalDiagnosis,
+    meds: medsDispensed,
+    notes: document.getElementById("consult-notes").value,
+    NurseOnDuty: currentUserName,
+    createdAt: new Date(),
+  };
+
+  try {
+    // Save consultation record
+    const consultRef = collection(db, "users", patientId, "consultations");
+    const newConsultDoc = await addDoc(consultRef, consultData);
+    const consultationId = newConsultDoc.id;
+
+    // Save complaint record
+    await addDoc(collection(db, "complaintRecords"), {
+      patientId,
+      complaint: consultData.complaint,
+      consultationId,
+      date: consultData.date,
     });
 
-    // ✅ Collect medicines
-    const medsDispensed = Array.from(document.querySelectorAll(".med-row"))
-      .map((row) => ({
-        name: row.querySelector(".med-name").value,
-        quantity: parseInt(row.querySelector(".med-qty").value) || 0,
-        type: row.querySelector(".med-type")?.value || "",
-        remarks: row.querySelector(".med-remarks")?.value || "",
-        NurseOnDuty: currentUserName,
-        date: medDate,
-        time: medTime,
-      }))
-      .filter((med) => med.name !== "");
-
-    // Capitalize first letter helper
-    function capitalizeFirstLetter(text) {
-      if (!text) return "";
-      return text.charAt(0).toUpperCase() + text.slice(1);
-    }
-
-    // Apply capitalization to complaint
-    let complaintValue = document.getElementById("consult-complaint").value;
-    let newComplaintText = document
-      .getElementById("new-complaint-input")
-      .value.trim();
-
-    // Capitalize helper
-    function capitalizeFirstLetter(text) {
-      if (!text) return "";
-      return text.charAt(0).toUpperCase() + text.slice(1);
-    }
-
-    // Determine final complaint
-    let finalComplaint = "";
-
-    // If user selected Add New
-    if (complaintValue === "__add_new__") {
-      finalComplaint = capitalizeFirstLetter(newComplaintText);
-
-      if (finalComplaint === "") {
-        alert("Please enter a new complaint.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        return;
-      }
-
-      // Save new complaint to Firestore
-      const complaintsRef = collection(db, "complaints");
-      const q = query(complaintsRef, where("name", "==", finalComplaint));
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        await addDoc(complaintsRef, {
-          name: finalComplaint,
-          createdAt: new Date(),
-        });
-      }
-    } else {
-      finalComplaint = capitalizeFirstLetter(complaintValue);
-    }
-    let diagnosisValue = document.getElementById("consult-diagnosis").value;
-    let newDiagnosisText = document
-      .getElementById("new-diagnosis-input")
-      .value.trim();
-
-    let finalDiagnosis = "";
-
-    // If user selected Add New
-    if (diagnosisValue === "__add_new__") {
-      finalDiagnosis = capitalizeFirstLetter(newDiagnosisText);
-
-      if (finalDiagnosis === "") {
-        alert("Please enter a new diagnosis.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        return;
-      }
-
-      // Save new diagnosis to Firestore
-      const diagRef = collection(db, "diagnoses");
-      const q = query(diagRef, where("name", "==", finalDiagnosis));
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        await addDoc(diagRef, {
-          name: finalDiagnosis,
-          createdAt: new Date(),
-        });
-      }
-    } else {
-      finalDiagnosis = capitalizeFirstLetter(diagnosisValue);
-    }
-    const consultData = {
-      consultingDoctor: doctorName,
-      date: document.getElementById("consult-date").value,
-      time: document.getElementById("consult-time").value,
-      complaint: finalComplaint,
-      diagnosis: finalDiagnosis,
-      meds: medsDispensed,
-      notes: document.getElementById("consult-notes").value,
-      NurseOnDuty: currentUserName,
-      createdAt: new Date(),
-    };
-
-    try {
-      // ✅ Save Consultation Record
-      const consultRef = collection(db, "users", patientId, "consultations");
-      const newConsultDoc = await addDoc(consultRef, consultData);
-      const consultationId = newConsultDoc.id;
-      console.log("✅ New Consultation ID:", consultationId);
-
-      console.log("✅ PatientVisits logged.");
-
-      await addDoc(collection(db, "complaintRecords"), {
-        patientId,
-        complaint: consultData.complaint,
-        consultationId: consultationId,
-        date: consultData.date,
-      });
-
-      // ✅ Deduct medicine stock
-      for (const med of medsDispensed) {
-        if (med.name && med.quantity > 0) {
-          const invRef = collection(db, "MedicineInventory");
-          const q = query(invRef, where("name", "==", med.name));
-          const snapshot = await getDocs(q);
-
-          if (!snapshot.empty) {
-            const medDoc = snapshot.docs[0];
-            const data = medDoc.data();
-            const newStock = Math.max((data.stock || 0) - med.quantity, 0);
-            const newDispensed = (data.dispensed || 0) + med.quantity;
-
-            await updateDoc(medDoc.ref, {
-              stock: newStock,
-              dispensed: newDispensed,
-            });
-
-            console.log(
-              `✅ ${med.name} stock updated: ${
-                data.stock || 0
-              } → ${newStock}, dispensed: ${
-                data.dispensed || 0
-              } → ${newDispensed}`
-            );
-          } else {
-            console.warn(`⚠️ Medicine not found in inventory: ${med.name}`);
-          }
+    // Deduct medicines
+    for (const med of medsDispensed) {
+      if (med.name && med.quantity > 0) {
+        const invRef = collection(db, "MedicineInventory");
+        const snap = await getDocs(query(invRef, where("name", "==", med.name)));
+        if (!snap.empty) {
+          const medDoc = snap.docs[0];
+          const data = medDoc.data();
+          const newStock = Math.max((data.stock || 0) - med.quantity, 0);
+          const newDispensed = (data.dispensed || 0) + med.quantity;
+          await updateDoc(medDoc.ref, { stock: newStock, dispensed: newDispensed });
         }
       }
-
-      // ✅ Save edit log in subcollection
-      const editLogRef = collection(db, "users", patientId, "editLogs");
-      await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
-          "en-US",
-          {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }
-        )}`,
-        timestamp: new Date(),
-        editor: currentUserName,
-        section: "Medical Consultation Record",
-      });
-
-      alert("✅ Consultation Record Saved + Visit Logged + Medicine Deducted!");
-      closeButtonOverlay();
-      loadConsultations();
-      loadComplaints();
-      loadMedicineOptions();
-    } catch (err) {
-      console.error("❌ Error adding consultation:", err);
-      alert("Failed to save consultation record.");
-    } finally {
-      submitBtn.disabled = false; // Re-enable button
-      submitBtn.textContent = originalText; // Restore original text
     }
-  });
+
+    // Save edit log
+    const editLogRef = collection(db, "users", patientId, "editLogs");
+    await addDoc(editLogRef, {
+      message: `Edited by ${currentUserName} · ${new Date().toLocaleString("en-US", { month:"long", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit", hour12:true })}`,
+      timestamp: new Date(),
+      editor: currentUserName,
+      section: "Medical Consultation Record",
+    });
+
+    alert("✅ Consultation Record Saved + Visit Logged + Medicine Deducted!");
+    
+   addConsultationModal.hide();
+    // Reload data
+    loadConsultations();
+    loadComplaints();
+    loadMedicineOptions();
+
+  } catch (err) {
+    console.error("❌ Error adding consultation:", err);
+    alert("Failed to save consultation record.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+});
+
 
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
