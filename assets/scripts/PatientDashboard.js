@@ -10,6 +10,7 @@ import {
   setDoc,
   addDoc,
   orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
@@ -937,7 +938,53 @@ onAuthStateChanged(auth, (user) => {
     currentUserId = user.uid;
     loadAppointments();
     loadNextAppointment();
+    loadBorrowedItemsCard();
   }
 });
 
 // Also call loadAppointments() after a new appointment is booked
+async function loadBorrowedItemsCard() {
+  const container = document.getElementById("borrowed-items-card");
+  container.innerHTML = `<p class="text-muted mb-0">Loading...</p>`;
+
+  try {
+    const q = query(
+      collection(db, "ClinicInventory"),
+      where("borrowerId", "==", currentUserId),
+      limit(3)
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      container.innerHTML = `
+        <p class="text-muted mb-0">No borrowed items</p>
+      `;
+      return;
+    }
+
+    let html = `<ul class="list-group list-group-flush">`;
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      html += `
+        <li class="list-group-item px-0">
+          <div class="fw-semibold">${data.itemName}</div>
+          <small class="text-muted">
+            Qty: ${data.quantity} • ${data.dateBorrowed}
+          </small>
+        </li>
+      `;
+    });
+
+    html += `</ul>`;
+    container.innerHTML = html;
+
+  } catch (err) {
+    console.error("Error loading borrowed items:", err);
+    container.innerHTML = `
+      <p class="text-danger mb-0">Failed to load borrowed items</p>
+    `;
+  }
+}

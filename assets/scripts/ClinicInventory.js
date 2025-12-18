@@ -6,7 +6,24 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+function setToCurrentDate() {
+  const now = new Date();
+
+  // Format date (YYYY-MM-DD)
+  const date = now.toLocaleDateString("en-CA");
+
+  // Format time (HH:MM 24-hour)
+  const time = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  document.getElementById("date-borrowed").value = date;
+}
+setToCurrentDate();
 
 function formatDateLabel(dateStr) {
   const date = new Date(dateStr);
@@ -15,6 +32,24 @@ function formatDateLabel(dateStr) {
     day: "numeric",
     year: "numeric",
   });
+
+}
+
+function formatTimeFromString(timeStr) {
+  // timeStr should be in "HH:MM" format (e.g., "08:45" or "15:30")
+  const [hours, minutes] = timeStr.split(":");
+  let hour = parseInt(hours, 10);
+  const period = hour >= 12 ? "PM" : "AM";
+
+  // Convert to 12-hour format
+  if (hour === 0) {
+    hour = 12; // Midnight
+  } else if (hour > 12) {
+    hour -= 12;
+  }
+
+  // Remove leading zero and format minutes (keep 2 digits)
+  return `${hour}:${minutes} ${period}`;
 }
 const form = document.getElementById("add-borrower-form");
 const tableBody = document.getElementById("clinic-table-body");
@@ -34,48 +69,110 @@ function isOlderThan(dateString, days) {
   const diffDays = diffMs / (1000 * 60 * 60 * 24);
   return diffDays > days;
 }
+// ============================
+// Borrowing form: Load borrowers into select
+// ===========================
+const borrowerSelect = document.getElementById("borrower-name");
+
+async function loadNames() {
+  borrowerSelect.innerHTML =
+    `<option value="" selected disabled>Loading borrowers...</option>`;
+
+  try {
+    const usersRef = collection(db, "users");
+
+    const q = query(
+      usersRef,
+      where("user_type", "in", ["student", "employee"])
+    );
+
+    const snapshot = await getDocs(q);
+
+    borrowerSelect.innerHTML =
+      `<option value="" selected disabled>Select borrower</option>`;
+
+    snapshot.forEach((doc) => {
+      const user = doc.data();
+
+      const option = document.createElement("option");
+      option.value = doc.id; // or user.fullName if preferred
+      option.textContent = `${user.firstName} ${user.lastName}`;
+      
+      borrowerSelect.appendChild(option);
+    });
+
+  } catch (error) {
+    console.error("Failed to load borrowers:", error);
+    borrowerSelect.innerHTML =
+      `<option value="" disabled>Error loading borrowers</option>`;
+  }
+}
+
+// Load on page ready
+loadNames();
 
 // Submit new borrower
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const submitBtn = form.querySelector('button[type="submit"]');
-  submitBtn.disabled = true; // Prevent double clicks
+  submitBtn.disabled = true;
   const originalText = submitBtn.textContent;
-  submitBtn.textContent = "Saving..."; // Optional loading text
+  submitBtn.textContent = "Saving...";
+
+  const borrowerSelect = document.getElementById("borrower-name");
+  const selectedOption =
+    borrowerSelect.options[borrowerSelect.selectedIndex];
+
+  if (!borrowerSelect.value) {
+    alert("Please select a borrower.");
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+    return;
+  }
 
   const now = new Date();
-  const currentDate = now.toISOString().split("T")[0];
+  const currentDate = now.toLocaleDateString("en-CA"); // YYYY-MM-DD
   const currentTime = now.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 
-  const borrower = {
-    itemName: document.getElementById("item-name").value,
-    quantity: parseInt(document.getElementById("quantity").value),
-    borrowerName: document.getElementById("borrower-name").value,
+  const borrowerData = {
+    itemName: document.getElementById("item-name").value.trim(),
+    quantity: parseInt(document.getElementById("quantity").value, 10),
+
+    // ✅ Borrower info
+    borrowerId: borrowerSelect.value, // Firestore user ID
+    borrowerName: selectedOption.text, // Human-readable name
+
     personnel: currentUserName || "Unknown User",
-    dateBorrowed: `${formatDateLabel(currentDate)} ${currentTime}`,
+    dateBorrowed: `${formatDateLabel(currentDate)} ${formatTimeFromString(currentTime)}`,
     status: "Borrowed",
     dateReturned: "",
+
     createdAt: new Date(),
   };
 
   try {
-    await addDoc(collection(db, "ClinicInventory"), borrower);
+    await addDoc(collection(db, "ClinicInventory"), borrowerData);
+
     alert("✅ Borrower added successfully!");
     form.reset();
     closeButtonOverlay();
     loadBorrowers();
+
   } catch (error) {
     console.error("Error adding borrower:", error);
     alert("⚠️ Failed to add borrower. Check console.");
+
   } finally {
-    submitBtn.disabled = false; // Re-enable button
-    submitBtn.textContent = originalText; // Restore original text
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
   }
 });
+
 
 // ✅ Load borrowers and clean up old returned ones
 async function loadBorrowers() {

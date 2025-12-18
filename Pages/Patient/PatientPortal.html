@@ -139,6 +139,19 @@
                     </div>
                   </div>
                 </div>
+                <div class="col-md-4">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <h3 class="h5 text-primary">
+                        <i class="fas fa-box-open me-2"></i> Borrowed Items
+                      </h3>
+
+                      <div id="borrowed-items-card">
+                        <p class="text-muted mb-0">Loading...</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -735,52 +748,46 @@
       </div>
     </div>
     <!-- Cancel Appointment Modal -->
-<div class="modal fade" id="cancelModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title text-danger">
-          Cancel Appointment
-        </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-        ></button>
-      </div>
+    <div class="modal fade" id="cancelModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-danger">Cancel Appointment</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
 
-      <div class="modal-body">
-        <p class="mb-2">Please provide a reason for cancellation:</p>
-        <textarea
-          id="cancelReasonInput"
-          class="form-control"
-          rows="3"
-          placeholder="Enter reason..."
-        ></textarea>
-        <small class="text-muted">
-          This will be visible to clinic staff.
-        </small>
-      </div>
+          <div class="modal-body">
+            <p class="mb-2">Please provide a reason for cancellation:</p>
+            <textarea
+              id="cancelReasonInput"
+              class="form-control"
+              rows="3"
+              placeholder="Enter reason..."
+            ></textarea>
+            <small class="text-muted">
+              This will be visible to clinic staff.
+            </small>
+          </div>
 
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          data-bs-dismiss="modal"
-        >
-          Close
-        </button>
-        <button
-          type="button"
-          class="btn btn-danger"
-          id="confirmCancelBtn"
-        >
-          Confirm Cancel
-        </button>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmCancelBtn">
+              Confirm Cancel
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
     <!-- Footer -->
     <footer class="footer-container">
