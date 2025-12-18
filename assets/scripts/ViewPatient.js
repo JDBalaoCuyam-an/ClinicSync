@@ -37,18 +37,6 @@ function formatDateLabel(dateStr) {
 /* -----------------------------------------------
      🔹 LOAD PATIENT DATA (with medicalHistory subcollection)
   ----------------------------------------------- */
-  // Helper: calculate age from birthdate string "YYYY-MM-DD"
-function calculateAge(birthdateStr) {
-  if (!birthdateStr) return "";
-  const today = new Date();
-  const birthDate = new Date(birthdateStr);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-}
 async function loadPatient() {
   if (!patientId) return;
 
@@ -83,7 +71,6 @@ async function loadPatient() {
       extName: data.extName || "",
       gender: data.gender || "",
       birthdate: data.birthdate || "",
-      age: data.age || "",
       civilStatus: data.civilStatus || "",
       nationality: data.nationality || "",
       religion: data.religion || "",
@@ -93,6 +80,29 @@ async function loadPatient() {
     Object.keys(infoFields).forEach((key) => {
       const input = document.getElementById(key);
       if (input) input.value = infoFields[key];
+    });
+
+    // Auto-calculate age from birthdate
+    const birthdateInput = document.getElementById("birthdate");
+    const ageInput = document.getElementById("age");
+
+    function calculateAge(dateStr) {
+      if (!dateStr) return "";
+      const today = new Date();
+      const birthDate = new Date(dateStr);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    }
+
+    ageInput.value = calculateAge(birthdateInput.value);
+
+    // Recalculate age whenever birthdate changes
+    birthdateInput.addEventListener("input", () => {
+      ageInput.value = calculateAge(birthdateInput.value);
     });
 
     /* 🧩 Select fields */
@@ -126,7 +136,7 @@ async function loadPatient() {
     if (!historySnap.empty) {
       const latestHistory = historySnap.docs[0].data();
 
-      // 🧩 Textareas (Past Medical, Family, Surgical, Supplements, Allergies)
+      // 🧩 Textareas
       const medTextareas = document.querySelectorAll(
         ".medical-history-content textarea"
       );
@@ -185,6 +195,7 @@ async function loadPatient() {
     console.error("Error fetching patient:", err);
   }
 }
+
 
 /* -----------------------------------------------
      🔹 EDIT/SAVE CONTACT DETAILS
