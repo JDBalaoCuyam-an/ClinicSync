@@ -231,52 +231,7 @@
           </div>
         </div>
       </div>
-      <!-- Reschedule Modal -->
-      <div
-        class="modal fade"
-        id="rescheduleModal"
-        tabindex="-1"
-        aria-labelledby="rescheduleModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog">
-          <form id="rescheduleForm" class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="rescheduleModalLabel">
-                Reschedule Appointment
-              </h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body">
-              <input type="hidden" id="rescheduleApptId" />
-              <div class="mb-3">
-                <label for="newDate" class="form-label">New Date</label>
-                <input type="date" class="form-control" id="newDate" required />
-              </div>
-              <div class="mb-3">
-                <label for="newSlot" class="form-label">New Time Slot</label>
-                <input type="time" class="form-control" id="newSlot" required />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Cancel
-              </button>
-              <button type="submit" class="btn btn-warning">Reschedule</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
+    
       <!-- Finished Appointments (Table) -->
       <div class="row mt-4">
         <div class="col-12 col-lg-8 bg-success bg-opacity-10 p-4 rounded-3">
@@ -319,7 +274,7 @@
           </div>
         </div>
       </div>
-
+      
       <!-- No Show Appointments -->
       <div class="row mt-4">
         <div class="col-12 col-lg-8 bg-warning bg-opacity-10 p-4 rounded-3">

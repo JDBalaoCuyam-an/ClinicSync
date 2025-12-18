@@ -9,7 +9,7 @@ import {
   updateDoc,
   setDoc,
   addDoc,
-  orderBy
+  orderBy,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
@@ -278,7 +278,14 @@ async function loadStaff() {
           if (a.slots && a.slots.length) {
             availabilityHtml += `<li>
               <strong>${formatDateLabel(a.date)} (${a.weekday})</strong>:<br>
-              ${a.slots.map((s) => `${formatTimeFromString(s.start)} - ${formatTimeFromString(s.end)}`).join("<br>")}
+              ${a.slots
+                .map(
+                  (s) =>
+                    `${formatTimeFromString(s.start)} - ${formatTimeFromString(
+                      s.end
+                    )}`
+                )
+                .join("<br>")}
             </li>`;
           }
         });
@@ -505,7 +512,7 @@ document.getElementById("confirmBookingBtn").onclick = async () => {
       date: selectedDate,
       slot: selectedSlot,
       reason: reason, // <--- Save the reason
-      status: "InQueue",
+      status: "Pending",
       createdAt: new Date(), // client-side timestamp
     });
 
@@ -552,13 +559,31 @@ async function loadAppointments() {
 
     // Collect appointments and sort by date (client-side)
     let appointments = [];
-    snap.forEach(docSnap => appointments.push(docSnap.data()));
-    appointments.sort((a, b) => a.date.localeCompare(b.date));
+    snap.forEach((docSnap) => appointments.push({ id: docSnap.id, ...docSnap.data() }));
+    const statusPriority = {
+      Accepted: 1,
+      Pending: 2,
+      Cancelled: 3,
+      Finished: 3,
+      "No Show": 3,
+    };
+
+    appointments.sort((a, b) => {
+      const aPriority = statusPriority[a.status] ?? 4;
+      const bPriority = statusPriority[b.status] ?? 4;
+
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority; // sort by priority
+      }
+
+      // Same priority → sort by date
+      return a.date.localeCompare(b.date);
+    });
 
     let count = 0;
-    const todayStr = new Date().toISOString().slice(0,10); // "YYYY-MM-DD"
+    const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
 
-    appointments.forEach(appt => {
+    appointments.forEach((appt) => {
       count++;
 
       const isPast = appt.date < todayStr;
@@ -567,27 +592,65 @@ async function loadAppointments() {
       colDiv.className = "col-12 mb-2";
 
       colDiv.innerHTML = `
-        <div class="card p-2 border shadow-sm">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <strong>${appt.staffName}</strong>
-              <p class="m-0 text-secondary">${formatDateLabel(appt.date)} (${appt.slot})</p>
-              <p class="m-0 text-muted"><small>Reason: ${appt.reason}</small></p>
-            </div>
-            <div>
-              <span class="badge ${isPast ? 'bg-secondary' : 'bg-primary'}">
-                ${isPast ? 'Past' : 'Upcoming'}
-              </span>
-            </div>
-          </div>
-        </div>
-      `;
+  <div class="card p-3 border shadow-sm position-relative">
+
+    <!-- CANCEL BUTTON TOP RIGHT -->
+    ${
+      !isPast && (appt.status === "Pending" || appt.status === "Accepted")
+        ? `<button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 cancel-btn">
+             Cancel
+           </button>`
+        : ``
+    }
+
+    <div class="row align-items-center g-2">
+      <!-- DETAILS -->
+      <div class="col-12">
+        <strong class="d-block">${appt.staffName}</strong>
+
+        <small class="text-secondary d-block">
+          ${formatDateLabel(appt.date)} (${appt.slot})
+        </small>
+
+        <small class="text-muted d-block">
+          Reason: ${appt.reason}
+        </small>
+
+        <span class="badge mt-2 ${
+          appt.status === "Finished" ? "bg-success" :
+          appt.status === "No Show" ? "bg-warning text-dark" :
+          appt.status === "Accepted" ? "bg-primary" :
+          appt.status === "Cancelled" ? "bg-danger" :
+          "bg-secondary"
+        }">
+          ${appt.status ?? "Pending"}
+        </span>
+      </div>
+    </div>
+  </div>
+`;
+
+
+      const cancelBtn = colDiv.querySelector(".cancel-btn");
+
+      if (cancelBtn) {
+        cancelBtn.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "appointments", appt.id), {
+              status: "Cancelled",
+            });
+            loadAppointments(); // refresh list
+          } catch (err) {
+            console.error(err);
+            alert("Failed to cancel appointment");
+          }
+        });
+      }
 
       appointmentsList.appendChild(colDiv);
     });
 
     appointmentsCount.textContent = count;
-
   } catch (err) {
     console.error("Error loading appointments:", err);
     const appointmentsList = document.getElementById("appointments-list");

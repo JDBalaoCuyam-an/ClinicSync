@@ -49,7 +49,6 @@ function formatTo12Hour(time) {
   return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
 }
 
-
 function formatDateLabel(dateStr) {
   const date = new Date(dateStr);
   return date.toLocaleDateString("en-US", {
@@ -626,7 +625,12 @@ async function loadClinicAppointments() {
     const container = document.getElementById("appointments-container");
     container.innerHTML = `<p class="text-muted text-center">Loading appointments...</p>`;
 
-    const snap = await getDocs(collection(db, "appointments"));
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "Pending")
+    );
+
+    const snap = await getDocs(q);
 
     if (snap.empty) {
       container.innerHTML = `<p class="text-muted text-center">No appointments found.</p>`;
@@ -708,6 +712,56 @@ async function loadClinicAppointments() {
     </div>
   </div>
 `;
+        const acceptBtn = item.querySelector(".accept-btn");
+
+        acceptBtn.addEventListener("click", async () => {
+          try {
+            acceptBtn.disabled = true;
+            acceptBtn.innerText = "Accepting...";
+
+            // 1️⃣ Update appointment status in Firestore
+            await updateDoc(doc(db, "appointments", appt.id), {
+              status: "Accepted",
+            });
+
+            // 2️⃣ Refresh accepted appointments UI
+            loadAcceptedAppointments();
+
+            // 3️⃣ Remove card from Pending list
+            item.remove();
+
+            // 4️⃣ Send EmailJS notification to patient
+            const dateObj = new Date(appt.date);
+            const emailParams = {
+              patient_name: appt.patientName,
+              day: dateObj.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+              weekday: dateObj.toLocaleDateString("en-US", { weekday: "long" }),
+              slot: appt.slot,
+              status: "Accepted",
+              patient_email: appt.patientEmail, // Make sure you have the patient email stored in the appointment
+            };
+
+            emailjs
+              .send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", emailParams)
+              .then(() => {
+                console.log("Email sent to patient successfully.");
+              })
+              .catch((err) => {
+                console.error("Failed to send email:", err);
+              });
+
+            console.log("Appointment accepted");
+          } catch (err) {
+            console.error("Failed to accept appointment:", err);
+            acceptBtn.disabled = false;
+            acceptBtn.innerText = "Accept";
+            alert("Failed to accept appointment.");
+          }
+        });
 
         listGroup.appendChild(item);
       });
@@ -722,3 +776,294 @@ async function loadClinicAppointments() {
   }
 }
 loadClinicAppointments();
+
+async function loadAcceptedAppointments() {
+  try {
+    const container = document.getElementById(
+      "accepted-appointments-container"
+    );
+
+    container.innerHTML = `
+      <p class="text-center text-muted">Loading accepted appointments...</p>
+    `;
+
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "Accepted")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      container.innerHTML = `
+        <p class="text-center text-muted">No accepted appointments yet</p>
+      `;
+      return;
+    }
+
+    container.innerHTML = "";
+
+    snap.forEach((docSnap) => {
+      const appt = { id: docSnap.id, ...docSnap.data() };
+
+      const col = document.createElement("div");
+      col.className = "col-12 col-md-6";
+
+      col.innerHTML = `
+  <div class="card shadow-sm h-100 border-primary">
+    <div class="card-body d-flex flex-column">
+      <div class="d-flex justify-content-between mb-2">
+        <h5 class="mb-0">${appt.patientName}</h5>
+        <span class="badge bg-success">Accepted</span>
+      </div>
+
+      <p class="mb-1">
+        <i class="bi bi-calendar-event"></i>
+        ${formatDateLabel(appt.date)}
+      </p>
+
+      <p class="mb-1">
+        <i class="bi bi-clock"></i>
+        ${appt.slot}
+      </p>
+
+      <p class="mb-2">
+        <strong>Staff:</strong> ${appt.staffName}
+      </p>
+
+      <p class="text-muted mb-3">
+        <small><strong>Reason:</strong> ${appt.reason}</small>
+      </p>
+
+      <div class="mt-auto d-flex gap-2">
+        <button class="btn btn-success btn-sm done-btn w-100">
+          Done
+        </button>
+        <button class="btn btn-warning btn-sm no-show-btn w-100">
+          No Show
+        </button>
+      </div>
+    </div>
+  </div>
+`;
+      const doneBtn = col.querySelector(".done-btn");
+      const noShowBtn = col.querySelector(".no-show-btn");
+
+      doneBtn.addEventListener("click", async () => {
+        try {
+          await updateDoc(doc(db, "appointments", appt.id), {
+            status: "Finished",
+          });
+          loadFinishedAppointments();
+
+          col.remove();
+        } catch (err) {
+          console.error(err);
+          alert("Failed to mark as Finished");
+        }
+      });
+
+      noShowBtn.addEventListener("click", async () => {
+        try {
+          await updateDoc(doc(db, "appointments", appt.id), {
+            status: "No Show",
+          });
+          loadNoShowAppointments();
+
+          col.remove();
+        } catch (err) {
+          console.error(err);
+          alert("Failed to mark as No Show");
+        }
+      });
+
+      container.appendChild(col);
+    });
+  } catch (err) {
+    console.error("Error loading accepted appointments:", err);
+    document.getElementById("accepted-appointments-container").innerHTML = `
+      <p class="text-danger text-center">
+        Failed to load accepted appointments.
+      </p>
+    `;
+  }
+}
+loadAcceptedAppointments();
+
+async function loadFinishedAppointments() {
+  try {
+    const tbody = document.getElementById("finished-appointments-body");
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted p-3">
+          Loading...
+        </td>
+      </tr>
+    `;
+
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "Finished")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted p-3">
+            No finished appointments found.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = "";
+
+    snap.forEach((docSnap) => {
+      const appt = { id: docSnap.id, ...docSnap.data() };
+
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${appt.patientName}</td>
+        <td>${appt.staffName}</td>
+        <td>${formatDateLabel(appt.date)}</td>
+        <td>${appt.slot}</td>
+        <td>${appt.reason}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error loading finished appointments:", err);
+    document.getElementById("finished-appointments-body").innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-danger p-3">
+          Failed to load finished appointments.
+        </td>
+      </tr>
+    `;
+  }
+}
+
+loadFinishedAppointments();
+
+async function loadNoShowAppointments() {
+  try {
+    const tbody = document.getElementById("no-show-appointments-body");
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted p-3">
+          Loading...
+        </td>
+      </tr>
+    `;
+
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "No Show")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted p-3">
+            No no-show appointments found.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = "";
+
+    snap.forEach((docSnap) => {
+      const appt = { id: docSnap.id, ...docSnap.data() };
+
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${appt.patientName}</td>
+        <td>${appt.staffName}</td>
+        <td>${formatDateLabel(appt.date)}</td>
+        <td>${appt.slot}</td>
+        <td>${appt.reason}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error loading no-show appointments:", err);
+    document.getElementById("no-show-appointments-body").innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-danger p-3">
+          Failed to load no-show appointments.
+        </td>
+      </tr>
+    `;
+  }
+}
+
+loadNoShowAppointments();
+async function loadCancelledAppointments() {
+  try {
+    const tbody = document.getElementById("canceled-appointments-body");
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted p-3">
+          Loading...
+        </td>
+      </tr>
+    `;
+
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "Cancelled")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted p-3">
+            No cancelled appointments found.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = "";
+
+    snap.forEach((docSnap) => {
+      const appt = { id: docSnap.id, ...docSnap.data() };
+
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${appt.patientName}</td>
+        <td>${appt.staffName}</td>
+        <td>${formatDateLabel(appt.date)}</td>
+        <td>${appt.slot}</td>
+        <td>${appt.reason}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error loading cancelled appointments:", err);
+    document.getElementById("canceled-appointments-body").innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-danger p-3">
+          Failed to load cancelled appointments.
+        </td>
+      </tr>
+    `;
+  }
+}
+loadCancelledAppointments();
