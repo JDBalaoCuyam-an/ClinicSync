@@ -2,16 +2,7 @@
 /* ======================================================
    🔹 BUTTONS
 ====================================================== */
-#back-to-lists,
-#exportPDF {
-  background: #4682b4;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin: 10px 10px;
-}
+
 
 /* 🔹 Overview Details */
 .overview-details {
