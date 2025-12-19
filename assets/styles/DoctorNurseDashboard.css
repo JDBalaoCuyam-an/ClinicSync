@@ -83,15 +83,15 @@ body {
 }
 
 /* ===== DASHBOARD GRID ===== */
-.dashboard-grid {
+/* .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   width: 100%;
-}
+} */
 
 /* Make the first card span across both columns */
-.dashboard-grid > :first-child {
+/* .dashboard-grid > :first-child {
   grid-column: 1 / span 2;
 }
 
@@ -126,10 +126,10 @@ body {
   color: #2c3e50;
   display: flex;
   align-items: center;
-}
+} */
 
 /* ===== CHART CONTROLS ===== */
-.chart-controls {
+/* .chart-controls {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -162,10 +162,10 @@ body {
   border: 1px solid #ccc;
   font-size: 14px;
   width: 155px;
-}
+} */
 
 /* ===== COMBINED CARD LAYOUT ===== */
-.combined-visits-card {
+/* .combined-visits-card {
   padding: 20px;
 }
 
@@ -190,21 +190,21 @@ body {
   flex: 1;
   overflow-y: auto;
   padding-right: 4px;
-}
+} */
 
 /* SAME HEIGHT AS OTHER CARDS */
 
-
+/* 
 .chart-card.full-width {
   height: auto;
 }
 
 .combined-visits-card {
   height: 380px;
-}
+} */
 
 /* ===== CHART HEADER STYLES ===== */
-.chart-header {
+/* .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -222,16 +222,24 @@ body {
   flex-wrap: wrap;
   gap: 10px;
 }
+*/
 
-/* ===== CHART ELEMENTS ===== */
+
+/* Strictly Do Not DELETE */
+/* Strictly Do Not DELETE */
+/* Strictly Do Not DELETE */
 canvas {
   max-height: 300px;
   width: 100% !important;
   flex: 1;
 }
+/* Strictly Do Not DELETE */
+/* Strictly Do Not DELETE */
+/* Strictly Do Not DELETE */
+
 
 /* ===== APPOINTMENTS LIST ===== */
-.appointments-list {
+/* .appointments-list {
   max-height: 300px;
   overflow-y: auto;
   display: flex;
@@ -284,7 +292,7 @@ canvas {
   padding: 4px 8px;
   border-radius: 4px;
   font-weight: 600;
-}
+} */
 
 /* ===== ENHANCED RESPONSIVE DESIGN ===== */
 
@@ -296,9 +304,6 @@ canvas {
     margin: 0 auto;
   }
   
-  .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .chart-card.full-width {
     grid-column: 1 / -1;
@@ -326,13 +331,8 @@ canvas {
 
 /* Small Desktop / Large Tablet */
 @media (max-width: 1200px) {
-  .combined-grid {
-    grid-template-columns: 1.5fr 1fr;
-  }
   
-  .chart-filter {
-    width: 140px;
-  }
+
 }
 
 /* Tablet Breakpoint */
@@ -349,19 +349,7 @@ canvas {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .combined-grid {
-    grid-template-columns: 1fr;
-    gap: 25px;
-  }
-  
-  .combined-visits-card {
-    height: auto;
-  }
-  
-  .visits-section, 
-  .appointments-section {
-    min-height: 300px;
-  }
+
 }
 
 /* Small Tablet Breakpoint */
@@ -382,27 +370,7 @@ canvas {
     grid-template-columns: 1fr;
   }
 
-  .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
 
-  .chart-controls {
-    align-self: stretch;
-    justify-content: flex-start;
-  }
-  
-  .chart-filter {
-    flex: 1;
-    min-width: 120px;
-  }
-  
-  .appointment-item {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    text-align: center;
-  }
 }
 
 /* Mobile Breakpoint */
@@ -491,10 +459,7 @@ canvas {
   .chart-card {
     height: 420px;
   }
-  
-  .combined-visits-card {
-    height: 420px;
-  }
+
 }
 
 /* Print styles */

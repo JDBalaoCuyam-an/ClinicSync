@@ -6,15 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ClinicSync - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="../../assets/styles/globalCSS.css" />
   <link rel="stylesheet" href="../../assets/styles/DoctorNurseDashboard.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/vfs_fonts.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/vfs_fonts.js"></script>
 
 </head>
 
@@ -24,45 +21,44 @@
     color: inherit;
   }
 </style>
+
 <body>
   <!-- NavBar -->
   <div id="back-to-top"></div>
   <header class="navbar">
-  <div class="container-fluid">
-    <!-- LEFT SIDE – Your exact menu icon + title -->
-    <div class="left-header d-flex align-items-center">
-      <!-- This is your original ☰ icon – unchanged -->
-      <div class="menu-icon text-white me-3" 
-           onclick="toggleSidebar()" 
-           style="font-size: 28px; cursor: pointer; padding: 0 10px;">
-        &#9776;
+    <div class="container-fluid">
+      <!-- LEFT SIDE – Your exact menu icon + title -->
+      <div class="left-header d-flex align-items-center">
+        <!-- This is your original ☰ icon – unchanged -->
+        <div class="menu-icon text-white me-3" onclick="toggleSidebar()"
+          style="font-size: 28px; cursor: pointer; padding: 0 10px;">
+          &#9776;
+        </div>
+        <h1 class="mb-0 text-white fs-4 fw-bold">ClinicSync</h1>
       </div>
-      <h1 class="mb-0 text-white fs-4 fw-bold">ClinicSync</h1>
+
+      <!-- RIGHT SIDE – User info + logout (still responsive) -->
+      <div class="right-header d-flex align-items-center gap-3">
+
+        <div class="user-name text-white d-none d-sm-block" id="displayName">
+          Dr. Juan Dela Cruz
+        </div>
+
+        <div class="rounded-circle"
+          style="width: 40px; height: 40px; background-color: aliceblue; border: 2px solid rgba(255,255,255,0.3);">
+        </div>
+
+        <div class="logout-container">
+          <form class="m-0">
+            <button type="submit" id="logout-button" class="btn btn-link text-white p-0" title="Logout">
+              <i class="fa-solid fa-right-from-bracket fa-lg"></i>
+            </button>
+          </form>
+        </div>
+
+      </div>
     </div>
-
-    <!-- RIGHT SIDE – User info + logout (still responsive) -->
-    <div class="right-header d-flex align-items-center gap-3">
-
-      <div class="user-name text-white d-none d-sm-block" id="displayName">
-        Dr. Juan Dela Cruz
-      </div>
-
-      <div class="rounded-circle" 
-           style="width: 40px; height: 40px; background-color: aliceblue; border: 2px solid rgba(255,255,255,0.3);">
-      </div>
-
-      <div class="logout-container">
-        <form class="m-0">
-          <button type="submit" id="logout-button" 
-                  class="btn btn-link text-white p-0" title="Logout">
-            <i class="fa-solid fa-right-from-bracket fa-lg"></i>
-          </button>
-        </form>
-      </div>
-
-    </div>
-  </div>
-</header>
+  </header>
   <!-- SideBar -->
   <div id="sidebar-container"></div>
   <div id="overlay" class="overlay"></div>
@@ -73,12 +69,12 @@
     <div class="summary-cards">
       <!-- Today's Patients -->
       <a href="#dashboard-grid" class="summary-card">
-  <div class="card-icon"><i class="fas fa-user-friends"></i></div>
-  <div class="card-content">
-    <div class="card-value" id="thisMonthVisits">0</div>
-    <div class="card-label">This Month's Visits</div>
-  </div>
-</a>
+        <div class="card-icon"><i class="fas fa-user-friends"></i></div>
+        <div class="card-content">
+          <div class="card-value" id="thisMonthVisits">0</div>
+          <div class="card-label">This Month's Visits</div>
+        </div>
+      </a>
 
 
 
@@ -103,156 +99,157 @@
     </div>
 
     <!-- Main Dashboard Grid -->
-    <div id="dashboard-grid" class="dashboard-grid">
-      <div id="patient-visit-chart" class="chart-card full-width combined-visits-card">
-        <div class="combined-grid">
-          <div class="visits-section">
-            <div class="chart-header">
-              <div class="chart-title"><i class="fas fa-chart-line"></i> Patient Visits<button id="exportImageBtn" class="btn btn-success">
-  Export Chart
-</button>
+    <div class="container-fluid py-3">
 
-</div>
-              <div class="chart-controls">
-  <select class="chart-filter" name="department" id="department">
-    <option value="all-dept">All Department</option>
-    <option value="CABM">CABM</option>
-    <option value="CCJE">CCJE</option>
-    <option value="CIT">CIT</option>
-    <option value="COT">COT</option>
-    <option value="TTED">TTED</option>
-    <option value="CTE">CTE</option>
-    <option value="BasicEd">BasicEd</option>
-  </select>
+      <!-- ===============================
+       Patient Visits Chart
+  ================================ -->
+      <div class="card shadow-sm mb-4 w-100">
+        <div class="card-body">
 
-  <select class="chart-filter" name="course" id="course">
-    <option value="all-course-strand-genEduc">All Course/Strand/GenEduc</option>
-    <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
-    <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
-    <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
-    <option value="Bachelor of Science in Office Administration">Bachelor of Science in Office Administration</option>
-    <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business Administration</option>
-    <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
-    <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
-    <option value="Bachelor of Science in Social Work">Bachelor of Science in Social Work</option>
-    <option value="Bachelor of Secondary Education">Bachelor of Secondary Education</option>
-    <option value="Technical Vocational Teacher Education">Technical Vocational Teacher Education</option>
-    <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
-    <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
-    <option value="Bachelor of Theology">Bachelor of Theology</option>
-    <option value="Accountancy and Business Management">Accountancy and Business Management</option>
-    <option value="Science, Technology, Engineering, and Mathematics">Science, Technology, Engineering, and Mathematics</option>
-    <option value="Humanities and Sciences">Humanities and Sciences</option>
-    <option value="Junior Highschool">Junior Highschool</option>
-    <option value="Elementary">Elementary</option>
-    <option value="Kindergarten">Kindergarten</option>
-  </select>
-
-  <select class="chart-filter" name="yearLevel" id="yearLevel">
-    <option value="all-year">All Year Levels</option>
-    <option value="1">1st Year</option>
-    <option value="2">2nd Year</option>
-    <option value="3">3rd Year</option>
-    <option value="4">4th Year</option>
-    <option value="5">5th Year</option>
-    <option value="6">6th Year</option>
-    <option value="7">7th Year</option>
-    <option value="8">8th Year</option>
-    <option value="9">9th Year</option>
-    <option value="10">10th Year</option>
-    <option value="11">11th Year</option>
-    <option value="12">12th Year</option>
-  </select>
-
-  <div class="d-flex gap-2 align-items-center">
-    <input type="date" id="dateFrom" class="chart-filter" />
-    <span>to</span>
-    <input type="date" id="dateTo" class="chart-filter" />
-  </div>
-  <button id="applyFilterBtn" class="btn btn-primary">
-  Apply Filter
-</button>
-
-</div>
-            </div>
-            <canvas id="visitsChart">
-              
-            </canvas>
+          <!-- Header -->
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h5 class="mb-2 mb-md-0">
+              <i class="fas fa-chart-line me-2"></i> Patient Visits
+            </h5>
+            <button id="exportImageBtn" class="btn btn-success btn-sm">
+              Export Chart
+            </button>
           </div>
-          <div class="appointments-section">
-      <div class="chart-header">
-        <div class="chart-title">
-          <i class="fas fa-calendar-check"></i>This Week Appointments <a href="Appointments.html" class="btn btn-primary">Go To Appointments</a>
-          <span id="currentDateTime" style="font-weight: normal; font-size: 0.9em; margin-left: 10px;"></span>
-        </div>
-      </div>
-      <div  class="appointments-list" id="appointmentsList">
-        <!-- JS will populate here -->
-      </div>
-    </div>
 
-        </div>
-      </div>
-
-      <!-- Medicine Stock Levels -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title">
-            <i class="fas fa-prescription-bottle"></i> Medicine Stocks
-          </div>
-          <div class="chart-controls">
-            <select class="chart-filter" id="medChartFilter">
-              <option value="expiry" selected>Top 10 Expiring Soon</option>
-              <option value="stock">Top 10 Low Stock</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="chart-container">
-          <canvas id="stockChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Chief Complaints -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title"><i class="fas fa-head-side-cough"></i> Chief Complaints <button class="btn btn-success" id="exportComplaintImageBtn">Export Chart</button></div>
-          <div class="chart-controls">
-            <select class="chart-filter" id="departmentComplaintFilter">
-                  <option value="all-dept">All Department</option>
-                  <option value="CABM">CABM</option>
-                  <option value="CCJE">CCJE</option>
-                  <option value="CIT">CIT</option>
-                  <option value="COT">COT</option>
-                  <option value="TTED">TTED</option>
-                  <option value="CTE">CTE</option>
-                  <option value="BasicEd">BasicEd</option>
-                  <option value="Visitor">Visitor</option>
-            </select>
-            <select class="chart-filter" id="courseComplaintFilter">
-                  <option value="all-course-strand-genEduc">All Course/Strand/GenEduc</option>
-                  <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
-                  <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
-                  <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
-                  <option value="Bachelor of Science in Office Administration">Bachelor of Science in Office Administration</option>
-                  <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business Administration</option>
-                  <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
-                  <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
-                  <option value="Bachelor of Science in Social Work">Bachelor of Science in Social Work</option>
-                  <option value="Bachelor of Secondary Education">Bachelor of Secondary Education</option>
-                  <option value="Technical Vocational Teacher Education">Technical Vocational Teacher Education</option>
-                  <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
-                  <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
-                  <option value="Bachelor of Theology">Bachelor of Theology</option>
-                  <option value="Accountancy and Business Management">Accountancy and Business Management</option>
-                  <option value="Science, Technology, Engineering, and Mathematics">Science, Technology, Engineering, and Mathematics</option>
-                  <option value="Humanities and Sciences">Humanities and Sciences</option>
-                  <option value="Junior Highschool">Junior Highschool</option>
-                  <option value="Elementary">Elementary</option>
-                  <option value="Kindergarten">Kindergarten</option>
-                  <option value="Visitor">Visitor</option>
+          <!-- Filters -->
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="col-md-3 col-sm-6">
+              <select class="form-select" id="department">
+                <option value="all-dept">All Department</option>
+                <option value="CABM">CABM</option>
+                <option value="CCJE">CCJE</option>
+                <option value="CIT">CIT</option>
+                <option value="COT">COT</option>
+                <option value="TTED">TTED</option>
+                <option value="CTE">CTE</option>
+                <option value="BasicEd">BasicEd</option>
               </select>
-              <select class="chart-filter" id="yearLevelComplaintFilter">
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <select class="form-select" id="course">
+                <option value="all-course-strand-genEduc">All Course/Strand/GenEduc</option>
+                <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
+                <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality
+                  Management</option>
+                <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information
+                  Technology</option>
+                <option value="Bachelor of Science in Office Administration">Bachelor of Science in Office
+                  Administration</option>
+                <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business
+                  Administration</option>
+                <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
+                <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
+                <option value="Bachelor of Science in Social Work">Bachelor of Science in Social Work</option>
+                <option value="Bachelor of Secondary Education">Bachelor of Secondary Education</option>
+                <option value="Technical Vocational Teacher Education">Technical Vocational Teacher Education</option>
+                <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
+                <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+                <option value="Bachelor of Theology">Bachelor of Theology</option>
+                <option value="Accountancy and Business Management">Accountancy and Business Management</option>
+                <option value="Science, Technology, Engineering, and Mathematics">Science, Technology, Engineering, and
+                  Mathematics</option>
+                <option value="Humanities and Sciences">Humanities and Sciences</option>
+                <option value="Junior Highschool">Junior Highschool</option>
+                <option value="Elementary">Elementary</option>
+                <option value="Kindergarten">Kindergarten</option>
+              </select>
+            </div>
+            <div class="col-md-2 col-sm-6">
+              <select class="form-select" id="yearLevel">
+                <option value="all-year">All Year Levels</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
+            </div>
+            <div class="col-md-3 col-sm-6 d-flex gap-2 align-items-center">
+              <input type="date" id="dateFrom" class="form-control" />
+              <span class="small">to</span>
+              <input type="date" id="dateTo" class="form-control" />
+            </div>
+          </div>
+
+          <!-- Apply Filter -->
+          <div class="mb-3">
+            <button id="applyFilterBtn" class="btn btn-primary">
+              Apply Filter
+            </button>
+          </div>
+
+          <!-- Chart -->
+          <div class="w-100">
+            <canvas id="visitsChart"></canvas>
+          </div>
+
+        </div>
+      </div>
+      <!-- ===============================
+       Chief Complaints
+  ================================ -->
+      <div class="card shadow-sm mb-4 w-100">
+        <div class="card-body">
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0"><i class="fas fa-head-side-cough me-2"></i> Chief Complaints</h6>
+            <div class="d-flex gap-2 align-items-center">
+              <button class="btn btn-success btn-sm" id="exportComplaintImageBtn">Export Chart</button>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="col-md-3 col-sm-6">
+              <select class="form-select" id="departmentComplaintFilter">
+                <option value="all-dept">All Department</option>
+                <option value="CABM">CABM</option>
+                <option value="CCJE">CCJE</option>
+                <option value="CIT">CIT</option>
+                <option value="COT">COT</option>
+                <option value="TTED">TTED</option>
+                <option value="CTE">CTE</option>
+                <option value="BasicEd">BasicEd</option>
+                <option value="Visitor">Visitor</option>
+              </select>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <select class="form-select" id="courseComplaintFilter">
+                <option value="all-course-strand-genEduc">All Course/Strand/GenEduc</option>
+                <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
+                <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality
+                  Management</option>
+                <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information
+                  Technology</option>
+                <option value="Bachelor of Science in Office Administration">Bachelor of Science in Office
+                  Administration</option>
+                <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business
+                  Administration</option>
+                <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
+                <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
+                <option value="Bachelor of Science in Social Work">Bachelor of Science in Social Work</option>
+                <option value="Bachelor of Secondary Education">Bachelor of Secondary Education</option>
+                <option value="Technical Vocational Teacher Education">Technical Vocational Teacher Education</option>
+                <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
+                <option value="NC1 NC2 NC3">NC1 NC2 NC3</option>
+                <option value="Bachelor of Theology">Bachelor of Theology</option>
+                <option value="Accountancy and Business Management">Accountancy and Business Management</option>
+                <option value="Science, Technology, Engineering, and Mathematics">Science, Technology, Engineering, and
+                  Mathematics</option>
+                <option value="Humanities and Sciences">Humanities and Sciences</option>
+                <option value="Junior Highschool">Junior Highschool</option>
+                <option value="Elementary">Elementary</option>
+                <option value="Kindergarten">Kindergarten</option>
+                <option value="Visitor">Visitor</option>
+              </select>
+            </div>
+            <div class="col-md-2 col-sm-6">
+              <select class="form-select" id="yearLevelComplaintFilter">
                 <option value="all-yearLevel">All Year Levels</option>
                 <option value="1">1st Year</option>
                 <option value="2">2nd Year</option>
@@ -266,18 +263,43 @@
                 <option value="10">10th Year</option>
                 <option value="11">11th Year</option>
                 <option value="12">12th Year</option>
-            </select>
-            <label>From <input type="date" id="startDateFilter" class="chart-filter"></label>
-            <label>To <input type="date" id="endDateFilter" class="chart-filter"></label>
-            <button id="applyComplaintFilterBtn" class="btn btn-primary btn-sm">
-  Apply
-</button>
-
+              </select>
+            </div>
+            <div class="col-md-3 col-sm-6 d-flex gap-2 align-items-center">
+              <input type="date" id="startDateFilter" class="form-control" />
+              <span class="small">to</span>
+              <input type="date" id="endDateFilter" class="form-control" />
+              <button id="applyComplaintFilterBtn" class="btn btn-primary btn-sm">
+                Apply
+              </button>
+            </div>
           </div>
+
+          <canvas id="chiefComplaintChart"></canvas>
         </div>
-        <canvas id="chiefComplaintChart"></canvas>
       </div>
+      <!-- ===============================
+       Medicine Stock Levels
+  ================================ -->
+      <div class="card shadow-sm mb-4 w-100">
+        <div class="card-body">
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0"><i class="fas fa-prescription-bottle me-2"></i> Medicine Stocks</h6>
+            <select class="form-select form-select-sm w-auto" id="medChartFilter">
+              <option value="expiry" selected>Top 10 Expiring Soon</option>
+              <option value="stock">Top 10 Low Stock</option>
+            </select>
+          </div>
+
+          <canvas id="stockChart"></canvas>
+        </div>
+      </div>
+
+
+
     </div>
+
   </div>
   </div>
   <div id="footer-container"></div>
@@ -285,35 +307,35 @@
   <script type="module" src="../../firebaseconfig.js"></script>
   <script src="../../assets/scripts/DoctorNurseDashboard.js" type="module"></script>
   <script>
-  // Wait for the DOM to fully load
-  document.addEventListener("DOMContentLoaded", () => {
-    // Select the back-to-top button
-    const backToTopBtn = document.querySelector(".backToTop");
+    // Wait for the DOM to fully load
+    document.addEventListener("DOMContentLoaded", () => {
+      // Select the back-to-top button
+      const backToTopBtn = document.querySelector(".backToTop");
 
-    // Check if button exists (important if footer is dynamically imported)
-    if (backToTopBtn) {
-      // Scroll smoothly to top when clicked
-      backToTopBtn.addEventListener("click", () => {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth"
+      // Check if button exists (important if footer is dynamically imported)
+      if (backToTopBtn) {
+        // Scroll smoothly to top when clicked
+        backToTopBtn.addEventListener("click", () => {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });
         });
-      });
 
-      // Optional: Show/hide button based on scroll position
-      window.addEventListener("scroll", () => {
-        if (window.scrollY > 300) {
-          backToTopBtn.style.display = "block"; // Show button
-        } else {
-          backToTopBtn.style.display = "none"; // Hide button
-        }
-      });
+        // Optional: Show/hide button based on scroll position
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 300) {
+            backToTopBtn.style.display = "block"; // Show button
+          } else {
+            backToTopBtn.style.display = "none"; // Hide button
+          }
+        });
 
-      // Initially hide the button
-      backToTopBtn.style.display = "none";
-    }
-  });
-</script>
+        // Initially hide the button
+        backToTopBtn.style.display = "none";
+      }
+    });
+  </script>
 </body>
 
 </html>

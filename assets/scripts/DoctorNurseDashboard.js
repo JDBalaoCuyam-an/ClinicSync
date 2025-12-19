@@ -657,117 +657,117 @@ renderStockChart(currentFilter);
 setInterval(() => renderStockChart(currentFilter), 60000);
 
 
-const appointmentsList = document.getElementById("appointmentsList");
-const currentDateTimeSpan = document.getElementById("currentDateTime");
+// const appointmentsList = document.getElementById("appointmentsList");
+// const currentDateTimeSpan = document.getElementById("currentDateTime");
 
-// Get current week range (Sunday → Saturday)
-function getCurrentWeekRange() {
-  const now = new Date();
-  const firstDay = new Date(now);
-  firstDay.setDate(now.getDate() - now.getDay()); // Sunday
-  firstDay.setHours(0, 0, 0, 0);
+// // Get current week range (Sunday → Saturday)
+// function getCurrentWeekRange() {
+//   const now = new Date();
+//   const firstDay = new Date(now);
+//   firstDay.setDate(now.getDate() - now.getDay()); // Sunday
+//   firstDay.setHours(0, 0, 0, 0);
 
-  const lastDay = new Date(firstDay);
-  lastDay.setDate(firstDay.getDate() + 6); // Saturday
-  lastDay.setHours(23, 59, 59, 999);
+//   const lastDay = new Date(firstDay);
+//   lastDay.setDate(firstDay.getDate() + 6); // Saturday
+//   lastDay.setHours(23, 59, 59, 999);
 
-  return { firstDay, lastDay };
-}
+//   return { firstDay, lastDay };
+// }
 
-async function loadWeeklyAppointments() {
-  appointmentsList.innerHTML = `<p class="text-center text-muted my-2">Loading...</p>`;
+// async function loadWeeklyAppointments() {
+//   appointmentsList.innerHTML = `<p class="text-center text-muted my-2">Loading...</p>`;
 
-  const { firstDay, lastDay } = getCurrentWeekRange();
+//   const { firstDay, lastDay } = getCurrentWeekRange();
 
-  // Update header with week
-  currentDateTimeSpan.textContent = `(${formatDateLabel(firstDay)} - ${formatDateLabel(lastDay)})`;
+//   // Update header with week
+//   currentDateTimeSpan.textContent = `(${formatDateLabel(firstDay)} - ${formatDateLabel(lastDay)})`;
 
-  try {
-    // 🔹 Fetch In Queue
-    const qInQueue = query(
-      collection(db, "appointments"),
-      where("status", "==", "in queue")
-    );
-    const snapInQueue = await getDocs(qInQueue);
+//   try {
+//     // 🔹 Fetch In Queue
+//     const qInQueue = query(
+//       collection(db, "appointments"),
+//       where("status", "==", "in queue")
+//     );
+//     const snapInQueue = await getDocs(qInQueue);
 
-    let inQueueAppointments = snapInQueue.docs
-      .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
-      .filter(appt => {
-        const apptDate = new Date(appt.day);
-        return apptDate >= firstDay && apptDate <= lastDay;
-      });
+//     let inQueueAppointments = snapInQueue.docs
+//       .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+//       .filter(appt => {
+//         const apptDate = new Date(appt.day);
+//         return apptDate >= firstDay && apptDate <= lastDay;
+//       });
 
-    // 🔹 Fetch Accepted
-    const qAccepted = query(
-      collection(db, "appointments"),
-      where("status", "==", "accepted")
-    );
-    const snapAccepted = await getDocs(qAccepted);
+//     // 🔹 Fetch Accepted
+//     const qAccepted = query(
+//       collection(db, "appointments"),
+//       where("status", "==", "accepted")
+//     );
+//     const snapAccepted = await getDocs(qAccepted);
 
-    let acceptedAppointments = snapAccepted.docs
-      .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
-      .filter(appt => {
-        const apptDate = new Date(appt.day);
-        return apptDate >= firstDay && apptDate <= lastDay;
-      });
+//     let acceptedAppointments = snapAccepted.docs
+//       .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+//       .filter(appt => {
+//         const apptDate = new Date(appt.day);
+//         return apptDate >= firstDay && apptDate <= lastDay;
+//       });
 
-    // 🔹 Combine and sort each by date & time
-    const sortByDateTime = appts => {
-      return appts.sort((a, b) => {
-        const dateA = new Date(`${a.day}`);
-        const dateB = new Date(`${b.day}`);
-        return dateA - dateB;
-      });
-    };
+//     // 🔹 Combine and sort each by date & time
+//     const sortByDateTime = appts => {
+//       return appts.sort((a, b) => {
+//         const dateA = new Date(`${a.day}`);
+//         const dateB = new Date(`${b.day}`);
+//         return dateA - dateB;
+//       });
+//     };
 
-    inQueueAppointments = sortByDateTime(inQueueAppointments);
-    acceptedAppointments = sortByDateTime(acceptedAppointments);
+//     inQueueAppointments = sortByDateTime(inQueueAppointments);
+//     acceptedAppointments = sortByDateTime(acceptedAppointments);
 
-    appointmentsList.innerHTML = "";
+//     appointmentsList.innerHTML = "";
 
-    function renderAppointments(title, appts, isAccepted = false) {
-      if (appts.length === 0) return;
+//     function renderAppointments(title, appts, isAccepted = false) {
+//       if (appts.length === 0) return;
 
-      const section = document.createElement("div");
-      section.className = "mb-3";
+//       const section = document.createElement("div");
+//       section.className = "mb-3";
 
-      section.innerHTML = `<h5 class="mb-2">${title} (${appts.length})</h5>`;
-      const container = document.createElement("div");
-      container.className = "appointments-horizontal-list";
+//       section.innerHTML = `<h5 class="mb-2">${title} (${appts.length})</h5>`;
+//       const container = document.createElement("div");
+//       container.className = "appointments-horizontal-list";
 
-      appts.forEach(appt => {
-        const row = document.createElement("div");
-        row.className = "appointment-row d-flex align-items-center justify-content-between p-2 mb-2 border rounded shadow-sm";
+//       appts.forEach(appt => {
+//         const row = document.createElement("div");
+//         row.className = "appointment-row d-flex align-items-center justify-content-between p-2 mb-2 border rounded shadow-sm";
 
-        row.innerHTML = `
-          <div class="flex-grow-1">
-            <strong>${appt.patientName}</strong>
-            ${isAccepted ? `<span class="ms-3"><i class="bi bi-calendar"></i> ${appt.day} (${appt.weekday})</span>` : ""}
-            <span class="ms-3"><i class="bi bi-clock"></i> ${appt.slot}</span>
-            <span class="ms-3"><strong>With:</strong> ${appt.staffName}</span>
-          </div>
-        `;
+//         row.innerHTML = `
+//           <div class="flex-grow-1">
+//             <strong>${appt.patientName}</strong>
+//             ${isAccepted ? `<span class="ms-3"><i class="bi bi-calendar"></i> ${appt.day} (${appt.weekday})</span>` : ""}
+//             <span class="ms-3"><i class="bi bi-clock"></i> ${appt.slot}</span>
+//             <span class="ms-3"><strong>With:</strong> ${appt.staffName}</span>
+//           </div>
+//         `;
 
-        container.appendChild(row);
-      });
+//         container.appendChild(row);
+//       });
 
-      section.appendChild(container);
-      appointmentsList.appendChild(section);
-    }
+//       section.appendChild(container);
+//       appointmentsList.appendChild(section);
+//     }
 
-    // 🔹 Accepted first, then in queue
-    renderAppointments("Accepted Appointments", acceptedAppointments, true);
-    renderAppointments("In Queue Appointments", inQueueAppointments, false);
+//     // 🔹 Accepted first, then in queue
+//     renderAppointments("Accepted Appointments", acceptedAppointments, true);
+//     renderAppointments("In Queue Appointments", inQueueAppointments, false);
 
-    if (inQueueAppointments.length === 0 && acceptedAppointments.length === 0) {
-      appointmentsList.innerHTML = `<p class="text-center text-muted my-3">No appointments this week.</p>`;
-    }
+//     if (inQueueAppointments.length === 0 && acceptedAppointments.length === 0) {
+//       appointmentsList.innerHTML = `<p class="text-center text-muted my-3">No appointments this week.</p>`;
+//     }
 
-  } catch (error) {
-    console.error(error);
-    appointmentsList.innerHTML = `<p class="text-center text-danger my-3">Failed to load appointments.</p>`;
-  }
-}
+//   } catch (error) {
+//     console.error(error);
+//     appointmentsList.innerHTML = `<p class="text-center text-danger my-3">Failed to load appointments.</p>`;
+//   }
+// }
 
 // Load weekly appointments on page load
-loadWeeklyAppointments();
+// loadWeeklyAppointments();
