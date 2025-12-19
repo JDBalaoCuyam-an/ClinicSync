@@ -352,19 +352,6 @@ document
 document.addEventListener("DOMContentLoaded", loadUsers);
 
 
-// Bulk User Upload Handling
-/* ============================================================
-   📌 OPEN / CLOSE MODAL
-============================================================ */
-document.getElementById("open-user-bulk-upload").onclick = () => {
-  document.getElementById("user-bulk-modal").classList.remove("d-none");
-};
-
-document.getElementById("close-user-bulk-btn").onclick = () => {
-  document.getElementById("user-bulk-modal").classList.add("d-none");
-  document.getElementById("user-bulk-preview").classList.add("d-none");
-  document.getElementById("user-upload-btn").classList.add("d-none");
-};
 
 
 /* ============================================================
@@ -387,13 +374,20 @@ document.getElementById("user-preview-btn").onclick = () => {
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    const rows = parseCSV(e.target.result);
+    let rows = parseCSV(e.target.result);
+
+    // ✅ Skip header row
+    if (rows.length > 0) rows = rows.slice(1);
+
     const table = document.getElementById("user-bulk-preview");
     const tbody = table.querySelector("tbody");
     tbody.innerHTML = "";
 
     rows.forEach((row) => {
       const [firstName, middleName, lastName, extName, schoolId, email] = row;
+
+      // Skip empty rows
+      if (!firstName && !lastName && !schoolId && !email) return;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -414,6 +408,25 @@ document.getElementById("user-preview-btn").onclick = () => {
   reader.readAsText(file);
 };
 
+/* ============================================================
+   📌 Download CSV TEMPLATE
+============================================================ */
+document.getElementById("download-csv-template").onclick = (e) => {
+  e.preventDefault(); // Prevent default link behavior
+
+  const headers = ["First Name", "Middle", "Last Name", "Ext", "School ID", "Email"];
+  const csvContent = headers.join(",") + "\n"; // Single row for template
+
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "user_template.csv";
+  link.click();
+
+  URL.revokeObjectURL(url); // Clean up
+};
 
 /* ============================================================
    📌 UPLOAD USERS TO FIREBASE
@@ -425,11 +438,17 @@ document.getElementById("user-upload-btn").onclick = async () => {
   const reader = new FileReader();
 
   reader.onload = async (e) => {
-    const rows = parseCSV(e.target.result);
+    let rows = parseCSV(e.target.result);
+
+    // ✅ Skip the header row
+    if (rows.length > 0) rows = rows.slice(1);
 
     try {
       for (const row of rows) {
         const [firstName, middleName, lastName, extName, schoolId, email] = row;
+
+        // Skip empty rows
+        if (!firstName && !lastName && !schoolId && !email) continue;
 
         const password = schoolId; // ⭐ default password
 
@@ -461,3 +480,4 @@ document.getElementById("user-upload-btn").onclick = async () => {
 
   reader.readAsText(file);
 };
+

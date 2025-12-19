@@ -1,414 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard - ClinicSync</title>
-    <!-- Bootstrap 5 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <!-- Bootstrap Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
-    />
-    <script type="module" src="../../firebaseconfig.js"></script>
-    <style>
-      body {
-        background-color: #f8f9fa;
-      }
-      .card {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        border: 1px solid rgba(0, 0, 0, 0.125);
-      }
-      .table-responsive {
-        border-radius: 0.375rem;
-        overflow: hidden;
-      }
-      .table th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-      }
-      .btn-action {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
-      }
-      .modal-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-      }
-      .status-badge {
-        padding: 0.35em 0.65em;
-        font-size: 0.75em;
-        font-weight: 600;
-      }
-      .safeBtn {
-        background-color: #198754;
-        border-color: #198754;
-        color: white;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Navigation Header -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="#">
-          <i class="bi bi-heart-pulse me-2"></i>ClinicSync Admin
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <button class="btn btn-outline-light" id="logout-button">
-                <i class="bi bi-box-arrow-right me-1"></i> Log Out
-              </button>
-            </li>
-          </ul>
-        </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - ClinicSync</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+  <script type="module" src="../../firebaseconfig.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .table-responsive {
+      border-radius: 0.375rem;
+      overflow: hidden;
+    }
+
+    .table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+
+    .btn-action {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .modal-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .status-badge {
+      padding: 0.35em 0.65em;
+      font-size: 0.75em;
+      font-weight: 600;
+    }
+
+    .safeBtn {
+      background-color: #198754;
+      border-color: #198754;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation Header -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#">
+        <i class="bi bi-heart-pulse me-2"></i>ClinicSync Admin
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <button class="btn btn-outline-light" id="logout-button">
+              <i class="bi bi-box-arrow-right me-1"></i> Log Out
+            </button>
+          </li>
+        </ul>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <!-- Main Content -->
-    <div class="container-fluid mt-4">
-      <div class="row">
-        <div class="col-12">
-          <div
-            class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2"
-          >
-            <h2 class="mb-0">User Management</h2>
-            <div class="d-flex gap-2">
-              <button
-                id="open-user-bulk-upload"
-                class="btn btn-outline-secondary"
-              >
-                Bulk Upload Users
-              </button>
-              <button class="btn btn-primary" id="createNewUserBtn">
-                <i class="bi bi-person-plus me-1"></i> Create New User
-              </button>
-            </div>
+  <!-- Main Content -->
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+          <h2 class="mb-0">User Management</h2>
+          <div class="d-flex gap-2">
+            <button id="open-user-bulk-upload" class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
+              data-bs-target="#userBulkModal">
+              Bulk Upload Users
+            </button>
+
+            <button class="btn btn-primary" id="createNewUserBtn">
+              <i class="bi bi-person-plus me-1"></i> Create New User
+            </button>
           </div>
+        </div>
 
-          <!-- User Table -->
-          <div class="card">
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-hover" id="usersTable">
-                  <thead class="text-nowrap table-primary">
-                    <tr>
-                      <th>Name</th>
-                      <th>School ID</th>
-                      <th>Email</th>
-                      <th>User Type</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <!-- Data will be populated by JavaScript -->
-                  </tbody>
-                </table>
-              </div>
+        <!-- User Table -->
+        <div class="card">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover" id="usersTable">
+                <thead class="text-nowrap table-primary">
+                  <tr>
+                    <th>Name</th>
+                    <th>School ID</th>
+                    <th>Email</th>
+                    <th>User Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Data will be populated by JavaScript -->
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Create New User Modal -->
-    <div
-      class="modal fade"
-      id="createNewUserModal"
-      tabindex="-1"
-      aria-labelledby="createNewUserModalLabel"
-    >
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="createNewUserModalLabel">
-              Create New User Account
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form id="createUserForm">
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label for="first_name" class="form-label">First Name</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="first_name"
-                    required
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label for="middle_name" class="form-label"
-                    >Middle Name</label
-                  >
-                  <input type="text" class="form-control" id="middle_name" />
-                </div>
+  <!-- Create New User Modal -->
+  <div class="modal fade" id="createNewUserModal" tabindex="-1" aria-labelledby="createNewUserModalLabel">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createNewUserModalLabel">
+            Create New User Account
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="createUserForm">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="first_name" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="first_name" required />
               </div>
+              <div class="col-md-6">
+                <label for="middle_name" class="form-label">Middle Name</label>
+                <input type="text" class="form-control" id="middle_name" />
+              </div>
+            </div>
 
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label for="last_name" class="form-label">Last Name</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="last_name"
-                    required
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label for="ext_name" class="form-label">Extension</label>
-                  <input type="text" class="form-control" id="ext_name" />
-                </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="last_name" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="last_name" required />
               </div>
+              <div class="col-md-6">
+                <label for="ext_name" class="form-label">Extension</label>
+                <input type="text" class="form-control" id="ext_name" />
+              </div>
+            </div>
 
-              <div class="mb-3">
-                <label for="school_id" class="form-label">School ID</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="school_id"
-                  required
-                />
-              </div>
+            <div class="mb-3">
+              <label for="school_id" class="form-label">School ID</label>
+              <input type="text" class="form-control" id="school_id" required />
+            </div>
 
-              <div class="mb-3">
-                <label for="reg_email" class="form-label">Email</label>
-                <input
-                  type="email"
-                  class="form-control"
-                  id="reg_email"
-                  required
-                />
-              </div>
+            <div class="mb-3">
+              <label for="reg_email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="reg_email" required />
+            </div>
 
-              <div class="mb-3">
-                <label for="user_type" class="form-label">User Type</label>
-                <select class="form-select" id="user_type" required>
-                  <option value="">Select Type</option>
-                  <option value="student">Student</option>
-                  <option value="employee">Employee</option>
-                  <option value="doctor">Doctor</option>
-                  <option value="nurse">Nurse</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label
-                  id="doctor_type_label"
-                  for="doctor_type"
-                  class="form-label"
-                  hidden
-                  >Doctor Type</label
-                >
-                <select class="form-select" id="doctor_type" hidden>
-                  <option value="">Select Type</option>
-                  <option value="Dentist">Dentist</option>
-                  <option value="Physician">Physician</option>
-                </select>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-              id="cancelAddUserBtn"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              form="createUserForm"
-              class="btn btn-primary"
-              id="create-account"
-            >
-              Create Account
-            </button>
-          </div>
+            <div class="mb-3">
+              <label for="user_type" class="form-label">User Type</label>
+              <select class="form-select" id="user_type" required>
+                <option value="">Select Type</option>
+                <option value="student">Student</option>
+                <option value="employee">Employee</option>
+                <option value="doctor">Doctor</option>
+                <option value="nurse">Nurse</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label id="doctor_type_label" for="doctor_type" class="form-label" hidden>Doctor Type</label>
+              <select class="form-select" id="doctor_type" hidden>
+                <option value="">Select Type</option>
+                <option value="Dentist">Dentist</option>
+                <option value="Physician">Physician</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelAddUserBtn">
+            Cancel
+          </button>
+          <button type="submit" form="createUserForm" class="btn btn-primary" id="create-account">
+            Create Account
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- User Overview Modal -->
-    <div
-      class="modal fade"
-      id="overviewModal"
-      tabindex="-1"
-      aria-labelledby="overviewModalLabel"
-    >
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="overviewModalLabel">User Overview</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form id="userOverviewForm">
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label for="ov_firstName" class="form-label"
-                    >First Name</label
-                  >
-                  <input type="text" class="form-control" id="ov_firstName" />
-                </div>
-                <div class="col-md-6">
-                  <label for="ov_middleName" class="form-label"
-                    >Middle Name</label
-                  >
-                  <input type="text" class="form-control" id="ov_middleName" />
-                </div>
+  <!-- User Overview Modal -->
+  <div class="modal fade" id="overviewModal" tabindex="-1" aria-labelledby="overviewModalLabel">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="overviewModalLabel">User Overview</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="userOverviewForm">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="ov_firstName" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="ov_firstName" />
               </div>
+              <div class="col-md-6">
+                <label for="ov_middleName" class="form-label">Middle Name</label>
+                <input type="text" class="form-control" id="ov_middleName" />
+              </div>
+            </div>
 
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label for="ov_lastName" class="form-label">Last Name</label>
-                  <input type="text" class="form-control" id="ov_lastName" />
-                </div>
-                <div class="col-md-6">
-                  <label for="ov_extName" class="form-label">Extension</label>
-                  <input type="text" class="form-control" id="ov_extName" />
-                </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="ov_lastName" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="ov_lastName" />
               </div>
+              <div class="col-md-6">
+                <label for="ov_extName" class="form-label">Extension</label>
+                <input type="text" class="form-control" id="ov_extName" />
+              </div>
+            </div>
 
-              <div class="mb-3">
-                <label for="ov_contact" class="form-label">School ID</label>
-                <input type="text" class="form-control" id="ov_schoolId" />
-              </div>
+            <div class="mb-3">
+              <label for="ov_contact" class="form-label">School ID</label>
+              <input type="text" class="form-control" id="ov_schoolId" />
+            </div>
 
-              <div class="mb-3">
-                <label for="ov_email" class="form-label">Email</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="ov_email"
-                  disabled
-                />
-              </div>
+            <div class="mb-3">
+              <label for="ov_email" class="form-label">Email</label>
+              <input type="text" class="form-control" id="ov_email" disabled />
+            </div>
 
-              <div class="mb-3">
-                <label for="ov_userType" class="form-label">User Type</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="ov_userType"
-                  disabled
-                />
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-warning" id="resetPasswordBtn">
-              Reset Password
-            </button>
-            <button type="button" class="btn btn-danger" id="disableUserBtn">
-              Disable Account
-            </button>
-            <button type="button" class="btn btn-primary" id="updateUserBtn">
-              Update
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Close
-            </button>
-          </div>
+            <div class="mb-3">
+              <label for="ov_userType" class="form-label">User Type</label>
+              <input type="text" class="form-control" id="ov_userType" disabled />
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning" id="resetPasswordBtn">
+            Reset Password
+          </button>
+          <button type="button" class="btn btn-danger" id="disableUserBtn">
+            Disable Account
+          </button>
+          <button type="button" class="btn btn-primary" id="updateUserBtn">
+            Update
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Close
+          </button>
         </div>
       </div>
     </div>
-    <!-- ===================== BULK USER UPLOAD MODAL ===================== -->
-    <div id="user-bulk-modal" class="d-none">
-      <div
-        style="
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.5);
-        "
-      ></div>
+  </div>
+  <!-- ===================== BULK USER UPLOAD MODAL ===================== -->
+  <!-- Bootstrap Modal -->
+  <div class="modal fade" id="userBulkModal" tabindex="-1" aria-labelledby="userBulkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
 
-      <div
-        style="
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: #fff;
-          padding: 20px;
-          width: 600px;
-          border-radius: 8px;
-          max-height: 80vh;
-          overflow-y: auto;
-        "
-      >
-        <h2>Bulk Upload Users</h2>
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="userBulkModalLabel">Bulk Upload Users</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
 
-        <input
-          type="file"
-          id="user-bulk-file"
-          accept=".csv"
-          class="form-control mb-3"
-        />
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <!-- Download CSV Template Button -->
+          <a href="#" id="download-csv-template" class="btn btn-outline-primary mb-3" download="user_template.csv">
+            Download CSV Template
+          </a>
+          <input type="file" id="user-bulk-file" accept=".csv" class="form-control mb-3" />
+          <button id="user-preview-btn" class="btn btn-primary mb-3">Preview CSV</button>
 
-        <button id="user-preview-btn" class="btn btn-primary mb-3">
-          Preview CSV
-        </button>
+          <table id="user-bulk-preview" class="table table-bordered d-none">
+            <thead class="table-secondary">
+              <tr>
+                <th>First Name</th>
+                <th>Middle</th>
+                <th>Last Name</th>
+                <th>Ext</th>
+                <th>School ID</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
 
-        <table id="user-bulk-preview" class="table table-bordered d-none">
-          <thead class="table-secondary">
-            <tr>
-              <th>First Name</th>
-              <th>Middle</th>
-              <th>Last Name</th>
-              <th>Ext</th>
-              <th>School ID</th>
-              <th>Email</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+          <button id="user-upload-btn" class="btn btn-success d-none mt-2">Upload All Users</button>
+        </div>
 
-        <button id="user-upload-btn" class="btn btn-success d-none mt-2">
-          Upload All Users
-        </button>
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        </div>
 
-        <button id="close-user-bulk-btn" class="btn btn-danger mt-3">
-          Close
-        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="module" src="../../assets/scripts/AdminHome.js"></script>
-  </body>
+
+  <!-- Bootstrap JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="../../assets/scripts/AdminHome.js"></script>
+</body>
+
 </html>
