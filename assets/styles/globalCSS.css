@@ -194,7 +194,7 @@ body {
 }
 
 /* BUTTONS - Consistent styling */
-.edit-btn {
+/* .edit-btn {
   padding: 2px 8px;
   background-color: var(--primary-color);
   color: var(--text-light);
@@ -205,12 +205,12 @@ body {
   right: 0;
   cursor: pointer;
   transition: background-color var(--transition-fast);
-}
+} */
 
-.edit-btn:hover {
+/* .edit-btn:hover {
   background-color: #3a6d9b;
-}
-
+} */
+/* 
 .close-button {
   position: absolute;
   top: 0;
@@ -221,12 +221,12 @@ body {
   color: var(--text-dark);
   transition: all var(--transition-normal);
   z-index: 2;
-}
+} */
 
-.close-button:hover {
-  /* background-color: red; */
+/* .close-button:hover {
+
   color: var(--text-light);
-}
+} */
 
 /* LOGOUT BUTTON - Consistent with sidebar */
 .logout-container {
@@ -256,7 +256,7 @@ body {
   color: var(--primary-light);
 }
 /* OVERLAY */
-.overlay {
+/* .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -269,7 +269,7 @@ body {
 
 .overlay.show {
   display: block;
-}
+} */
 
 /* ==========================
    FOOTER STYLES

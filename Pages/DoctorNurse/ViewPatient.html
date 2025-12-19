@@ -1122,7 +1122,7 @@
                   aria-labelledby="medical-consultation-tab"
                 >
                   <!-- Header Row -->
-                  <div class="d-flex flex-wrap align-items-center mb-3">
+                  <div class="d-flex flex-wrap align-items-center mb-2">
                     <h2 class="mb-2 mb-md-0 me-3">
                       Medical Consultation Records :
                     </h2>
@@ -1488,7 +1488,7 @@
                     <h2>Vitals Records :</h2>
 
                     <button
-                      class="new-btn btn btn-primary mb-3"
+                      class="new-btn btn btn-success mb-3"
                       data-bs-toggle="modal"
                       data-bs-target="#vitalsModal"
                     >
@@ -1672,7 +1672,7 @@
                   <h2>Doctor's Notes</h2>
 
                   <button
-                    class="btn btn-primary mb-3"
+                    class="btn btn-success mb-3"
                     data-bs-toggle="modal"
                     data-bs-target="#doctorNotesModal"
                   >
@@ -1750,7 +1750,7 @@
                     <h2>Nurse Notes</h2>
 
                     <button
-                      class="btn btn-primary"
+                      class="btn btn-success"
                       data-bs-toggle="modal"
                       data-bs-target="#nurseNoteModal"
                     >
@@ -1815,7 +1815,7 @@
                   >
                     <h2>Dental Records</h2>
                     <button
-                      class="btn btn-primary"
+                      class="btn btn-success"
                       data-bs-toggle="modal"
                       data-bs-target="#dentalModal"
                     >
@@ -1959,303 +1959,655 @@
                   </div>
                 </div>
                 <div
-                  class="tab-pane fade physical-examination-content"
+                  class="tab-pane fade"
                   id="physical-examination-content"
                   role="tabpanel"
                   aria-labelledby="physical-examination-tab"
                 >
-                  <h2>Physical Examination :</h2>
-
-                  <button onclick="addPhysicalExamOverlay()" class="new-btn">
-                    + New
-                  </button>
-
-                  <div class="table-responsive">
-                    <table
-                      class="table table-bordered table-striped align-middle text-center"
-                    >
-                      <thead class="table-primary">
-                        <tr>
-                          <th>Date</th>
-                          <th>BP</th>
-                          <th>PR</th>
-                          <th>Weight (kg)</th>
-                          <th>Height (cm)</th>
-                          <th>BMI</th>
-                          <th>BMI Category</th>
-                        </tr>
-                      </thead>
-
-                      <tbody id="physical-exam-list">
-                        <!-- Records will load here -->
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="mt-4">
-                    <a
-                      class="text-decoration-none"
-                      data-bs-toggle="collapse"
-                      href="#physicalExamHistory"
-                      role="button"
-                      aria-expanded="true"
-                      aria-controls="physicalExamHistory"
-                    >
-                      <h5
-                        class="fw-bold mb-0 p-2 bg-light rounded d-flex justify-content-between align-items-center"
+                  <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                      <!-- Header -->
+                      <div
+                        class="d-flex justify-content-between align-items-center mb-3"
                       >
-                        Action History
-                        <span
-                          id="physical-examination-logs-count"
-                          class="badge bg-primary rounded-pill"
-                          >0</span
+                        <h4 class="mb-0 fw-bold">Physical Examination</h4>
+                        <button
+                          type="button"
+                          class="btn btn-success"
+                          data-bs-toggle="modal"
+                          data-bs-target="#addPhysicalExamModal"
                         >
-                      </h5>
-                    </a>
-
-                    <div class="collapse show mt-2" id="physicalExamHistory">
-                      <ul id="physical-examination-history" class="list-group">
-                        <li class="list-group-item text-muted">
-                          No actions yet
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div id="add-physical-exam">
-                    <h2>Physical Examination</h2>
-
-                    <p>
-                      <em
-                        ><strong
-                          >TO BE FILLED OUT BY CLINIC PERSONNEL</strong
-                        ></em
-                      >
-                    </p>
-                    <p><em>PHYSICAL EXAMINATION</em></p>
-
-                    <form id="physical-exam-form">
-                      <div class="vitals">
-                        <label
-                          >Date: <input type="date" id="exam-date" required
-                        /></label>
-                        <label
-                          >BP:
-                          <input type="text" id="exam-bp" placeholder="120/80"
-                        /></label>
-                        <label
-                          >PR: <input type="text" id="exam-pr" placeholder="75"
-                        /></label>
-                        <label
-                          >Weight (kg):
-                          <input
-                            type="number"
-                            min="10"
-                            max="250"
-                            id="exam-weight"
-                        /></label>
-                        <label
-                          >Height (cm):
-                          <input
-                            type="number"
-                            min="10"
-                            max="300"
-                            id="exam-height"
-                        /></label>
-                        <label
-                          >BMI:
-                          <input
-                            disabled
-                            type="number"
-                            id="exam-bmi"
-                            step="0.1"
-                        /></label>
-                        <label
-                          >Visual Acuity (OS):
-                          <input type="text" id="exam-visual-os"
-                        /></label>
-                        <label
-                          >OD: <input type="text" id="exam-visual-od"
-                        /></label>
-                        <label
-                          >With Glasses:
-                          <input type="checkbox" id="exam-glasses"
-                        /></label>
-                      </div>
-
-                      <div class="exam-section">
-                        <div class="left-col">
-                          <label
-                            >HEENT: <input type="text" id="exam-heent"
-                          /></label>
-                          <label
-                            >TEETH: <input type="text" id="exam-teeth"
-                          /></label>
-                          <label
-                            >NECK: <input type="text" id="exam-neck"
-                          /></label>
-                          <label
-                            >CHEST: <input type="text" id="exam-chest"
-                          /></label>
-                          <label
-                            >LUNGS: <input type="text" id="exam-lungs"
-                          /></label>
-                          <label
-                            >HEART: <input type="text" id="exam-heart"
-                          /></label>
-                          <label
-                            >BREAST: <input type="text" id="exam-breast"
-                          /></label>
-                          <label
-                            >SKIN: <input type="text" id="exam-skin"
-                          /></label>
-                          <label
-                            >ABDOMEN: <input type="text" id="exam-abdomen"
-                          /></label>
-                        </div>
-
-                        <div class="right-col">
-                          <label
-                            >BACK/FLANKS: <input type="text" id="exam-back"
-                          /></label>
-                          <label
-                            >ANUS/RECTUM: <input type="text" id="exam-anus"
-                          /></label>
-                          <label
-                            >GENITALIA: <input type="text" id="exam-genitalia"
-                          /></label>
-                          <label
-                            >EXTREMITIES:
-                            <input type="text" id="exam-extremities"
-                          /></label>
-                          <label
-                            >CLEANLINESS (Nails, Hair, Ears):
-                            <input type="text" id="exam-cleanliness"
-                          /></label>
-                          <label
-                            >POSTURE: <input type="text" id="exam-posture"
-                          /></label>
-                          <label
-                            >NUTRITION: <input type="text" id="exam-nutrition"
-                          /></label>
-                          <label
-                            >DEFORMITY: <input type="text" id="exam-deformity"
-                          /></label>
-                          <label
-                            >OTHERS: <input type="text" id="exam-others"
-                          /></label>
-                        </div>
-                      </div>
-
-                      <h4>Laboratory and Ancillary Procedure</h4>
-                      <label
-                        >Present: <input type="text" id="exam-lab-present"
-                      /></label>
-                      <label
-                        >Recommendations:
-                        <input type="text" id="exam-recommendations"
-                      /></label>
-
-                      <div class="form-buttons">
-                        <button type="submit" class="save-btn">Save</button>
-                        <button type="button" onclick="closeButtonOverlay()">
-                          Cancel
+                          <i class="fas fa-plus me-1"></i> New
                         </button>
                       </div>
-                    </form>
-                  </div>
-                  <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
-                  <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
-                  <div id="exam-overview-modal" class="exam-overview-modal">
-                    <div class="modal-content">
-                      <h2>Physical Examination Overview</h2>
-                      <div class="overview-details">
-                        <label
-                          ><strong>Date:</strong>
-                          <input id="ovr-exam-date" type="date" disabled />
-                        </label>
-                        <label
-                          ><strong>BP:</strong>
-                          <input id="ovr-exam-bp" type="text" disabled />
-                        </label>
-                        <label
-                          ><strong>PR:</strong>
-                          <input id="ovr-exam-pr" type="text" disabled />
-                        </label>
-                        <label
-                          ><strong>Weight (kg):</strong>
-                          <input
-                            id="ovr-exam-weight"
-                            type="number"
-                            step="0.1"
-                            disabled
-                          />
-                        </label>
-                        <label
-                          ><strong>Height (cm):</strong>
-                          <input
-                            id="ovr-exam-height"
-                            type="number"
-                            step="0.1"
-                            disabled
-                          />
-                        </label>
-                        <label
-                          ><strong>BMI:</strong>
-                          <input
-                            id="ovr-exam-bmi"
-                            type="number"
-                            step="0.1"
-                            readonly
-                            disabled
-                          />
-                        </label>
 
-                        <h4>👁️ Visual Acuity</h4>
-                        <label
-                          ><strong>OS:</strong>
-                          <input id="ovr-exam-os" type="text" disabled />
-                        </label>
-                        <label
-                          ><strong>OD:</strong>
-                          <input id="ovr-exam-od" type="text" disabled />
-                        </label>
-                        <label
-                          ><strong>Glasses:</strong>
-                          <select id="ovr-exam-glasses" disabled>
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                          </select>
-                        </label>
-
-                        <h4>🩺 Physical Findings</h4>
-                        <div class="findings-box">
-                          <textarea
-                            id="ovr-exam-findings"
-                            placeholder="Enter findings..."
-                            disabled
-                          ></textarea>
-                        </div>
-                        <input disabled id="ovr-exam-findings-raw" />
-                        <h4>🧪 Laboratory & Recommendations</h4>
-                        <label
-                          ><strong>Laboratory Procedure:</strong>
-                          <textarea
-                            id="ovr-exam-lab"
-                            type="text"
-                            disabled
-                          ></textarea>
-                        </label>
-                        <label
-                          ><strong>Recommendations:</strong>
-                          <textarea
-                            id="ovr-exam-recommendations"
-                            disabled
-                          ></textarea>
-                        </label>
+                      <!-- Table -->
+                      <div class="table-responsive">
+                        <table
+                          class="table table-bordered table-striped align-middle text-center mb-0"
+                        >
+                          <thead class="table-primary">
+                            <tr>
+                              <th>Date</th>
+                              <th>BP</th>
+                              <th>PR</th>
+                              <th>Weight (kg)</th>
+                              <th>Height (cm)</th>
+                              <th>BMI</th>
+                              <th>BMI Category</th>
+                            </tr>
+                          </thead>
+                          <tbody id="physical-exam-list">
+                            <!-- Records will load here -->
+                          </tbody>
+                        </table>
                       </div>
 
-                      <div class="modal-buttons">
-                        <button id="editExamBtn">✏️ Edit</button>
-                        <button onclick="closeButtonOverlay()">Close</button>
+                      <!-- Action History -->
+                      <div class="mt-4">
+                        <a
+                          class="text-decoration-none"
+                          data-bs-toggle="collapse"
+                          href="#physicalExamHistory"
+                          role="button"
+                          aria-expanded="true"
+                          aria-controls="physicalExamHistory"
+                        >
+                          <div
+                            class="d-flex justify-content-between align-items-center p-2 bg-light rounded"
+                          >
+                            <span class="fw-bold">Action History</span>
+                            <span
+                              id="physical-examination-logs-count"
+                              class="badge bg-primary rounded-pill"
+                            >
+                              0
+                            </span>
+                          </div>
+                        </a>
+
+                        <div
+                          class="collapse show mt-2"
+                          id="physicalExamHistory"
+                        >
+                          <ul
+                            id="physical-examination-history"
+                            class="list-group list-group-flush"
+                          >
+                            <li class="list-group-item text-muted text-center">
+                              No actions yet
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===============================
+     Physical Examination Modal
+================================ -->
+                <!-- ===============================
+     Physical Examination Modal
+================================ -->
+                <div
+                  class="modal fade"
+                  id="addPhysicalExamModal"
+                  tabindex="-1"
+                  aria-labelledby="addPhysicalExamModalLabel"
+                  aria-hidden="true"
+                >
+                  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content">
+                      <!-- Modal Header -->
+                      <div class="modal-header">
+                        <h5
+                          class="modal-title fw-bold"
+                          id="addPhysicalExamModalLabel"
+                        >
+                          Physical Examination
+                        </h5>
+                        <button
+                          type="button"
+                          class="btn-close"
+                          data-bs-dismiss="modal"
+                          aria-label="Close"
+                        ></button>
+                      </div>
+
+                      <!-- Modal Body -->
+                      <div class="modal-body">
+                        <form id="physical-exam-form">
+                          <!-- ================= VITAL SIGNS ================= -->
+                          <h6 class="fw-bold mt-3">Vital Signs</h6>
+                          <div class="row g-3">
+                            <div class="col-md-3">
+                              <label class="form-label">Date</label>
+                              <input
+                                type="date"
+                                class="form-control"
+                                id="exam-date"
+                                required
+                              />
+                            </div>
+                            <div class="col-md-3">
+                              <label class="form-label">BP</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="exam-bp"
+                                placeholder="120/80"
+                              />
+                            </div>
+                            <div class="col-md-3">
+                              <label class="form-label">PR</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="exam-pr"
+                                placeholder="75"
+                              />
+                            </div>
+                            <div class="col-md-3">
+                              <label class="form-label">Weight (kg)</label>
+                              <input
+                                type="number"
+                                class="form-control"
+                                id="exam-weight"
+                                min="10"
+                                max="300"
+                                placeholder="10 - 300"
+                              />
+                              <div
+                                class="invalid-feedback"
+                                id="weight-feedback"
+                              ></div>
+                            </div>
+
+                            <div class="col-md-3">
+                              <label class="form-label">Height (cm)</label>
+                              <input
+                                type="number"
+                                class="form-control"
+                                id="exam-height"
+                                min="50"
+                                max="250"
+                                placeholder="50 - 250"
+                              />
+                              <div
+                                class="invalid-feedback"
+                                id="height-feedback"
+                              ></div>
+                            </div>
+
+                            <div class="col-md-3">
+                              <label class="form-label">BMI</label>
+                              <input
+                                type="number"
+                                class="form-control"
+                                id="exam-bmi"
+                                step="0.1"
+                                readonly
+                                placeholder="BMI will be calculated"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- ================= VISUAL ACUITY ================= -->
+                          <h6 class="fw-bold mt-4">Visual Acuity</h6>
+                          <div class="row g-3 align-items-center">
+                            <div class="col-md-3">
+                              <label class="form-label">OS</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="exam-visual-os"
+                              />
+                            </div>
+
+                            <div class="col-md-3">
+                              <label class="form-label">OD</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="exam-visual-od"
+                              />
+                            </div>
+
+                            <div class="col-md-3 d-flex align-items-center">
+                              <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="exam-glasses"
+                              />
+                              <label
+                                class="form-check-label ms-2"
+                                for="exam-glasses"
+                                >With Glasses</label
+                              >
+                            </div>
+                          </div>
+
+                          <!-- ================= EXAMINATION ================= -->
+                          <h6 class="fw-bold mt-4">Physical Examination</h6>
+                          <div class="row g-3">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                              <label class="form-label">HEENT</label>
+                              <input class="form-control" id="exam-heent" />
+
+                              <label class="form-label mt-2">Teeth</label>
+                              <input class="form-control" id="exam-teeth" />
+
+                              <label class="form-label mt-2">Neck</label>
+                              <input class="form-control" id="exam-neck" />
+
+                              <label class="form-label mt-2">Chest</label>
+                              <input class="form-control" id="exam-chest" />
+
+                              <label class="form-label mt-2">Lungs</label>
+                              <input class="form-control" id="exam-lungs" />
+
+                              <label class="form-label mt-2">Heart</label>
+                              <input class="form-control" id="exam-heart" />
+
+                              <label class="form-label mt-2">Breast</label>
+                              <input class="form-control" id="exam-breast" />
+
+                              <label class="form-label mt-2">Skin</label>
+                              <input class="form-control" id="exam-skin" />
+
+                              <label class="form-label mt-2">Abdomen</label>
+                              <input class="form-control" id="exam-abdomen" />
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                              <label class="form-label">Back / Flanks</label>
+                              <input class="form-control" id="exam-back" />
+
+                              <label class="form-label mt-2"
+                                >Anus / Rectum</label
+                              >
+                              <input class="form-control" id="exam-anus" />
+
+                              <label class="form-label mt-2">Genitalia</label>
+                              <input class="form-control" id="exam-genitalia" />
+
+                              <label class="form-label mt-2">Extremities</label>
+                              <input
+                                class="form-control"
+                                id="exam-extremities"
+                              />
+
+                              <label class="form-label mt-2">Cleanliness</label>
+                              <input
+                                class="form-control"
+                                id="exam-cleanliness"
+                              />
+
+                              <label class="form-label mt-2">Posture</label>
+                              <input class="form-control" id="exam-posture" />
+
+                              <label class="form-label mt-2">Nutrition</label>
+                              <input class="form-control" id="exam-nutrition" />
+
+                              <label class="form-label mt-2">Deformity</label>
+                              <input class="form-control" id="exam-deformity" />
+
+                              <label class="form-label mt-2">Others</label>
+                              <input class="form-control" id="exam-others" />
+                            </div>
+                          </div>
+
+                          <!-- ================= LAB ================= -->
+                          <h6 class="fw-bold mt-4">
+                            Laboratory & Ancillary Procedures
+                          </h6>
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label">Present</label>
+                              <textarea
+                                class="form-control"
+                                id="exam-lab-present"
+                                rows="3"
+                              ></textarea>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Recommendations</label>
+                              <textarea
+                                class="form-control"
+                                id="exam-recommendations"
+                                rows="3"
+                              ></textarea>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+
+                      <!-- Modal Footer -->
+                      <div class="modal-footer">
+                        <button
+                          type="button"
+                          class="btn btn-secondary"
+                          data-bs-dismiss="modal"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          form="physical-exam-form"
+                          class="btn btn-primary"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
+                <!-- 🔹 PHYSICAL EXAM OVERVIEW MODAL -->
+                <!-- Bootstrap Overview Modal -->
+                <!-- Overview Modal -->
+                <div
+                  class="modal fade"
+                  id="exam-overview-modal"
+                  tabindex="-1"
+                  aria-labelledby="examOverviewModalLabel"
+                  aria-hidden="true"
+                >
+                  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content">
+                      <!-- Header -->
+                      <div class="modal-header">
+                        <h5
+                          class="modal-title fw-bold"
+                          id="examOverviewModalLabel"
+                        >
+                          Physical Examination Overview
+                        </h5>
+                        <button
+                          type="button"
+                          class="btn-close"
+                          data-bs-dismiss="modal"
+                          aria-label="Close"
+                        ></button>
+                      </div>
+
+                      <!-- Body -->
+                      <div class="modal-body">
+                        <form>
+                          <!-- Vital Signs -->
+                          <h6 class="fw-bold mt-2">Vital Signs</h6>
+                          <div class="row g-3">
+                            <div class="col-md-2">
+                              <label class="form-label">Date</label>
+                              <input
+                                type="date"
+                                class="form-control"
+                                id="ovr-exam-date"
+                                disabled
+                              />
+                            </div>
+                            <div class="col-md-2">
+                              <label class="form-label">BP</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="ovr-exam-bp"
+                                disabled
+                              />
+                            </div>
+                            <div class="col-md-2">
+                              <label class="form-label">PR</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="ovr-exam-pr"
+                                disabled
+                              />
+                            </div>
+                            <div class="col-md-3">
+                              <label class="form-label">Weight (kg)</label>
+                              <input
+                                type="number"
+                                class="form-control"
+                                id="ovr-exam-weight"
+                                min="10"
+                                max="300"
+                                disabled
+                              />
+                              <div class="invalid-feedback">
+                                Weight must be between 10–300 kg
+                              </div>
+                            </div>
+
+                            <div class="col-md-3">
+                              <label class="form-label">Height (cm)</label>
+                              <input
+                                type="number"
+                                class="form-control"
+                                id="ovr-exam-height"
+                                min="50"
+                                max="250"
+                                disabled
+                              />
+                              <div class="invalid-feedback">
+                                Height must be between 50–250 cm
+                              </div>
+                            </div>
+
+                            <div class="col-md-3">
+                              <label class="form-label">BMI</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="ovr-exam-bmi"
+                                readonly
+                                disabled
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Visual Acuity -->
+                          <h6 class="fw-bold mt-4">👁️ Visual Acuity</h6>
+                          <div class="row g-3">
+                            <div class="col-md-2">
+                              <label class="form-label">OS</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="ovr-exam-os"
+                                disabled
+                              />
+                            </div>
+                            <div class="col-md-2">
+                              <label class="form-label">OD</label>
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="ovr-exam-od"
+                                disabled
+                              />
+                            </div>
+                            <div class="col-md-2">
+                              <label class="form-label">Glasses</label>
+                              <select
+                                class="form-select"
+                                id="ovr-exam-glasses"
+                                disabled
+                              >
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <!-- Physical Findings -->
+                          <h6 class="fw-bold mt-4">🩺 Physical Findings</h6>
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label">HEENT</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-heent"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Teeth</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-teeth"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Neck</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-neck"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Chest</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-chest"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Lungs</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-lungs"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Heart</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-heart"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Breast</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-breast"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Skin</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-skin"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Abdomen</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-abdomen"
+                                disabled
+                              />
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Back / Flanks</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-back"
+                                disabled
+                              />
+                              <label class="form-label mt-2"
+                                >Anus / Rectum</label
+                              >
+                              <input
+                                class="form-control"
+                                id="ovr-exam-anus"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Genitalia</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-genitalia"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Extremities</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-extremities"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Cleanliness</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-cleanliness"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Posture</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-posture"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Nutrition</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-nutrition"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Deformity</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-deformity"
+                                disabled
+                              />
+                              <label class="form-label mt-2">Others</label>
+                              <input
+                                class="form-control"
+                                id="ovr-exam-others"
+                                disabled
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Laboratory & Recommendations -->
+                          <h6 class="fw-bold mt-4">
+                            🧪 Laboratory & Recommendations
+                          </h6>
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label"
+                                >Laboratory Procedure</label
+                              >
+                              <textarea
+                                class="form-control"
+                                id="ovr-exam-lab"
+                                rows="3"
+                                disabled
+                              ></textarea>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Recommendations</label>
+                              <textarea
+                                class="form-control"
+                                id="ovr-exam-recommendations"
+                                rows="3"
+                                disabled
+                              ></textarea>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+
+                      <!-- Footer -->
+                      <div class="modal-footer">
+                        <button
+                          type="button"
+                          class="btn btn-primary"
+                          id="editExamBtn"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-secondary"
+                          data-bs-dismiss="modal"
+                        >
+                          Close
+                        </button>
                       </div>
                     </div>
                   </div>

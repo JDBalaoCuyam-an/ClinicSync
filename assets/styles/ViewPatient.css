@@ -4,146 +4,7 @@
 /* ======================================================
    🔹 PHYSICAL EXAMINATION - CONSISTENT DESIGN
 ====================================================== */
-#add-physical-exam {
-  display: none;
-  width: 80%;
-  max-width: 900px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border: 2px solid #3498db;
-  border-radius: 12px;
-  padding: 30px;
-  background-color: #fff;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1001;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-#add-physical-exam.show {
-  display: block;
-}
-
-#add-physical-exam h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 15px;
-  color: #2c3e50;
-  font-size: 1.5rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-#add-physical-exam h2 i {
-  color: #3498db;
-}
-
-#add-physical-exam .vitals {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-#add-physical-exam .exam-section {
-  display: flex;
-  gap: 25px;
-  margin-bottom: 25px;
-}
-
-#add-physical-exam .left-col,
-#add-physical-exam .right-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-#add-physical-exam label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 500;
-  font-size: 14px;
-  color: #2c3e50;
-}
-
-#add-physical-exam input[type="text"],
-#add-physical-exam input[type="number"],
-#add-physical-exam input[type="date"],
-#add-physical-exam input[type="checkbox"] {
-  flex: 1;
-  margin-left: 10px;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  background: white;
-  transition: all 0.2s ease;
-}
-
-#add-physical-exam input[type="text"]:focus,
-#add-physical-exam input[type="number"]:focus,
-#add-physical-exam input[type="date"]:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-#add-physical-exam .form-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 25px;
-}
-
-#add-physical-exam .save-btn {
-  background-color: #3498db;
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#add-physical-exam .save-btn:hover {
-  background-color: #2980b9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
-#add-physical-exam .cancel-btn {
-  background-color: #95a5a6;
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#add-physical-exam .cancel-btn:hover {
-  background-color: #ff5757;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
-}
-
+/* 
 /* ======================================================
    🔹 PHYSICAL EXAM OVERVIEW MODAL - CONSISTENT DESIGN
 ====================================================== */
@@ -269,9 +130,9 @@
   margin-top: 25px;
 }
 
-.modal-buttons .edit-btn {
+/* .modal-buttons .edit-btn {
   position: relative;
-}
+} */
 
 .exam-overview-modal .modal-buttons button {
   background-color: #3498db;
@@ -313,7 +174,7 @@
 }
 
 /* 🔹 Findings Box */
-.findings-box {
+/* .findings-box {
   grid-column: span 2;
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
@@ -338,9 +199,9 @@
   resize: vertical;
   overflow-y: auto;
   transition: all 0.2s ease;
-}
+} */
 
-.findings-box textarea:disabled {
+/* .findings-box textarea:disabled {
   background: transparent;
   color: #2c3e50;
 }
@@ -351,7 +212,7 @@
   padding: 10px;
   border-radius: 6px;
 }
-
+ */
 
 
 /* ======================================================
@@ -382,135 +243,6 @@
 
 .upload-btn:active {
   transform: translateY(0);
-}
-
-/* ===== HARMONIZED FORM STYLING ===== */
-/* Apply consistent styling to all forms */
-#appointment-form,
-#consultation-form,
-#physical-exam-form {
-  padding: 25px;
-  margin-bottom: 20px;
-}
-
-/* Form labels styling */
-#appointment-form label,
-#consultation-form label,
-#physical-exam-form label {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 15px;
-  font-weight: 500;
-  color: #2c3e50;
-  font-size: 14px;
-  gap: 5px;
-}
-
-/* Form inputs styling */
-#appointment-form input,
-#consultation-form input,
-#physical-exam-form input,
-#consultation-form textarea,
-#physical-exam-form textarea,
-#appointment-form select,
-#consultation-form select,
-#physical-exam-form select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  margin-top: 5px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background: white;
-}
-
-#appointment-form input:focus,
-#consultation-form input:focus,
-#physical-exam-form input:focus,
-#consultation-form textarea:focus,
-#physical-exam-form textarea:focus,
-#appointment-form select:focus,
-#consultation-form select:focus,
-#physical-exam-form select:focus {
-  border-color: #3498db;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-/* Form sections with consistent headers */
-#consultation-form h4,
-#physical-exam-form h4 {
-  color: #2c3e50;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
-  margin: 25px 0 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-#consultation-form h4 i,
-#physical-exam-form h4 i {
-  color: #3498db;
-}
-
-/* Grid layouts for forms */
-.vitals-grid,
-.exam-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.exam-section {
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
-}
-
-
-#consultation-form .form-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 25px;
-}
-
-
-
-/* ===== BUTTON STYLING CONSISTENCY ===== */
-.primary-btn,
-.save-btn,
-.new-btn {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.primary-btn:hover,
-.save-btn:hover,
-.new-btn:hover {
-  background: #2980b9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
-#exam-overview-modal .modal-buttons .cancel-btn :hover {
-  background: #ff5757;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
 }
 
 /* ===== MEDICATION LIST STYLING(inside Medical consultation form) ===== */
