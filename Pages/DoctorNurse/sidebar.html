@@ -1,39 +1,41 @@
-<div id="sidebar" class="sidebar">
-    <div class="current-user">
-      <div class="user-info">
-      </div>
-      <div class="menu-icon" onclick="toggleSidebar()">&#9776;</div>
-    </div>
-    <ul>
-      <li>
-        <a href="DoctorNurseDashboard.html">
-          <i class="fas fa-home sidebar-icon"></i> Home
+<!-- Sidebar Offcanvas -->
+<div class="offcanvas offcanvas-start bg-primary text-light" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarLabel">
+  <div class="offcanvas-header d-flex align-items-center justify-content-between">
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body p-0">
+    <ul class="nav nav-pills flex-column">
+      <li class="nav-item">
+        <a class="nav-link text-light" href="DoctorNurseDashboard.html">
+          <i class="fas fa-home me-2"></i> Home
         </a>
       </li>
-      <li>
-        <a href="Patients.html">
-          <i class="fas fa-file-medical sidebar-icon"></i> Patients
+      <li class="nav-item">
+        <a class="nav-link text-light" href="Patients.html">
+          <i class="fas fa-file-medical me-2"></i> Patients
         </a>
       </li>
-      <li>
-        <a href="Appointments.html">
-          <i class="fas fa-calendar-alt sidebar-icon"></i> Appointments
+      <li class="nav-item">
+        <a class="nav-link text-light" href="Appointments.html">
+          <i class="fas fa-calendar-alt me-2"></i> Appointments
         </a>
       </li>
-      <li>
-        <a href="MedicineInventory.html">
-          <i class="fas fa-pills sidebar-icon"></i> Medicine Inventory
+      <li class="nav-item">
+        <a class="nav-link text-light" href="MedicineInventory.html">
+          <i class="fas fa-pills me-2"></i> Medicine Inventory
         </a>
       </li>
-      <li>
-        <a href="ClinicInventory.html">
-          <i class="fas fa-clipboard-list sidebar-icon"></i> Clinic Inventory
+      <li class="nav-item">
+        <a class="nav-link text-light" href="ClinicInventory.html">
+          <i class="fas fa-clipboard-list me-2"></i> Clinic Inventory
         </a>
       </li>
-      <li>
-        <a href="EmergenyReferrals.html">
-          <i class="fas fa-ambulance sidebar-icon"></i> Emergency Referrals
+      <li class="nav-item">
+        <a class="nav-link text-light" href="EmergenyReferrals.html">
+          <i class="fas fa-ambulance me-2"></i> Emergency Referrals
         </a>
       </li>
     </ul>
   </div>
+</div>

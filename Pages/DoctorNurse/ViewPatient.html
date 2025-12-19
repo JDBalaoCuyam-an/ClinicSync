@@ -22,52 +22,41 @@
   <body>
     <!-- NavBar -->
     <header class="navbar">
-      <div class="container-fluid">
-        <!-- LEFT SIDE – Your exact menu icon + title -->
-        <div class="left-header d-flex align-items-center">
-          <!-- This is your original ☰ icon – unchanged -->
-          <div
-            class="menu-icon text-white me-3"
-            onclick="toggleSidebar()"
-            style="font-size: 28px; cursor: pointer; padding: 0 10px"
-          >
-            &#9776;
-          </div>
-          <h1 class="mb-0 text-white fs-4 fw-bold">ClinicSync</h1>
+    <div class="container-fluid">
+      <!-- LEFT SIDE – Your exact menu icon + title -->
+      <div class="left-header d-flex align-items-center">
+        <!-- This is your original ☰ icon – unchanged -->
+        <div class="menu-icon text-white me-3" style="font-size: 28px; cursor: pointer; padding: 0 10px;">
+          <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas"
+            aria-controls="sidebarOffcanvas">
+            &#9776; Menu
+          </button>
         </div>
-
-        <!-- RIGHT SIDE – User info + logout (still responsive) -->
-        <div class="right-header d-flex align-items-center gap-3">
-          <div class="user-name text-white d-none d-sm-block" id="displayName">
-            Dr. Juan Dela Cruz
-          </div>
-
-          <div
-            class="rounded-circle"
-            style="
-              width: 40px;
-              height: 40px;
-              background-color: aliceblue;
-              border: 2px solid rgba(255, 255, 255, 0.3);
-            "
-          ></div>
-
-          <div class="logout-container">
-            <form class="m-0">
-              <button
-                type="submit"
-                id="logout-button"
-                class="btn btn-link text-white p-0"
-                title="Logout"
-              >
-                <i class="fa-solid fa-right-from-bracket fa-lg"></i>
-              </button>
-            </form>
-          </div>
-        </div>
+        <h1 class="mb-0 text-white fs-4 fw-bold">ClinicSync</h1>
       </div>
-    </header>
 
+      <!-- RIGHT SIDE – User info + logout (still responsive) -->
+      <div class="right-header d-flex align-items-center gap-3">
+
+        <div class="user-name text-white d-none d-sm-block" id="displayName">
+
+        </div>
+
+        <div class="rounded-circle"
+          style="width: 40px; height: 40px; background-color: aliceblue; border: 2px solid rgba(255,255,255,0.3);">
+        </div>
+
+        <div class="logout-container">
+          <form class="m-0">
+            <button type="submit" id="logout-button" class="btn btn-link text-white p-0" title="Logout">
+              <i class="fa-solid fa-right-from-bracket fa-lg"></i>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </header>
     <!-- SideBar -->
     <div id="sidebar-container"></div>
     <div id="overlay" class="overlay"></div>

@@ -87,105 +87,6 @@ body {
   color: var(--primary-color) !important;
 }
 
-/* SIDEBAR - Consistent with design system */
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: -250px;
-  width: 250px;
-  height: 100%;
-  background-color: var(--primary-light);
-  transition: left var(--transition-slow);
-  z-index: 1001;
-  box-shadow: var(--shadow-medium);
-}
-
-.sidebar.show {
-  left: 0;
-}
-/* SIDEBAR ICON STYLING */
-.sidebar-icon {
-  font-size: 1.1rem;
-  margin-right: 12px;
-  width: 20px;
-  text-align: center;
-  color: var(--text-dark) !important;
-  transition: color var(--transition-fast);
-}
-
-.sidebar .active .sidebar-icon,
-.sidebar ul li:hover .sidebar-icon {
-  color: var(--text-light) !important;
-}
-
-/* SIDEBAR LINK STYLING WITH ICONS */
-.sidebar ul li a {
-  color: var(--text-dark);
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  padding: 15px 0;
-  width: 100%;
-  font-weight: 500;
-  transition: color var(--transition-fast);
-}
-
-.sidebar .active a {
-  color: var(--text-light) !important;
-}
-
-.sidebar .current-user {
-  background-color: var(--primary-color);
-  padding: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 75px;
-  box-shadow: var(--shadow-light);
-}
-
-.sidebar .current-user .user-info .user-icon {
-  border-radius: 100%;
-  width: 50px;
-  height: 50px;
-  overflow: hidden;
-  margin-bottom: 10px;
-  background-color: var(--primary-light);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.sidebar .current-user .user-info .user-icon img {
-  width: 80%;
-  height: 80%;
-  object-fit: cover;
-}
-.sidebar ul{
-  list-style-type: none;
-}
-.sidebar ul li {
-  display: flex;
-  align-items: center;
-  transition: background-color var(--transition-fast);
-}
-
-.sidebar ul li a {
-  color: var(--text-dark);
-  display: block;
-  text-decoration: none;
-  width: 100%;
-  font-weight: 500;
-  transition: color var(--transition-fast);
-}
-
-.sidebar ul li:hover {
-  background-color: var(--primary-color);
-}
-
-.sidebar ul li:hover a {
-  color: var(--text-light);
-}
 
 .user-name {
   font-size: 16px;
@@ -193,40 +94,7 @@ body {
   color: var(--text-light);
 }
 
-/* BUTTONS - Consistent styling */
-/* .edit-btn {
-  padding: 2px 8px;
-  background-color: var(--primary-color);
-  color: var(--text-light);
-  border: none;
-  border-radius: 5px;
-  position: absolute;
-  top: 0;
-  right: 0;
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-} */
 
-/* .edit-btn:hover {
-  background-color: #3a6d9b;
-} */
-/* 
-.close-button {
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 35px;
-  padding: 1px 8px;
-  cursor: pointer;
-  color: var(--text-dark);
-  transition: all var(--transition-normal);
-  z-index: 2;
-} */
-
-/* .close-button:hover {
-
-  color: var(--text-light);
-} */
 
 /* LOGOUT BUTTON - Consistent with sidebar */
 .logout-container {
@@ -255,21 +123,6 @@ body {
 #logout-button:hover i {
   color: var(--primary-light);
 }
-/* OVERLAY */
-/* .overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: none;
-  z-index: 1001;
-}
-
-.overlay.show {
-  display: block;
-} */
 
 /* ==========================
    FOOTER STYLES

@@ -1,7 +1,7 @@
 // Side Bar Toggle Function
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("show");
-}
+// function toggleSidebar() {
+//   document.getElementById("sidebar").classList.toggle("show");
+// }
 
 // Medicine Inventory Functions
 function addMedicineOverlay() {
