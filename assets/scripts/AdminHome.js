@@ -554,10 +554,10 @@ async function loadLoginHistory() {
 
     const row = `
       <tr>
+        <td>${formattedTime}</td>
         <td>${fullName}</td>
         <td>${email}</td>
         <td>${data.user_type || "N/A"}</td>
-        <td>${formattedTime}</td>
         <td>${ipAddress}</td>
       </tr>
     `;
@@ -568,3 +568,43 @@ async function loadLoginHistory() {
 
 // Call the function to populate table
 loadLoginHistory();
+
+const userChangesTab = document.getElementById("user-changes");
+
+// Function to load user changes
+async function loadUserChanges() {
+  userChangesTab.innerHTML = "<p>Loading...</p>";
+
+  try {
+    const changesQuery = await getDocs(collection(db, "userChanges"));
+    
+    if (changesQuery.empty) {
+      userChangesTab.innerHTML = "<p>No changes recorded.</p>";
+      return;
+    }
+
+    // Create a container for the list
+    const list = document.createElement("ul");
+    list.classList.add("list-group", "list-group-flush");
+
+    changesQuery.forEach((doc) => {
+      const data = doc.data();
+      const item = document.createElement("li");
+      item.classList.add("list-group-item");
+      item.textContent = `${data.dateTime} - ${data.message}`;
+      list.appendChild(item);
+    });
+
+    userChangesTab.innerHTML = ""; // clear loading text
+    userChangesTab.appendChild(list);
+  } catch (err) {
+    console.error(err);
+    userChangesTab.innerHTML = "<p>Failed to load user changes.</p>";
+  }
+}
+
+// Load when the tab is shown
+const userChangesTabButton = document.getElementById("user-changes-tab");
+userChangesTabButton.addEventListener("shown.bs.tab", () => {
+  loadUserChanges();
+});

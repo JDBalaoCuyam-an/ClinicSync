@@ -1,41 +1,77 @@
 <!-- Sidebar Offcanvas -->
-<div class="offcanvas offcanvas-start bg-primary text-light" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarLabel">
-  <div class="offcanvas-header d-flex align-items-center justify-content-between">
+<div class="offcanvas offcanvas-start sidebar bg-primary text-light" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarLabel">
+  <div class="offcanvas-header d-flex align-items-center justify-content-between border-bottom border-light">
+    <h5 class="offcanvas-title" id="sidebarLabel"><b>ClinicSync</b></h5>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
 
   <div class="offcanvas-body p-0">
-    <ul class="nav nav-pills flex-column">
+    <ul class="nav nav-pills flex-column mt-3">
       <li class="nav-item">
-        <a class="nav-link text-light" href="DoctorNurseDashboard.html">
-          <i class="fas fa-home me-2"></i> Home
+        <a class="nav-link text-light d-flex align-items-center sidebar-link" href="DoctorNurseDashboard.html">
+          <i class="fas fa-home me-3"></i> Home
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-light" href="Patients.html">
-          <i class="fas fa-file-medical me-2"></i> Patients
+        <a class="nav-link text-light d-flex align-items-center sidebar-link" href="Patients.html">
+          <i class="fas fa-file-medical me-3"></i> Patients
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-light" href="Appointments.html">
-          <i class="fas fa-calendar-alt me-2"></i> Appointments
+        <a class="nav-link text-light d-flex align-items-center sidebar-link" href="Appointments.html">
+          <i class="fas fa-calendar-alt me-3"></i> Appointments
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-light" href="MedicineInventory.html">
-          <i class="fas fa-pills me-2"></i> Medicine Inventory
+        <a class="nav-link text-light d-flex align-items-center sidebar-link" href="MedicineInventory.html">
+          <i class="fas fa-pills me-3"></i> Medicine Inventory
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-light" href="ClinicInventory.html">
-          <i class="fas fa-clipboard-list me-2"></i> Clinic Inventory
+        <a class="nav-link text-light d-flex align-items-center sidebar-link" href="ClinicInventory.html">
+          <i class="fas fa-clipboard-list me-3"></i> Clinic Inventory
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-light" href="EmergenyReferrals.html">
-          <i class="fas fa-ambulance me-2"></i> Emergency Referrals
+        <a class="nav-link text-light d-flex align-items-center sidebar-link" href="EmergenyReferrals.html">
+          <i class="fas fa-ambulance me-3"></i> Emergency Referrals
         </a>
       </li>
     </ul>
   </div>
 </div>
+
+<!-- Custom CSS -->
+<style>
+  /* Sidebar styling */
+  .sidebar {
+    width: 250px;
+    background: linear-gradient(180deg, #0069d9, #0056b3); /* blue gradient */
+  }
+
+  .sidebar .offcanvas-header h5 {
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .sidebar .nav-link {
+    padding: 12px 20px;
+    font-weight: 500;
+    border-radius: 0 25px 25px 0;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    padding-left: 25px;
+    color: #fff;
+  }
+
+  .sidebar .nav-link i {
+    font-size: 18px;
+  }
+
+  .sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+</style>

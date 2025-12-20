@@ -518,7 +518,43 @@ editPatientInfoBtn.addEventListener("click", async () => {
     fields.forEach((f) => (updatedData[f.id] = f.value));
 
     try {
+      // Update patient info in 'users' collection
       await updateDoc(doc(db, "users", patientId), updatedData);
+
+      // Prepare audit log
+      const changes = [];
+      fields.forEach((f) => {
+        const key = f.id;
+        if (f.value !== (originalPatientInfoData[key] || "")) {
+          changes.push(key);
+        }
+      });
+
+      if (changes.length > 0) {
+        const userSnap = await getDoc(doc(db, "users", patientId));
+        const userData = userSnap.data();
+        const fullName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName}`.trim();
+        const schoolId = userData.schoolId || "N/A";
+        const clinicStaff = currentUserName;
+        const message = `${clinicStaff} updated ${changes.join(", ")} ${changes.length > 1 ? 'fields' : 'field'} of ${fullName} (${schoolId}) Personal Information`;
+
+        const timestamp = new Date();
+        const formattedDate = timestamp.toLocaleString(undefined, {
+          year: "short",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        });
+
+        await addDoc(collection(db, "userChanges"), {
+          message,
+          dateTime: formattedDate,
+        });
+      }
+
       alert("Patient information updated!");
       disablePatientInfoEditing(fields);
     } catch (err) {
@@ -527,6 +563,7 @@ editPatientInfoBtn.addEventListener("click", async () => {
     }
   }
 });
+
 
 // Cancel button click
 cancelPatientInfoBtn.addEventListener("click", () => {

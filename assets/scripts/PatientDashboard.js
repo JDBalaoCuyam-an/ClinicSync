@@ -197,10 +197,52 @@ saveBtn.addEventListener("click", async () => {
   infoFields.forEach((field) => (updatedData[field.id] = field.value));
 
   try {
-    const docRef = doc(db, "users", currentUserId);
-    await updateDoc(docRef, updatedData);
+    const userDocRef = doc(db, "users", currentUserId);
+    const userSnap = await getDoc(userDocRef);
+
+    if (!userSnap.exists()) throw new Error("User not found");
+
+    const userData = userSnap.data();
+
+    // Update users collection
+    await updateDoc(userDocRef, updatedData);
+
+    // Prepare audit message
+    const changes = [];
+    infoFields.forEach((field) => {
+      if (field.value !== (originalData[field.id] || "")) {
+        changes.push(field.id);
+      }
+    });
+
+    if (changes.length > 0) {
+      const { firstName, middleName, lastName, schoolId } = userData;
+      const fullName = `${firstName} ${middleName || ""} ${lastName}`.trim();
+
+      const message = `${changes.join(", ")} ${changes.length > 1 ? 'fields' : 'field'} updated for ${fullName} (${schoolId})`;
+
+      // Local timestamp
+      const timestamp = new Date();
+      const formattedDate = timestamp.toLocaleString(undefined, {
+        year: "short",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      });
+
+      // Store in userChanges collection
+      await addDoc(collection(db, "userChanges"), {
+        message,
+        dateTime: formattedDate,
+      });
+    }
+
     alert("Information saved successfully!");
   } catch (err) {
+    console.error(err);
     alert("Failed to save info.");
   }
 
@@ -209,6 +251,8 @@ saveBtn.addEventListener("click", async () => {
   cancelBtn.style.display = "none";
   saveBtn.style.display = "none";
 });
+
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
   loadRecentMedications();
