@@ -51,6 +51,13 @@ function formatTimeFromString(timeStr) {
   // Remove leading zero and format minutes (keep 2 digits)
   return `${hour}:${minutes} ${period}`;
 }
+
+document.querySelectorAll(".name-only").forEach((input) => {
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/[^a-zA-Z\s-]/g, "");
+  });
+});
+
 const form = document.getElementById("add-borrower-form");
 const tableBody = document.getElementById("clinic-table-body");
 const searchBar = document.getElementById("search-bar");

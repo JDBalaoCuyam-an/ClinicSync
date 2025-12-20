@@ -187,7 +187,7 @@
                         <label class="form-label">Last Name</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="lastName"
                           disabled
                         />
@@ -198,7 +198,7 @@
                         <label class="form-label">First Name</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="firstName"
                           disabled
                         />
@@ -209,7 +209,7 @@
                         <label class="form-label">Middle Name</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="middleName"
                           disabled
                         />
@@ -218,12 +218,20 @@
                     <div class="col-md-6 col-lg-4">
                       <div class="mb-3">
                         <label class="form-label">Extension Name</label>
-                        <input
-                          type="text"
-                          class="form-control info-field"
+                        <select
+                          class="form-select info-field"
                           id="extName"
                           disabled
-                        />
+                        >
+                          <option value="">None</option>
+                          <option value="Jr.">Jr.</option>
+                          <option value="Sr.">Sr.</option>
+                          <option value="I">I</option>
+                          <option value="II">II</option>
+                          <option value="III">III</option>
+                          <option value="IV">IV</option>
+                          <option value="V">V</option>
+                        </select>
                       </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
@@ -258,6 +266,7 @@
                           class="form-control info-field"
                           id="age"
                           disabled
+                          readonly
                         />
                       </div>
                     </div>
@@ -318,6 +327,7 @@
                           class="form-control info-field"
                           id="schoolId"
                           disabled
+                          readonly
                         />
                       </div>
                     </div>
@@ -457,7 +467,7 @@
                         <label class="form-label">Father's Name</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="fatherName"
                           disabled
                         />
@@ -479,7 +489,7 @@
                         <label class="form-label">Father's Occupation</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="fatherOccupation"
                           disabled
                         />
@@ -490,7 +500,7 @@
                         <label class="form-label">Father's Health Status</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="fatherHealth"
                           disabled
                         />
@@ -501,7 +511,7 @@
                         <label class="form-label">Mother's Name</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="motherName"
                           disabled
                         />
@@ -523,7 +533,7 @@
                         <label class="form-label">Mother's Occupation</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="motherOccupation"
                           disabled
                         />
@@ -534,7 +544,7 @@
                         <label class="form-label">Mother's Health Status</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="motherHealth"
                           disabled
                         />
@@ -555,9 +565,11 @@
                       <div class="mb-3">
                         <label class="form-label">Phone Number</label>
                         <input
-                          type="text"
-                          class="form-control info-field"
+                          type="number"
+                          class="form-control info-field phone-only"
                           id="phoneNumber"
+                          placeholder="09XXXXXXXXX"
+                          maxlength="11"
                           disabled
                         />
                       </div>
@@ -589,7 +601,7 @@
                         <label class="form-label">Guardian's Name</label>
                         <input
                           type="text"
-                          class="form-control info-field"
+                          class="form-control info-field name-only"
                           id="guardianName"
                           disabled
                         />
@@ -601,9 +613,11 @@
                           >Guardian's Phone Number</label
                         >
                         <input
-                          type="text"
-                          class="form-control info-field"
+                          type="number"
+                          class="form-control info-field phone-only"
                           id="guardianPhone"
+                          placeholder="09XXXXXXXXX"
+                          maxlength="11"
                           disabled
                         />
                       </div>
