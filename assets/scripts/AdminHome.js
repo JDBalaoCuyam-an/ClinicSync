@@ -216,65 +216,99 @@ const overviewModalInstance = new bootstrap.Modal(
 );
 
 // LOAD USERS FROM FIRESTORE
+let allUsers = [];
 async function loadUsers() {
   try {
     const querySnapshot = await getDocs(collection(db, "users"));
     usersTableBody.innerHTML = "";
+    allUsers = []; // reset
 
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${
-        data.extName || ""
-      }`.trim();
-
-      // Create status badge based on disabled status
-      const statusBadge = data.disabled
-        ? '<span class="badge bg-danger status-badge">Disabled</span>'
-        : '<span class="badge bg-success status-badge">Active</span>';
-
-      const row = `
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center">
-                    <!--<div class="user-avatar">${
-                      (data.firstName?.[0] || "") + (data.lastName?.[0] || "")
-                    }</div> -->
-                    <div>${fullName}</div>
-                  </div>
-                </td>
-                <td>${data.schoolId}</td>
-                <td>${data.email || ""}</td>
-                <td>
-                  <span class="badge ${
-                    data.user_type === "admin"
-                      ? "bg-primary"
-                      : data.user_type === "doctor" ||
-                        data.user_type === "nurse"
-                      ? "bg-success"
-                      : "bg-secondary"
-                  }">
-                    ${data.user_type || "user"}
-                  </span>
-                </td>
-                <td>${statusBadge}</td>
-                <td>
-                  <button class="btn btn-sm btn-outline-primary btn-action" onclick="openOverview('${
-                    docSnap.id
-                  }')">
-                    <i class="bi bi-eye"></i> View
-                  </button>
-                </td>
-              </tr>
-            `;
-
-      usersTableBody.innerHTML += row;
+      allUsers.push({ id: docSnap.id, ...data });
     });
+
+    renderUsers(allUsers);
   } catch (error) {
     console.error("Error loading users:", error);
   }
 }
+function renderUsers(users) {
+  usersTableBody.innerHTML = "";
 
-// Make function globally available
+  if (users.length === 0) {
+    usersTableBody.innerHTML =
+      "<tr><td colspan='6' class='text-center'>No users found.</td></tr>";
+    return;
+  }
+
+  users.forEach((data) => {
+    const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${
+      data.extName || ""
+    }`.trim();
+
+    const statusBadge = data.disabled
+      ? '<span class="badge bg-danger status-badge">Disabled</span>'
+      : '<span class="badge bg-success status-badge">Active</span>';
+
+    const row = `
+      <tr>
+        <td>${fullName}</td>
+        <td>${data.schoolId || ""}</td>
+        <td>${data.email || ""}</td>
+        <td>
+          <span class="badge ${
+            data.user_type === "admin"
+              ? "bg-primary"
+              : data.user_type === "doctor" || data.user_type === "nurse"
+              ? "bg-success"
+              : "bg-secondary"
+          }">
+            ${data.user_type || "user"}
+          </span>
+        </td>
+        <td>${statusBadge}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary"
+            onclick="openOverview('${data.uid}')">
+            <i class="bi bi-eye"></i> View
+          </button>
+        </td>
+      </tr>
+    `;
+
+    usersTableBody.insertAdjacentHTML("beforeend", row);
+  });
+}
+const searchInput = document.getElementById("searchUserInput");
+
+searchInput.addEventListener("input", () => {
+  const searchTerm = searchInput.value.toLowerCase().trim();
+
+  if (!searchTerm) {
+    renderUsers(allUsers);
+    return;
+  }
+
+  const filteredUsers = allUsers.filter((user) => {
+    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
+    const schoolId = (user.schoolId || "").toLowerCase();
+    const email = (user.email || "").toLowerCase();
+
+    return (
+      fullName.includes(searchTerm) ||
+      schoolId.includes(searchTerm) ||
+      email.includes(searchTerm)
+    );
+  });
+
+  renderUsers(filteredUsers);
+});
+
+
+// =============================================================
+// 📌 OPEN OVERVIEW MODAL & HANDLE USER ACTIONS
+// =============================================================
 window.openOverview = openOverview;
 
 let selectedUserId = null;

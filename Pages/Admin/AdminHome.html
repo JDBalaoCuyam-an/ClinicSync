@@ -1,392 +1,604 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - ClinicSync</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <script type="module" src="../../firebaseconfig.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - ClinicSync</title>
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
-  <script type="module" src="../../firebaseconfig.js"></script>
-  
-</head>
-
-<body>
-  <!-- Navigation Header -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-      <a class="navbar-brand fw-bold" href="#">
-        <i class="bi bi-heart-pulse me-2"></i>ClinicSync Admin
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item d-flex align-items-center">
-            <span id="displayName"></span>
-            <button class="btn btn-outline-light" id="logout-button">
-              <i class="bi bi-box-arrow-right me-1"></i> Log Out
-            </button>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Main Content -->
-  <div class="container-fluid mt-4">
-    <div class="row">
-      <div class="col-12">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-          <h2 class="mb-0">User Management</h2>
-          <div class="d-flex gap-2">
-            <button id="open-user-bulk-upload" class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
-              data-bs-target="#userBulkModal">
-              Bulk Upload Users
-            </button>
-
-            <button class="btn btn-primary" id="createNewUserBtn">
-              <i class="bi bi-person-plus me-1"></i> Create New User
-            </button>
-          </div>
+  <body>
+    <!-- Navigation Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="#">
+          <i class="bi bi-heart-pulse me-2"></i>ClinicSync Admin
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item d-flex align-items-center">
+              <span id="displayName"></span>
+              <button class="btn btn-outline-light" id="logout-button">
+                <i class="bi bi-box-arrow-right me-1"></i> Log Out
+              </button>
+            </li>
+          </ul>
         </div>
+      </div>
+    </nav>
 
-        <!-- User Table -->
-        <div class="card">
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover" id="usersTable">
-                <thead class="text-nowrap table-primary">
-                  <tr>
-                    <th>Name</th>
-                    <th>School ID</th>
-                    <th>Email</th>
-                    <th>User Type</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Data will be populated by JavaScript -->
-                </tbody>
-              </table>
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+      <div class="row">
+        <div class="col-12">
+          <div
+            class="d-flex flex-wrap justify-content-between align-items-center mb-4"
+          >
+            <h2 class="mb-0">User Management</h2>
+
+            <div class="d-flex align-items-center gap-2">
+              <input
+                type="search"
+                name="search"
+                id="searchUserInput"
+                class="form-control form-control-sm"
+                placeholder="Search by Name/ID/Email"
+                style="max-width: 200px"
+              />
+
+              <button
+                id="open-user-bulk-upload"
+                class="btn btn-outline-secondary btn-sm"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#userBulkModal"
+              >
+                Bulk Upload
+              </button>
+
+              <button class="btn btn-primary btn-sm" id="createNewUserBtn">
+                <i class="bi bi-person-plus me-1"></i> New User
+              </button>
+            </div>
+          </div>
+
+          <!-- User Table -->
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover" id="usersTable">
+                  <thead class="text-nowrap table-primary">
+                    <tr>
+                      <th>Name</th>
+                      <th>School ID</th>
+                      <th>Email</th>
+                      <th>User Type</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Data will be populated by JavaScript -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-<!-- Audit Trail Section -->
-<div class="container-fluid mt-5 p-4">
-  <h2 class="mb-3">Audit Trail</h2>
+    <!-- Audit Trail Section -->
+    <div class="container-fluid mt-5 p-4">
+      <h2 class="mb-3">Audit Trail</h2>
 
-  <!-- Tabs Navigation -->
-  <ul class="nav nav-tabs" id="auditTab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="login-history-tab" data-bs-toggle="tab" data-bs-target="#login-history" type="button" role="tab" aria-controls="login-history" aria-selected="true">
-        Login History
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="user-changes-tab" data-bs-toggle="tab" data-bs-target="#user-changes" type="button" role="tab" aria-controls="user-changes" aria-selected="false">
-        User Changes
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="user-account-management-tab" data-bs-toggle="tab" data-bs-target="#user-account-management" type="button" role="tab" aria-controls="user-account-management" aria-selected="false">
-        User Account Management
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="disabled-accounts-tab" data-bs-toggle="tab" data-bs-target="#disabled-accounts" type="button" role="tab" aria-controls="disabled-accounts" aria-selected="false">
-        ???
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="bulk-uploads-tab" data-bs-toggle="tab" data-bs-target="#bulk-uploads" type="button" role="tab" aria-controls="bulk-uploads" aria-selected="false">
-        ???
-      </button>
-    </li>
-  </ul>
-
-  <!-- Tabs Content -->
-  <div class="tab-content mt-3" id="auditTabContent">
-    <!-- Login History -->
-    <div class="tab-pane fade show active" id="login-history" role="tabpanel" aria-labelledby="login-history-tab">
-      <div class="table-responsive">
-        <table class="table table-hover table-striped" id="loginHistoryTable">
-          <thead class="table-primary">
-            <tr>
-              <th>Login Time</th>
-              <th>User</th>
-              <th>Email</th>
-              <th>User Type</th>
-              <th>IP Address</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- JS populated -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- User Changes -->
-    <div class="tab-pane fade" id="user-changes" role="tabpanel" aria-labelledby="user-changes-tab">
-      
-    </div>
-
-    <!-- User Account Management -->
-    <div class="tab-pane fade" id="user-account-management" role="tabpanel" aria-labelledby="user-account-management-tab">
-      <ul>
-
+      <!-- Tabs Navigation -->
+      <ul class="nav nav-tabs" id="auditTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link active"
+            id="login-history-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#login-history"
+            type="button"
+            role="tab"
+            aria-controls="login-history"
+            aria-selected="true"
+          >
+            Login History
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="user-changes-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#user-changes"
+            type="button"
+            role="tab"
+            aria-controls="user-changes"
+            aria-selected="false"
+          >
+            User Changes
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="user-account-management-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#user-account-management"
+            type="button"
+            role="tab"
+            aria-controls="user-account-management"
+            aria-selected="false"
+          >
+            User Account Management
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="disabled-accounts-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#disabled-accounts"
+            type="button"
+            role="tab"
+            aria-controls="disabled-accounts"
+            aria-selected="false"
+          >
+            Data Export
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="bulk-uploads-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#bulk-uploads"
+            type="button"
+            role="tab"
+            aria-controls="bulk-uploads"
+            aria-selected="false"
+          >
+            Clinic Staff Actions
+          </button>
+        </li>
       </ul>
-    </div>
 
-    <!-- Disabled Accounts -->
-    <div class="tab-pane fade" id="disabled-accounts" role="tabpanel" aria-labelledby="disabled-accounts-tab">
-      <div class="table-responsive">
-        <table class="table table-hover table-striped" id="disabledAccountsTable">
-          <thead class="table-secondary">
-            <tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Disabled At</th>
-              <th>Disabled By</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- JS populated -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Bulk Uploads -->
-    <div class="tab-pane fade" id="bulk-uploads" role="tabpanel" aria-labelledby="bulk-uploads-tab">
-      <div class="table-responsive">
-        <table class="table table-hover table-striped" id="bulkUploadsTable">
-          <thead class="table-secondary">
-            <tr>
-              <th>Uploaded By</th>
-              <th>Date</th>
-              <th>Records Uploaded</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- JS populated -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-  <!-- Create New User Modal -->
-  <div class="modal fade" id="createNewUserModal" tabindex="-1" aria-labelledby="createNewUserModalLabel">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="createNewUserModalLabel">
-            Create New User Account
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <!-- Tabs Content -->
+      <div class="tab-content mt-3" id="auditTabContent">
+        <!-- Login History -->
+        <div
+          class="tab-pane fade show active"
+          id="login-history"
+          role="tabpanel"
+          aria-labelledby="login-history-tab"
+        >
+          <div class="table-responsive">
+            <table
+              class="table table-hover table-striped"
+              id="loginHistoryTable"
+            >
+              <thead class="table-primary">
+                <tr>
+                  <th>Login Time</th>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>User Type</th>
+                  <th>IP Address</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- JS populated -->
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="modal-body">
-          <form id="createUserForm">
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="first_name" class="form-label">First Name</label>
-                <input type="text" class="form-control name-only" id="first_name" required />
-              </div>
-              <div class="col-md-6">
-                <label for="middle_name" class="form-label">Middle Name</label>
-                <input type="text" class="form-control name-only" id="middle_name" />
-              </div>
-            </div>
 
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="last_name" class="form-label">Last Name</label>
-                <input type="text" class="form-control name-only" id="last_name" required />
+        <!-- User Changes -->
+        <div
+          class="tab-pane fade"
+          id="user-changes"
+          role="tabpanel"
+          aria-labelledby="user-changes-tab"
+        ></div>
+
+        <!-- User Account Management -->
+        <div
+          class="tab-pane fade"
+          id="user-account-management"
+          role="tabpanel"
+          aria-labelledby="user-account-management-tab"
+        >
+          <ul></ul>
+        </div>
+
+        <!-- Disabled Accounts -->
+        <div
+          class="tab-pane fade"
+          id="disabled-accounts"
+          role="tabpanel"
+          aria-labelledby="disabled-accounts-tab"
+        >
+          <div class="table-responsive">
+            <table
+              class="table table-hover table-striped"
+              id="disabledAccountsTable"
+            >
+              <thead class="table-secondary">
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Disabled At</th>
+                  <th>Disabled By</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- JS populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bulk Uploads -->
+        <div
+          class="tab-pane fade"
+          id="bulk-uploads"
+          role="tabpanel"
+          aria-labelledby="bulk-uploads-tab"
+        >
+          <div class="table-responsive">
+            <table
+              class="table table-hover table-striped"
+              id="bulkUploadsTable"
+            >
+              <thead class="table-secondary">
+                <tr>
+                  <th>Uploaded By</th>
+                  <th>Date</th>
+                  <th>Records Uploaded</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- JS populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create New User Modal -->
+    <div
+      class="modal fade"
+      id="createNewUserModal"
+      tabindex="-1"
+      aria-labelledby="createNewUserModalLabel"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createNewUserModalLabel">
+              Create New User Account
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="createUserForm">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="first_name" class="form-label">First Name</label>
+                  <input
+                    type="text"
+                    class="form-control name-only"
+                    id="first_name"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label for="middle_name" class="form-label"
+                    >Middle Name</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control name-only"
+                    id="middle_name"
+                  />
+                </div>
               </div>
-              <div class="col-md-6">
-                <label for="ext_name" class="form-label">Ext. Name</label>
-                <select class="form-select" id="ext_name">
-                  <option value="">None</option>
-                  <option value="Jr.">Jr.</option>
-                  <option value="Sr.">Sr.</option>
-                  <option value="I">I</option>
-                  <option value="II">II</option>
-                  <option value="III">III</option>
-                  <option value="IV">IV</option>
-                  <option value="V">V</option>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="last_name" class="form-label">Last Name</label>
+                  <input
+                    type="text"
+                    class="form-control name-only"
+                    id="last_name"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label for="ext_name" class="form-label">Ext. Name</label>
+                  <select class="form-select" id="ext_name">
+                    <option value="">None</option>
+                    <option value="Jr.">Jr.</option>
+                    <option value="Sr.">Sr.</option>
+                    <option value="I">I</option>
+                    <option value="II">II</option>
+                    <option value="III">III</option>
+                    <option value="IV">IV</option>
+                    <option value="V">V</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="school_id" class="form-label">School ID</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="school_id"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="reg_email" class="form-label">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="reg_email"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="user_type" class="form-label">User Type</label>
+                <select class="form-select" id="user_type" required>
+                  <option value="">Select Type</option>
+                  <option value="student">Student</option>
+                  <option value="employee">Employee</option>
+                  <option value="doctor">Doctor</option>
+                  <option value="nurse">Nurse</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
-            </div>
-
-            <div class="mb-3">
-              <label for="school_id" class="form-label">School ID</label>
-              <input type="text" class="form-control" id="school_id" required />
-            </div>
-
-            <div class="mb-3">
-              <label for="reg_email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="reg_email" required />
-            </div>
-
-            <div class="mb-3">
-              <label for="user_type" class="form-label">User Type</label>
-              <select class="form-select" id="user_type" required>
-                <option value="">Select Type</option>
-                <option value="student">Student</option>
-                <option value="employee">Employee</option>
-                <option value="doctor">Doctor</option>
-                <option value="nurse">Nurse</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label id="doctor_type_label" for="doctor_type" class="form-label" hidden>Doctor Type</label>
-              <select class="form-select" id="doctor_type" hidden>
-                <option value="">Select Type</option>
-                <option value="Dentist">Dentist</option>
-                <option value="Physician">Physician</option>
-              </select>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelAddUserBtn">
-            Cancel
-          </button>
-          <button type="submit" form="createUserForm" class="btn btn-primary" id="create-account">
-            Create Account
-          </button>
+              <div class="mb-3">
+                <label
+                  id="doctor_type_label"
+                  for="doctor_type"
+                  class="form-label"
+                  hidden
+                  >Doctor Type</label
+                >
+                <select class="form-select" id="doctor_type" hidden>
+                  <option value="">Select Type</option>
+                  <option value="Dentist">Dentist</option>
+                  <option value="Physician">Physician</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+              id="cancelAddUserBtn"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="createUserForm"
+              class="btn btn-primary"
+              id="create-account"
+            >
+              Create Account
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- User Overview Modal -->
-  <div class="modal fade" id="overviewModal" tabindex="-1" aria-labelledby="overviewModalLabel">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="overviewModalLabel">User Overview</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="userOverviewForm">
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="ov_firstName" class="form-label">First Name</label>
-                <input type="text" class="form-control" id="ov_firstName" />
+    <!-- User Overview Modal -->
+    <div
+      class="modal fade"
+      id="overviewModal"
+      tabindex="-1"
+      aria-labelledby="overviewModalLabel"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="overviewModalLabel">User Overview</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="userOverviewForm">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="ov_firstName" class="form-label"
+                    >First Name</label
+                  >
+                  <input type="text" class="form-control" id="ov_firstName" />
+                </div>
+                <div class="col-md-6">
+                  <label for="ov_middleName" class="form-label"
+                    >Middle Name</label
+                  >
+                  <input type="text" class="form-control" id="ov_middleName" />
+                </div>
               </div>
-              <div class="col-md-6">
-                <label for="ov_middleName" class="form-label">Middle Name</label>
-                <input type="text" class="form-control" id="ov_middleName" />
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="ov_lastName" class="form-label">Last Name</label>
+                  <input type="text" class="form-control" id="ov_lastName" />
+                </div>
+                <div class="col-md-6">
+                  <label for="ov_extName" class="form-label">Extension</label>
+                  <input type="text" class="form-control" id="ov_extName" />
+                </div>
               </div>
-            </div>
 
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="ov_lastName" class="form-label">Last Name</label>
-                <input type="text" class="form-control" id="ov_lastName" />
+              <div class="mb-3">
+                <label for="ov_contact" class="form-label">School ID</label>
+                <input type="text" class="form-control" id="ov_schoolId" />
               </div>
-              <div class="col-md-6">
-                <label for="ov_extName" class="form-label">Extension</label>
-                <input type="text" class="form-control" id="ov_extName" />
+
+              <div class="mb-3">
+                <label for="ov_email" class="form-label">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="ov_email"
+                  disabled
+                />
               </div>
-            </div>
 
-            <div class="mb-3">
-              <label for="ov_contact" class="form-label">School ID</label>
-              <input type="text" class="form-control" id="ov_schoolId" />
-            </div>
-
-            <div class="mb-3">
-              <label for="ov_email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="ov_email" disabled />
-            </div>
-
-            <div class="mb-3">
-              <label for="ov_userType" class="form-label">User Type</label>
-              <input type="text" class="form-control" id="ov_userType" disabled />
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-warning" id="resetPasswordBtn">
-            Reset Password
-          </button>
-          <button type="button" class="btn btn-danger" id="disableUserBtn">
-            Disable Account
-          </button>
-          <button type="button" class="btn btn-primary" id="updateUserBtn">
-            Update
-          </button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Close
-          </button>
+              <div class="mb-3">
+                <label for="ov_userType" class="form-label">User Type</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ov_userType"
+                  disabled
+                />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-warning" id="resetPasswordBtn">
+              Reset Password
+            </button>
+            <button type="button" class="btn btn-danger" id="disableUserBtn">
+              Disable Account
+            </button>
+            <button type="button" class="btn btn-primary" id="updateUserBtn">
+              Update
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <!-- ===================== BULK USER UPLOAD MODAL ===================== -->
-  <!-- Bootstrap Modal -->
-  <div class="modal fade" id="userBulkModal" tabindex="-1" aria-labelledby="userBulkModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content">
+    <!-- ===================== BULK USER UPLOAD MODAL ===================== -->
+    <!-- Bootstrap Modal -->
+    <div
+      class="modal fade"
+      id="userBulkModal"
+      tabindex="-1"
+      aria-labelledby="userBulkModalLabel"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"
+      >
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="userBulkModalLabel">
+              Bulk Upload Users
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
 
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <h5 class="modal-title" id="userBulkModalLabel">Bulk Upload Users</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <!-- Modal Body -->
+          <div class="modal-body">
+            <!-- Download CSV Template Button -->
+            <a
+              href="#"
+              id="download-csv-template"
+              class="btn btn-outline-primary mb-3"
+              download="user_template.csv"
+            >
+              Download CSV Template
+            </a>
+            <input
+              type="file"
+              id="user-bulk-file"
+              accept=".csv"
+              class="form-control mb-3"
+            />
+            <button id="user-preview-btn" class="btn btn-primary mb-3">
+              Preview CSV
+            </button>
+
+            <table id="user-bulk-preview" class="table table-bordered d-none">
+              <thead class="table-secondary">
+                <tr>
+                  <th>First Name</th>
+                  <th>Middle</th>
+                  <th>Last Name</th>
+                  <th>Ext</th>
+                  <th>School ID</th>
+                  <th>Email</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+
+            <button id="user-upload-btn" class="btn btn-success d-none mt-2">
+              Upload All Users
+            </button>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-danger"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
         </div>
-
-        <!-- Modal Body -->
-        <div class="modal-body">
-          <!-- Download CSV Template Button -->
-          <a href="#" id="download-csv-template" class="btn btn-outline-primary mb-3" download="user_template.csv">
-            Download CSV Template
-          </a>
-          <input type="file" id="user-bulk-file" accept=".csv" class="form-control mb-3" />
-          <button id="user-preview-btn" class="btn btn-primary mb-3">Preview CSV</button>
-
-          <table id="user-bulk-preview" class="table table-bordered d-none">
-            <thead class="table-secondary">
-              <tr>
-                <th>First Name</th>
-                <th>Middle</th>
-                <th>Last Name</th>
-                <th>Ext</th>
-                <th>School ID</th>
-                <th>Email</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-
-          <button id="user-upload-btn" class="btn btn-success d-none mt-2">Upload All Users</button>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-        </div>
-
       </div>
     </div>
-  </div>
 
-
-  <!-- Bootstrap JS Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="../../assets/scripts/AdminHome.js"></script>
-</body>
-
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../../assets/scripts/AdminHome.js"></script>
+  </body>
 </html>
