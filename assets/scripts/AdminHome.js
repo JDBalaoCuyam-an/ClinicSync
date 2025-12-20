@@ -6,6 +6,9 @@ import {
   updateDoc,
   getDoc,
   setDoc,
+  query,
+  where,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import {
   sendPasswordResetEmail,
@@ -502,3 +505,66 @@ document.getElementById("user-upload-btn").onclick = async () => {
 
   reader.readAsText(file);
 };
+
+async function loadLoginHistory() {
+  const tableBody = document
+    .getElementById("loginHistoryTable")
+    .querySelector("tbody");
+
+  tableBody.innerHTML = "";
+
+  // Assuming you have a collection "loginHistory" with userId, timestamp, ip
+  const q = query(collection(db, "loginHistory"), orderBy("timestamp", "desc"));
+  const snapshot = await getDocs(q);
+
+  for (const docSnap of snapshot.docs) {
+    const data = docSnap.data();
+    const userId = data.userId;
+
+    // Fetch user details
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (!userDoc.exists()) continue;
+
+    const userData = userDoc.data();
+    const firstName = userData.firstName || "";
+    const middleName = userData.middleName || "";
+    const lastName = userData.lastName || "";
+    const email = userData.email || data.email || "";
+
+    // Format name: FirstName M. LastName
+    const middleInitial = middleName ? middleName[0].toUpperCase() + "." : "";
+    const fullName = `${firstName} ${middleInitial} ${lastName}`;
+
+    // Format timestamp to local format (not US)
+    const loginTime = data.timestamp?.toDate
+      ? data.timestamp.toDate()
+      : new Date();
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    };
+    const formattedTime = loginTime.toLocaleString(undefined, options);
+
+    // IP address (if stored)
+    const ipAddress = data.ip || "N/A";
+
+    const row = `
+      <tr>
+        <td>${fullName}</td>
+        <td>${email}</td>
+        <td>${data.user_type || "N/A"}</td>
+        <td>${formattedTime}</td>
+        <td>${ipAddress}</td>
+      </tr>
+    `;
+
+    tableBody.innerHTML += row;
+  }
+}
+
+// Call the function to populate table
+loadLoginHistory();

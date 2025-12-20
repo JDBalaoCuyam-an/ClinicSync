@@ -11,6 +11,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  collection
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -27,7 +28,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ✅ Login Functionality with Loading State
 const login = document.getElementById("login-button");
 if (login) {
   login.addEventListener("click", async function (event) {
@@ -42,11 +42,7 @@ if (login) {
     login.textContent = "Logging in... ⏳";
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       const userDocRef = doc(db, "users", user.uid);
@@ -55,23 +51,42 @@ if (login) {
       if (docSnap.exists()) {
         const userData = docSnap.data();
 
-        // logout if disabled
+        // Logout if disabled
         if (userData.disabled === true) {
-    alert("🚫 Your account has been disabled. Please contact the administrator.");
-    await signOut(auth);
-    return;
-  }
+          alert("🚫 Your account has been disabled. Please contact the administrator.");
+          await signOut(auth);
+          return;
+        }
 
         // Update last login timestamp
         await setDoc(userDocRef, { lastLogin: new Date() }, { merge: true });
 
+        // Get user IP (optional, fallback if IP service fails)
+        let ipAddress = "N/A";
+        try {
+          const ipRes = await fetch("https://api.ipify.org?format=json");
+          const ipData = await ipRes.json();
+          ipAddress = ipData.ip || "N/A";
+        } catch (err) {
+          console.warn("Could not fetch IP:", err);
+        }
+
+        // Save login history
+        await setDoc(doc(collection(db, "loginHistory")), {
+          userId: user.uid,
+          email: userData.email || email,
+          timestamp: new Date(),
+          user_type: userData.user_type || "N/A",
+          ip: ipAddress,
+        });
+
         // Redirect based on role
         window.location.href =
           userData.user_type === "admin"
-            ? "Pages/Admin/AdminHome.html"
+            ? "../Pages/Admin/AdminHome.html"
             : userData.user_type === "doctor" || userData.user_type === "nurse"
-            ? "Pages/DoctorNurse/DoctorNurseDashboard.html"
-            : "Pages/Patient/PatientPortal.html";
+            ? "../Pages/DoctorNurse/DoctorNurseDashboard.html"
+            : "../Pages/Patient/PatientPortal.html";
       }
     } catch (error) {
       alert("❌ Login error: " + error.message);
@@ -82,6 +97,7 @@ if (login) {
     }
   });
 }
+
 
 // ✅ Logout with confirmation
 const logoutButton = document.getElementById("logout-button");
