@@ -55,14 +55,12 @@ if (login) {
       if (docSnap.exists()) {
         const userData = docSnap.data();
 
-        // Reactivate if disabled
+        // logout if disabled
         if (userData.disabled === true) {
-          await setDoc(
-            userDocRef,
-            { disabled: false, disabledAt: null },
-            { merge: true }
-          );
-        }
+    alert("🚫 Your account has been disabled. Please contact the administrator.");
+    await signOut(auth);
+    return;
+  }
 
         // Update last login timestamp
         await setDoc(userDocRef, { lastLogin: new Date() }, { merge: true });

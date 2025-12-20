@@ -1,32 +1,8 @@
-
+/* 
 * {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   background-color: #f5f7fa;
   padding: 30px;
   position: relative;
-}
-
-.simple-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: none;
-  z-index: 999;
-}
-
-.simple-modal.open {
-  display: block;
-}
-
-.simple-modal {
-  position: fixed; /* <-- Important: fixed = center of SCREEN */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 20px;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 8px;
-}
+} */

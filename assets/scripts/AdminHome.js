@@ -6,28 +6,29 @@ import {
   updateDoc,
   getDoc,
   setDoc,
-
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import {
   sendPasswordResetEmail,
   createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const userTypeSelect = document.getElementById("user_type");
-  const doctorTypeSelect = document.getElementById("doctor_type");
-  const doctorTypeLabel = document.getElementById("doctor_type_label");
-  userTypeSelect.addEventListener("change", () => {
-    if (userTypeSelect.value === "doctor") {
-      doctorTypeSelect.hidden = false; // show dropdown
-      doctorTypeSelect.required = true; // make it required
-      doctorTypeLabel.hidden = false; // show label
-    } else {
-      doctorTypeLabel.hidden = true; // hide label
-      doctorTypeSelect.hidden = true; // hide dropdown
-      doctorTypeSelect.required = false; // remove required
-      doctorTypeSelect.value = ""; // reset selection
-    }
-  });
+const userTypeSelect = document.getElementById("user_type");
+const doctorTypeSelect = document.getElementById("doctor_type");
+const doctorTypeLabel = document.getElementById("doctor_type_label");
+userTypeSelect.addEventListener("change", () => {
+  if (userTypeSelect.value === "doctor") {
+    doctorTypeSelect.hidden = false; // show dropdown
+    doctorTypeSelect.required = true; // make it required
+    doctorTypeLabel.hidden = false; // show label
+  } else {
+    doctorTypeLabel.hidden = true; // hide label
+    doctorTypeSelect.hidden = true; // hide dropdown
+    doctorTypeSelect.required = false; // remove required
+    doctorTypeSelect.value = ""; // reset selection
+  }
+});
 document
   .getElementById("createUserForm")
   .addEventListener("submit", async (e) => {
@@ -45,7 +46,8 @@ document
     const birthdate = document.getElementById("birthdate")?.value || "";
     const age = document.getElementById("age")?.value || "";
     const department = document.getElementById("department")?.value || "";
-    const courseStrandGenEduc = document.getElementById("courseStrandGenEduc")?.value || "";
+    const courseStrandGenEduc =
+      document.getElementById("courseStrandGenEduc")?.value || "";
     const yearLevel = document.getElementById("yearLevel")?.value || "";
     const civilStatus = document.getElementById("civil-status")?.value || "";
     const nationality = document.getElementById("nationality")?.value || "";
@@ -59,13 +61,17 @@ document
     // ✅ Parents Info
     const fatherName = document.getElementById("fatherName")?.value || "";
     const fatherAge = document.getElementById("fatherAge")?.value || "";
-    const fatherOccupation = document.getElementById("fatherOccupation")?.value || "";
-    const fatherHealth = document.getElementById("fatherHealthStatus")?.value || "";
+    const fatherOccupation =
+      document.getElementById("fatherOccupation")?.value || "";
+    const fatherHealth =
+      document.getElementById("fatherHealthStatus")?.value || "";
     const motherName = document.getElementById("motherName")?.value || "";
     const motherAge = document.getElementById("motherAge")?.value || "";
-    const motherOccupation = document.getElementById("motherOccupation")?.value || "";
-    const motherHealth = document.getElementById("motherHealthStatus")?.value || "";
-    
+    const motherOccupation =
+      document.getElementById("motherOccupation")?.value || "";
+    const motherHealth =
+      document.getElementById("motherHealthStatus")?.value || "";
+
     if (!firstName || !lastName || !schoolId || !email || !userType) {
       alert("Please fill in all required fields!");
       return;
@@ -74,7 +80,11 @@ document
     try {
       // Create user with Firebase Auth
       const password = schoolId; // default password = school ID
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const newUser = userCredential.user;
 
       // Save user info to Firestore
@@ -119,6 +129,11 @@ document
       alert("❌ Failed: " + error.message);
     }
   });
+document.querySelectorAll(".name-only").forEach((input) => {
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/[^a-zA-Z\s-]/g, "");
+  });
+});
 
 // TABLE BODY
 const usersTableBody = document.querySelector("#usersTable tbody");
@@ -351,9 +366,6 @@ document
 // Initial load
 document.addEventListener("DOMContentLoaded", loadUsers);
 
-
-
-
 /* ============================================================
    📌 CSV PARSER (same as before)
 ============================================================ */
@@ -363,7 +375,6 @@ function parseCSV(text) {
     .split("\n")
     .map((line) => line.split(",").map((value) => value.trim()));
 }
-
 
 /* ============================================================
    📌 PREVIEW USERS CSV
@@ -414,7 +425,14 @@ document.getElementById("user-preview-btn").onclick = () => {
 document.getElementById("download-csv-template").onclick = (e) => {
   e.preventDefault(); // Prevent default link behavior
 
-  const headers = ["First Name", "Middle", "Last Name", "Ext", "School ID", "Email"];
+  const headers = [
+    "First Name",
+    "Middle",
+    "Last Name",
+    "Ext",
+    "School ID",
+    "Email",
+  ];
   const csvContent = headers.join(",") + "\n"; // Single row for template
 
   const blob = new Blob([csvContent], { type: "text/csv" });
@@ -453,7 +471,11 @@ document.getElementById("user-upload-btn").onclick = async () => {
         const password = schoolId; // ⭐ default password
 
         // Create Firebase Auth account
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
         const newUser = userCredential.user;
 
         // Create Firestore user document
@@ -480,4 +502,3 @@ document.getElementById("user-upload-btn").onclick = async () => {
 
   reader.readAsText(file);
 };
-
