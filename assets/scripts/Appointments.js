@@ -167,9 +167,7 @@ loadStaff();
 let calMonth = new Date().getMonth();
 let calYear = new Date().getFullYear();
 let selectedDate = null;
-const repeatUntilInput = document.getElementById("repeatUntilDate");
-const instancesContainer = document.getElementById("repeatInstancesContainer");
-const instancesList = document.getElementById("repeatInstancesList");
+
 
 function manageAvailability(id, fullName) {
   selectedStaffId = id;
@@ -318,12 +316,35 @@ document.getElementById("backToCalendar").onclick = () => {
   new bootstrap.Modal(document.getElementById("availabilityModal")).show();
 };
 
-function handleDateClick(year, month, day) {
+async function handleDateClick(year, month, day) {
   selectedDate = new Date(year, month, day);
-  timeSlots = []; // reset slots
 
+  const dateStr = `${year}-${(month + 1)
+    .toString()
+    .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+
+  // 🔁 Load existing availability (if any)
+  timeSlots = [];
+
+  const staffRef = doc(db, "users", selectedStaffId);
+  const docSnap = await getDoc(staffRef);
+
+  if (docSnap.exists()) {
+    const availability = docSnap.data().availability || [];
+    const existing = availability.find(a => a.date === dateStr);
+
+    if (existing) {
+      // 👇 Load existing slots so we ADD, not duplicate
+      timeSlots = existing.slots.map(s => ({
+        start: s.start,
+        end: s.end,
+      }));
+    }
+  }
+
+  // Update selected date text
   document.getElementById("selectedDateText").textContent =
-    selectedDate.toLocaleDateString("en-US", {
+    selectedDate.toLocaleDateString(undefined, {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -338,9 +359,13 @@ function handleDateClick(year, month, day) {
   // Open step 2
   new bootstrap.Modal(document.getElementById("availabilityStep2")).show();
 
-  // Set default repeat until 30 days from selected date
+  // 🔄 Re-render existing slots (important)
+  renderTimeSlots();
+
   setDefaultRepeatUntil();
 }
+
+
 function renderModalAvailability(staffId) {
   const staffRef = doc(db, "users", staffId);
   getDoc(staffRef).then((docSnap) => {
@@ -397,10 +422,38 @@ function renderModalAvailability(staffId) {
 }
 
 let timeSlots = [];
+
 document.getElementById("addTimeSlot").onclick = () => {
   timeSlots.push({ start: "", end: "" });
   renderTimeSlots();
 };
+
+function addMinutes(time, mins) {
+  const [h, m] = time.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m + mins, 0, 0);
+  return d.toTimeString().slice(0, 5);
+}
+
+function toMinutes(time) {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function isOverlapping(start, end, currentIndex) {
+  const s = toMinutes(start);
+  const e = toMinutes(end);
+
+  return timeSlots.some((slot, i) => {
+    if (i === currentIndex || !slot.start || !slot.end) return false;
+
+    const ss = toMinutes(slot.start);
+    const ee = toMinutes(slot.end);
+
+    return s < ee && e > ss; // overlap check
+  });
+}
+
 function renderTimeSlots() {
   const container = document.getElementById("timeSlotsContainer");
   container.innerHTML = "";
@@ -412,15 +465,27 @@ function renderTimeSlots() {
     row.innerHTML = `
       <input type="time" value="${slot.start}">
       <span>to</span>
-      <input type="time" value="${slot.end}">
+      <input type="time" value="${slot.end}" readonly>
       <button class="btn btn-sm btn-outline-danger">✕</button>
     `;
-
+ 
     const [startInput, endInput, removeBtn] =
       row.querySelectorAll("input, button");
 
-    startInput.onchange = (e) => (timeSlots[index].start = e.target.value);
-    endInput.onchange = (e) => (timeSlots[index].end = e.target.value);
+    startInput.onchange = (e) => {
+      const start = e.target.value;
+      const end = addMinutes(start, 30);
+
+      if (isOverlapping(start, end, index)) {
+        alert("This time overlaps with an existing slot.");
+        e.target.value = "";
+        return;
+      }
+
+      timeSlots[index].start = start;
+      timeSlots[index].end = end;
+      endInput.value = end;
+    };
 
     removeBtn.onclick = () => {
       timeSlots.splice(index, 1);
@@ -431,9 +496,12 @@ function renderTimeSlots() {
   });
 }
 
+
 const repeatType = document.getElementById("repeatType");
 const repeatUntilContainer = document.getElementById("repeatUntilContainer");
-
+const repeatUntilInput = document.getElementById("repeatUntilDate");
+const instancesContainer = document.getElementById("repeatInstancesContainer");
+const instancesList = document.getElementById("repeatInstancesList");
 repeatType.onchange = () => {
   if (repeatType.value === "none") {
     repeatUntilContainer.style.display = "none";
@@ -487,37 +555,53 @@ function updateRepeatInstances() {
   const endDate = new Date(repeatUntil);
 
   let current = new Date(startDate);
+  const generatedDates = []; // track the instances
 
   while (current <= endDate) {
+    let addInstance = false;
+
     if (repeat === "daily") {
-      // daily: add every day
+      addInstance = true;
+    } else if (repeat === "weekly" && current.getDay() === startDate.getDay()) {
+      addInstance = true;
+    }
+
+    if (addInstance) {
       const li = document.createElement("li");
-      li.className = "list-group-item py-1";
-      li.textContent = current.toLocaleDateString("en-US", {
+      li.className = "list-group-item d-flex justify-content-between align-items-center py-1";
+
+      const dateText = document.createElement("span");
+      dateText.textContent = current.toLocaleDateString(undefined, {
         weekday: "long",
         year: "numeric",
         month: "long",
         day: "numeric",
       });
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "btn btn-sm btn-outline-danger";
+      removeBtn.textContent = "Remove";
+
+      removeBtn.onclick = () => {
+        li.remove();
+        // Remove from generatedDates array
+        const idx = generatedDates.indexOf(current.toISOString().split("T")[0]);
+        if (idx > -1) generatedDates.splice(idx, 1);
+      };
+
+      li.appendChild(dateText);
+      li.appendChild(removeBtn);
+
       instancesList.appendChild(li);
-      current.setDate(current.getDate() + 1);
-    } else if (repeat === "weekly") {
-      // weekly: only same weekday
-      if (current.getDay() === startDate.getDay()) {
-        const li = document.createElement("li");
-        li.className = "list-group-item py-1";
-        li.textContent = current.toLocaleDateString("en-US", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
-        instancesList.appendChild(li);
-      }
-      current.setDate(current.getDate() + 1);
+
+      generatedDates.push(current.toISOString().split("T")[0]);
     }
+
+    // Move to next day
+    current.setDate(current.getDate() + 1);
   }
 }
+
 function setDefaultRepeatUntil() {
   if (!selectedDate) return;
 
@@ -554,7 +638,7 @@ repeatUntilInput.onchange = () => {
 async function saveAvailability(staffId) {
   if (!selectedDate) return alert("Select a date first!");
 
-  const slots = timeSlots.filter((s) => s.start && s.end);
+  const slots = timeSlots.filter(s => s.start && s.end);
   if (!slots.length) return alert("Add at least one time slot!");
 
   const repeat = repeatType.value;
@@ -571,53 +655,71 @@ async function saveAvailability(staffId) {
     while (current <= repeatUntil) {
       if (repeat === "daily") {
         datesToSave.push(new Date(current));
-        current.setDate(current.getDate() + 1);
-      } else if (repeat === "weekly") {
-        if (current.getDay() === selectedDate.getDay()) {
-          datesToSave.push(new Date(current));
-        }
-        current.setDate(current.getDate() + 1);
       }
+      if (repeat === "weekly" && current.getDay() === selectedDate.getDay()) {
+        datesToSave.push(new Date(current));
+      }
+      current.setDate(current.getDate() + 1);
     }
   }
 
   try {
     const staffRef = doc(db, "users", staffId);
+    const docSnap = await getDoc(staffRef);
+    if (!docSnap.exists()) return;
 
-    // Map dates to availability objects (use en-PH for weekday)
-    const newAvailability = datesToSave.map((date) => ({
-      // Use local year/month/day to prevent UTC shift
-      date: `${date.getFullYear()}-${(date.getMonth() + 1)
+    const data = docSnap.data();
+    const availability = data.availability || [];
+
+    datesToSave.forEach(date => {
+      const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1)
         .toString()
-        .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`,
-      weekday: date.toLocaleDateString("en-PH", { weekday: "long" }), // PH weekday
-      slots: slots,
-      repeat: repeat,
-      repeatUntil: repeatUntil
-        ? `${repeatUntil.getFullYear()}-${(repeatUntil.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}-${repeatUntil
-            .getDate()
-            .toString()
-            .padStart(2, "0")}`
-        : null,
-    }));
+        .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
 
-    // Add new availability using arrayUnion
+      const weekday = date.toLocaleDateString("en-PH", { weekday: "long" });
+
+      const existingIndex = availability.findIndex(
+        a => a.date === dateStr
+      );
+
+      if (existingIndex !== -1) {
+        // 🔁 MERGE slots into existing date
+        availability[existingIndex].slots.push(...slots);
+      } else {
+        // ➕ CREATE new date entry
+        availability.push({
+          date: dateStr,
+          weekday,
+          slots: [...slots],
+          repeat,
+          repeatUntil: repeatUntil
+            ? `${repeatUntil.getFullYear()}-${(repeatUntil.getMonth() + 1)
+                .toString()
+                .padStart(2, "0")}-${repeatUntil
+                .getDate()
+                .toString()
+                .padStart(2, "0")}`
+            : null,
+        });
+      }
+    });
+
     await updateDoc(staffRef, {
-      availability: arrayUnion(...newAvailability),
-      lastUpdated: serverTimestamp(), // timestamp separately
+      availability,
+      lastUpdated: serverTimestamp(),
     });
 
     alert("Availability saved successfully!");
     bootstrap.Modal.getInstance(
       document.getElementById("availabilityStep2")
     ).hide();
+
   } catch (err) {
     console.error("Error saving availability:", err);
     alert("Failed to save availability. See console.");
   }
 }
+
 
 // Save button
 document.getElementById("saveAvailabilityBtn").onclick = () => {
