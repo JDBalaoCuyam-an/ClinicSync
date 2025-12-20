@@ -10,7 +10,7 @@ import {
   setDoc,
   addDoc,
   orderBy,
-  limit
+  limit,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
@@ -53,39 +53,39 @@ document.querySelectorAll(".name-only").forEach((input) => {
 });
 
 document.querySelectorAll(".phone-only").forEach((input) => {
-    input.addEventListener("input", () => {
-      // Remove non-digits
-      input.value = input.value.replace(/\D/g, "");
+  input.addEventListener("input", () => {
+    // Remove non-digits
+    input.value = input.value.replace(/\D/g, "");
 
-      // Ensure it starts with 09
-      if (input.value.length > 0 && !input.value.startsWith("09")) {
-        input.value = "09";
-      }
+    // Ensure it starts with 09
+    if (input.value.length > 0 && !input.value.startsWith("09")) {
+      input.value = "09";
+    }
 
-      // Limit to 11 digits
-      if (input.value.length > 11) {
-        input.value = input.value.slice(0, 11);
-      }
-    });
-  });
-
- const birthdateInput = document.getElementById('birthdate');
-  const ageInput = document.getElementById('age');
-
-  birthdateInput.addEventListener('change', () => {
-    const birthdate = new Date(birthdateInput.value);
-    if (birthdate instanceof Date && !isNaN(birthdate)) {
-      const today = new Date();
-      let age = today.getFullYear() - birthdate.getFullYear();
-      const m = today.getMonth() - birthdate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
-        age--;
-      }
-      ageInput.value = age;
-    } else {
-      ageInput.value = '';
+    // Limit to 11 digits
+    if (input.value.length > 11) {
+      input.value = input.value.slice(0, 11);
     }
   });
+});
+
+const birthdateInput = document.getElementById("birthdate");
+const ageInput = document.getElementById("age");
+
+birthdateInput.addEventListener("change", () => {
+  const birthdate = new Date(birthdateInput.value);
+  if (birthdate instanceof Date && !isNaN(birthdate)) {
+    const today = new Date();
+    let age = today.getFullYear() - birthdate.getFullYear();
+    const m = today.getMonth() - birthdate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
+      age--;
+    }
+    ageInput.value = age;
+  } else {
+    ageInput.value = "";
+  }
+});
 /* -----------------------------------------------
    Patient Info Display
   ----------------------------------------------- */
@@ -219,19 +219,30 @@ saveBtn.addEventListener("click", async () => {
       const { firstName, middleName, lastName, schoolId } = userData;
       const fullName = `${firstName} ${middleName || ""} ${lastName}`.trim();
 
-      const message = `${changes.join(", ")} ${changes.length > 1 ? 'fields' : 'field'} updated for ${fullName} (${schoolId})`;
+      const message = `${fullName} (${schoolId}) Updated ${changes.join(", ")} ${
+        changes.length > 1 ? "fields" : "field"
+      }`;
 
       // Local timestamp
       const timestamp = new Date();
-      const formattedDate = timestamp.toLocaleString(undefined, {
-        year: "short",
-        month: "2-digit",
+
+      const options = {
+        year: "numeric", // must be "numeric" or "2-digit"
+        month: "short", // "short" gives "Dec", "Jan", etc.
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      });
+        hour12: true, // 12-hour format with AM/PM
+      };
+
+      // Get locale string
+      let formattedDate = timestamp.toLocaleString("en-US", options);
+
+      // Add dot after month
+      formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
+
+      // Remove extra comma if needed
+      formattedDate = formattedDate.replace(",", "");
 
       // Store in userChanges collection
       await addDoc(collection(db, "userChanges"), {
@@ -251,7 +262,6 @@ saveBtn.addEventListener("click", async () => {
   cancelBtn.style.display = "none";
   saveBtn.style.display = "none";
 });
-
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
@@ -1065,7 +1075,6 @@ async function loadBorrowedItemsCard() {
 
     html += `</ul>`;
     container.innerHTML = html;
-
   } catch (err) {
     console.error("Error loading borrowed items:", err);
     container.innerHTML = `

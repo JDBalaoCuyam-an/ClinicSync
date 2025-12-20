@@ -8,14 +8,53 @@ import {
   setDoc,
   query,
   where,
-  orderBy
+  orderBy,
+  addDoc,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import {
   sendPasswordResetEmail,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
+  getAuth,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { firebaseConfig } from "../../firebaseconfig.js";
+
+let currentUserId = null;
+let currentAdmin = "";
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  currentUserId = user.uid;
+
+  try {
+    // Reference to the user's document in 'users' collection
+    const docRef = doc(db, "users", currentUserId);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const fullName = `${data.firstName} ${data.lastName}`;
+      currentAdmin = fullName;
+    } else {
+      console.warn("Admin document not found in users collection");
+      return "Unknown Admin";
+    }
+  } catch (err) {
+    console.error("Error fetching admin info:", err);
+    return "Unknown Admin";
+  }
+});
+function parseAuditDate(dateStr) {
+  // Example: "Dec. 20 2025, 12:07 PM"
+
+  // Remove dot after month: "Dec."
+  const cleaned = dateStr.replace(".", "");
+
+  // Convert to Date object
+  return new Date(cleaned);
+}
 
 const userTypeSelect = document.getElementById("user_type");
 const doctorTypeSelect = document.getElementById("doctor_type");
@@ -82,9 +121,13 @@ document
 
     try {
       // Create user with Firebase Auth
+      // --- Secondary app to create user without replacing admin session ---
+      const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+      const secondaryAuth = getAuth(secondaryApp);
+
       const password = schoolId; // default password = school ID
       const userCredential = await createUserWithEmailAndPassword(
-        auth,
+        secondaryAuth,
         email,
         password
       );
@@ -124,7 +167,31 @@ document
         motherHealth,
         createdAt: new Date(),
       });
+      // Local timestamp
+      const timestamp = new Date();
 
+      const options = {
+        year: "numeric", // must be "numeric" or "2-digit"
+        month: "short", // "short" gives "Dec", "Jan", etc.
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true, // 12-hour format with AM/PM
+      };
+
+      // Get locale string
+      let formattedDate = timestamp.toLocaleString("en-US", options);
+
+      // Add dot after month
+      formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
+
+      // Remove extra comma if needed
+      formattedDate = formattedDate.replace(",", "");
+
+      await addDoc(collection(db, "UserAccountTrail"), {
+        message: `${currentAdmin} added 1 new User`,
+        dateTime: formattedDate,
+      });
       alert("✅ User Created Successfully!");
       document.getElementById("createUserForm").reset();
     } catch (error) {
@@ -300,7 +367,31 @@ document
           disabled: false,
           disabledAt: null,
         });
+        // Local timestamp
+      const timestamp = new Date();
 
+      const options = {
+        year: "numeric", // must be "numeric" or "2-digit"
+        month: "short", // "short" gives "Dec", "Jan", etc.
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true, // 12-hour format with AM/PM
+      };
+
+      // Get locale string
+      let formattedDate = timestamp.toLocaleString("en-US", options);
+
+      // Add dot after month
+      formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
+
+      // Remove extra comma if needed
+      formattedDate = formattedDate.replace(",", "");
+
+      await addDoc(collection(db, "UserAccountTrail"), {
+        message: `${currentAdmin} Enabled User Account for ${data.firstName} ${data.lastName}(${data.schoolId})`,
+        dateTime: formattedDate,
+      });
         alert("✅ Account enabled.");
       }
       // DISABLE USER
@@ -314,7 +405,31 @@ document
           disabled: true,
           disabledAt: new Date(),
         });
+        // Local timestamp
+      const timestamp = new Date();
 
+      const options = {
+        year: "numeric", // must be "numeric" or "2-digit"
+        month: "short", // "short" gives "Dec", "Jan", etc.
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true, // 12-hour format with AM/PM
+      };
+
+      // Get locale string
+      let formattedDate = timestamp.toLocaleString("en-US", options);
+
+      // Add dot after month
+      formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
+
+      // Remove extra comma if needed
+      formattedDate = formattedDate.replace(",", "");
+
+      await addDoc(collection(db, "UserAccountTrail"), {
+        message: `${currentAdmin} Disabled User Account for ${data.firstName} ${data.lastName} (${data.schoolId})`,
+        dateTime: formattedDate,
+      });
         alert("⚠️ Account disabled.");
       }
 
@@ -452,6 +567,7 @@ document.getElementById("download-csv-template").onclick = (e) => {
 /* ============================================================
    📌 UPLOAD USERS TO FIREBASE
 ============================================================ */
+const skippedUsers = []; // <-- collect skipped emails
 document.getElementById("user-upload-btn").onclick = async () => {
   const file = document.getElementById("user-bulk-file").files[0];
   if (!file) return alert("⚠ Please choose a CSV file!");
@@ -461,42 +577,95 @@ document.getElementById("user-upload-btn").onclick = async () => {
   reader.onload = async (e) => {
     let rows = parseCSV(e.target.result);
 
-    // ✅ Skip the header row
+    // Skip header
     if (rows.length > 0) rows = rows.slice(1);
 
     try {
+      // Get current admin's name from users collection
+      const currentAdmin = auth.currentUser;
+      let adminName = "Unknown Admin";
+      if (currentAdmin) {
+        const adminDoc = await getDoc(doc(db, "users", currentAdmin.uid));
+        if (adminDoc.exists()) {
+          const data = adminDoc.data();
+          adminName = `${data.firstName} ${data.lastName}`;
+        }
+      }
+
+      // Secondary app to avoid replacing admin session
+      const secondaryApp = initializeApp(firebaseConfig, "SecondaryBulk");
+      const secondaryAuth = getAuth(secondaryApp);
+
+      let addedCount = 0;
+
       for (const row of rows) {
         const [firstName, middleName, lastName, extName, schoolId, email] = row;
 
         // Skip empty rows
         if (!firstName && !lastName && !schoolId && !email) continue;
 
-        const password = schoolId; // ⭐ default password
+        const password = schoolId; // default password
 
-        // Create Firebase Auth account
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-        const newUser = userCredential.user;
+        try {
+          // Create Firebase Auth account
+          const userCredential = await createUserWithEmailAndPassword(
+            secondaryAuth,
+            email,
+            password
+          );
+          const newUser = userCredential.user;
 
-        // Create Firestore user document
-        await setDoc(doc(db, "users", newUser.uid), {
-          uid: newUser.uid,
-          firstName,
-          middleName,
-          lastName,
-          extName,
-          schoolId,
-          user_type: "student",
-          email,
-          createdAt: new Date(),
+          // Save user info in Firestore
+          await setDoc(doc(db, "users", newUser.uid), {
+            uid: newUser.uid,
+            firstName,
+            middleName,
+            lastName,
+            extName,
+            schoolId,
+            user_type: "student",
+            email,
+            createdAt: new Date(),
+          });
+
+          addedCount++;
+        } catch (err) {
+          skippedUsers.push(email); // <-- store skipped email
+          continue;
+        }
+      }
+
+      // Log bulk upload in UserAccountTrail
+      if (addedCount > 0) {
+        const timestamp = new Date();
+        const options = {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        };
+        let formattedDate = timestamp.toLocaleString("en-US", options);
+        formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
+        formattedDate = formattedDate.replace(",", "");
+
+        await addDoc(collection(db, "UserAccountTrail"), {
+          message: `${adminName} added ${addedCount} new user(s) via bulk upload`,
+          dateTime: formattedDate,
         });
       }
 
-      alert("✅ Bulk User Upload Complete!");
-      document.getElementById("user-bulk-modal").classList.add("d-none");
+      // --- After processing all rows ---
+      let message = `✅ Bulk User Upload Complete! ${addedCount} user(s) added.`;
+
+      if (skippedUsers.length > 0) {
+        message += `\n⚠ Skipped ${
+          skippedUsers.length
+        } user(s):\n${skippedUsers.join(", ")}`;
+      }
+
+      alert(message);
     } catch (err) {
       console.error(err);
       alert("❌ Error uploading users: " + err.message);
@@ -568,34 +737,42 @@ async function loadLoginHistory() {
 
 // Call the function to populate table
 loadLoginHistory();
-
 const userChangesTab = document.getElementById("user-changes");
 
-// Function to load user changes
 async function loadUserChanges() {
   userChangesTab.innerHTML = "<p>Loading...</p>";
 
   try {
-    const changesQuery = await getDocs(collection(db, "userChanges"));
-    
-    if (changesQuery.empty) {
+    const snapshot = await getDocs(collection(db, "userChanges"));
+
+    if (snapshot.empty) {
       userChangesTab.innerHTML = "<p>No changes recorded.</p>";
       return;
     }
 
-    // Create a container for the list
+    // 🔹 Collect data first
+    const changes = [];
+    snapshot.forEach((doc) => {
+      changes.push(doc.data());
+    });
+
+    // 🔹 Sort by dateTime (newest first)
+    changes.sort((a, b) => {
+      return parseAuditDate(b.dateTime) - parseAuditDate(a.dateTime);
+    });
+
+    // 🔹 Render
     const list = document.createElement("ul");
     list.classList.add("list-group", "list-group-flush");
 
-    changesQuery.forEach((doc) => {
-      const data = doc.data();
+    changes.forEach((data) => {
       const item = document.createElement("li");
       item.classList.add("list-group-item");
-      item.textContent = `${data.dateTime} - ${data.message}`;
+      item.textContent = `${data.dateTime} — ${data.message}`;
       list.appendChild(item);
     });
 
-    userChangesTab.innerHTML = ""; // clear loading text
+    userChangesTab.innerHTML = "";
     userChangesTab.appendChild(list);
   } catch (err) {
     console.error(err);
@@ -603,8 +780,48 @@ async function loadUserChanges() {
   }
 }
 
+// Load immediately
+loadUserChanges();
+
 // Load when the tab is shown
-const userChangesTabButton = document.getElementById("user-changes-tab");
-userChangesTabButton.addEventListener("shown.bs.tab", () => {
-  loadUserChanges();
+const userAccountTabButton = document.getElementById(
+  "user-account-management-tab"
+);
+
+userAccountTabButton.addEventListener("shown.bs.tab", async () => {
+  const userAccountTab = document.getElementById("user-account-management");
+  const userAccountList = userAccountTab.querySelector("ul");
+  userAccountList.innerHTML = "<li>Loading...</li>";
+
+  try {
+    const querySnapshot = await getDocs(collection(db, "UserAccountTrail"));
+
+    if (querySnapshot.empty) {
+      userAccountList.innerHTML =
+        "<li>No user account actions recorded.</li>";
+      return;
+    }
+
+    // 🔹 Collect docs into array
+    const logs = [];
+    querySnapshot.forEach((doc) => {
+      logs.push(doc.data());
+    });
+
+    // 🔹 Sort by dateTime (newest first)
+    logs.sort((a, b) => {
+      return parseAuditDate(b.dateTime) - parseAuditDate(a.dateTime);
+    });
+
+    // 🔹 Render
+    userAccountList.innerHTML = "";
+    logs.forEach((data) => {
+      const li = document.createElement("li");
+      li.textContent = `${data.dateTime} — ${data.message}`;
+      userAccountList.appendChild(li);
+    });
+  } catch (err) {
+    console.error(err);
+    userAccountList.innerHTML = "<li>Failed to load logs.</li>";
+  }
 });

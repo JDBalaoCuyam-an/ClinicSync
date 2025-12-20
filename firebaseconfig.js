@@ -159,4 +159,4 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-export { db, auth, currentUserName, patientKey };
+export { db, auth, currentUserName, firebaseConfig };

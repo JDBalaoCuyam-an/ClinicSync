@@ -533,21 +533,34 @@ editPatientInfoBtn.addEventListener("click", async () => {
       if (changes.length > 0) {
         const userSnap = await getDoc(doc(db, "users", patientId));
         const userData = userSnap.data();
-        const fullName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName}`.trim();
+        const fullName = `${userData.firstName} ${userData.middleName || ""} ${
+          userData.lastName
+        }`.trim();
         const schoolId = userData.schoolId || "N/A";
         const clinicStaff = currentUserName;
-        const message = `${clinicStaff} updated ${changes.join(", ")} ${changes.length > 1 ? 'fields' : 'field'} of ${fullName} (${schoolId}) Personal Information`;
+        const message = `${clinicStaff} updated ${changes.join(", ")} ${
+          changes.length > 1 ? "fields" : "field"
+        } of ${fullName} (${schoolId}) Personal Information`;
 
         const timestamp = new Date();
-        const formattedDate = timestamp.toLocaleString(undefined, {
-          year: "short",
-          month: "2-digit",
+
+        const options = {
+          year: "numeric", // must be "numeric" or "2-digit"
+          month: "short", // "short" gives "Dec", "Jan", etc.
           day: "2-digit",
           hour: "2-digit",
           minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        });
+          hour12: true, // 12-hour format with AM/PM
+        };
+
+        // Get locale string
+        let formattedDate = timestamp.toLocaleString("en-US", options);
+
+        // Add dot after month
+        formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
+
+        // Remove extra comma if needed
+        formattedDate = formattedDate.replace(",", "");
 
         await addDoc(collection(db, "userChanges"), {
           message,
@@ -563,7 +576,6 @@ editPatientInfoBtn.addEventListener("click", async () => {
     }
   }
 });
-
 
 // Cancel button click
 cancelPatientInfoBtn.addEventListener("click", () => {
@@ -1247,13 +1259,11 @@ document
       // Reset BMI field if needed
       const bmiInput = document.getElementById("exam-bmi");
       if (bmiInput) bmiInput.value = "";
-
     } catch (err) {
       console.error("Error saving physical examination:", err);
       alert("Failed to save Physical Examination.");
     }
   });
-
 
 // ===== AUTO COMPUTE BMI ON TYPING =====
 const weightInput = document.getElementById("exam-weight");
@@ -1374,27 +1384,45 @@ window.showExamOverview = async function (patientId, examId) {
     // Visual Acuity
     document.getElementById("ovr-exam-os").value = data.visualAcuity?.os || "";
     document.getElementById("ovr-exam-od").value = data.visualAcuity?.od || "";
-    document.getElementById("ovr-exam-glasses").value = String(data.visualAcuity?.glasses || false);
+    document.getElementById("ovr-exam-glasses").value = String(
+      data.visualAcuity?.glasses || false
+    );
 
     // Physical Findings
     const findingFields = [
-      "heent","teeth","neck","chest","lungs","heart","breast","skin","abdomen",
-      "back","anus","genitalia","extremities","cleanliness","posture","nutrition","deformity","others"
+      "heent",
+      "teeth",
+      "neck",
+      "chest",
+      "lungs",
+      "heart",
+      "breast",
+      "skin",
+      "abdomen",
+      "back",
+      "anus",
+      "genitalia",
+      "extremities",
+      "cleanliness",
+      "posture",
+      "nutrition",
+      "deformity",
+      "others",
     ];
-    findingFields.forEach(field => {
+    findingFields.forEach((field) => {
       const el = document.getElementById(`ovr-exam-${field}`);
       if (el) el.value = data.findings?.[field] || "";
     });
 
     // Lab & Recommendations
     document.getElementById("ovr-exam-lab").value = data.labPresent || "";
-    document.getElementById("ovr-exam-recommendations").value = data.recommendations || "";
+    document.getElementById("ovr-exam-recommendations").value =
+      data.recommendations || "";
 
     // Show Bootstrap modal
     const modalEl = document.getElementById("exam-overview-modal");
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
-
   } catch (err) {
     console.error("❌ Error showing exam overview:", err);
     alert("Failed to load examination details.");
@@ -1444,29 +1472,26 @@ const editExamBtn = document.getElementById("editExamBtn");
 editExamBtn.addEventListener("click", async () => {
   const modal = document.getElementById("exam-overview-modal");
 
-  const inputs = modal.querySelectorAll(
-    "input, textarea, select"
-  );
+  const inputs = modal.querySelectorAll("input, textarea, select");
 
   /* ===============================
      ✏️ ENABLE EDIT MODE
   =============================== */
- if (editExamBtn.textContent.includes("✏️")) {
-  inputs.forEach((el) => el.removeAttribute("disabled"));
+  if (editExamBtn.textContent.includes("✏️")) {
+    inputs.forEach((el) => el.removeAttribute("disabled"));
 
-  // 🔥 Enable BMI auto-compute in overview
-  document
-    .getElementById("ovr-exam-weight")
-    .addEventListener("input", computeOverviewBMI);
+    // 🔥 Enable BMI auto-compute in overview
+    document
+      .getElementById("ovr-exam-weight")
+      .addEventListener("input", computeOverviewBMI);
 
-  document
-    .getElementById("ovr-exam-height")
-    .addEventListener("input", computeOverviewBMI);
+    document
+      .getElementById("ovr-exam-height")
+      .addEventListener("input", computeOverviewBMI);
 
-  editExamBtn.textContent = "💾 Save";
-  return;
-}
-
+    editExamBtn.textContent = "💾 Save";
+    return;
+  }
 
   /* ===============================
      💾 SAVE MODE
@@ -1490,13 +1515,28 @@ editExamBtn.addEventListener("click", async () => {
 
   /* ---------- STRUCTURED FINDINGS ---------- */
   const findingFields = [
-    "heent","teeth","neck","chest","lungs","heart","breast","skin","abdomen",
-    "back","anus","genitalia","extremities","cleanliness",
-    "posture","nutrition","deformity","others"
+    "heent",
+    "teeth",
+    "neck",
+    "chest",
+    "lungs",
+    "heart",
+    "breast",
+    "skin",
+    "abdomen",
+    "back",
+    "anus",
+    "genitalia",
+    "extremities",
+    "cleanliness",
+    "posture",
+    "nutrition",
+    "deformity",
+    "others",
   ];
 
   const findingsObj = {};
-  findingFields.forEach(field => {
+  findingFields.forEach((field) => {
     const el = document.getElementById(`ovr-exam-${field}`);
     if (el && el.value.trim() !== "") {
       findingsObj[field] = el.value.trim();
@@ -1515,14 +1555,12 @@ editExamBtn.addEventListener("click", async () => {
     visualAcuity: {
       os: document.getElementById("ovr-exam-os").value || "",
       od: document.getElementById("ovr-exam-od").value || "",
-      glasses:
-        document.getElementById("ovr-exam-glasses").value === "true",
+      glasses: document.getElementById("ovr-exam-glasses").value === "true",
     },
 
     findings: findingsObj,
 
-    labPresent:
-      document.getElementById("ovr-exam-lab").value || "",
+    labPresent: document.getElementById("ovr-exam-lab").value || "",
 
     recommendations:
       document.getElementById("ovr-exam-recommendations").value || "",
@@ -1539,32 +1577,34 @@ editExamBtn.addEventListener("click", async () => {
       currentExamId
     );
     if (
-  document.getElementById("ovr-exam-weight").classList.contains("is-invalid") ||
-  document.getElementById("ovr-exam-height").classList.contains("is-invalid")
-) {
-  alert("⚠️ Please fix invalid weight or height.");
-  return;
-}
+      document
+        .getElementById("ovr-exam-weight")
+        .classList.contains("is-invalid") ||
+      document
+        .getElementById("ovr-exam-height")
+        .classList.contains("is-invalid")
+    ) {
+      alert("⚠️ Please fix invalid weight or height.");
+      return;
+    }
 
     await updateDoc(examRef, updatedExam);
 
     /* ---------- EDIT LOG ---------- */
-    const editLogRef = collection(
-      db,
-      "users",
-      currentPatientId,
-      "editLogs"
-    );
+    const editLogRef = collection(db, "users", currentPatientId, "editLogs");
 
     await addDoc(editLogRef, {
-      message: `Edited by ${currentUserName} · ${new Date().toLocaleString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })}`,
+      message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+        "en-US",
+        {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }
+      )}`,
       timestamp: new Date(),
       editor: currentUserName,
       section: "Physical Examination",
@@ -1573,13 +1613,12 @@ editExamBtn.addEventListener("click", async () => {
     alert("✅ Physical examination updated successfully!");
 
     /* ---------- LOCK BACK ---------- */
-    inputs.forEach(el => el.setAttribute("disabled", "true"));
+    inputs.forEach((el) => el.setAttribute("disabled", "true"));
     editExamBtn.textContent = "✏️ Edit";
 
     if (typeof loadPhysicalExaminations === "function") {
       loadPhysicalExaminations();
     }
-
   } catch (err) {
     console.error("❌ Error updating exam:", err);
     alert("Failed to update physical examination record.");

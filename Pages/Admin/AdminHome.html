@@ -25,7 +25,8 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
+          <li class="nav-item d-flex align-items-center">
+            <span id="displayName"></span>
             <button class="btn btn-outline-light" id="logout-button">
               <i class="bi bi-box-arrow-right me-1"></i> Log Out
             </button>
@@ -95,18 +96,18 @@
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="role-changes-tab" data-bs-toggle="tab" data-bs-target="#role-changes" type="button" role="tab" aria-controls="role-changes" aria-selected="false">
-        Role Changes
+      <button class="nav-link" id="user-account-management-tab" data-bs-toggle="tab" data-bs-target="#user-account-management" type="button" role="tab" aria-controls="user-account-management" aria-selected="false">
+        User Account Management
       </button>
     </li>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="disabled-accounts-tab" data-bs-toggle="tab" data-bs-target="#disabled-accounts" type="button" role="tab" aria-controls="disabled-accounts" aria-selected="false">
-        Disabled Accounts
+        ???
       </button>
     </li>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="bulk-uploads-tab" data-bs-toggle="tab" data-bs-target="#bulk-uploads" type="button" role="tab" aria-controls="bulk-uploads" aria-selected="false">
-        Bulk Uploads
+        ???
       </button>
     </li>
   </ul>
@@ -138,24 +139,11 @@
       
     </div>
 
-    <!-- Role Changes -->
-    <div class="tab-pane fade" id="role-changes" role="tabpanel" aria-labelledby="role-changes-tab">
-      <div class="table-responsive">
-        <table class="table table-hover table-striped" id="roleChangesTable">
-          <thead class="table-secondary">
-            <tr>
-              <th>User</th>
-              <th>Old Role</th>
-              <th>New Role</th>
-              <th>Changed By</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- JS populated -->
-          </tbody>
-        </table>
-      </div>
+    <!-- User Account Management -->
+    <div class="tab-pane fade" id="user-account-management" role="tabpanel" aria-labelledby="user-account-management-tab">
+      <ul>
+
+      </ul>
     </div>
 
     <!-- Disabled Accounts -->
