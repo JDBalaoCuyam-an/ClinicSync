@@ -63,7 +63,6 @@
                 placeholder="Search by Name/ID/Email"
                 style="max-width: 200px"
               />
-              
 
               <button
                 id="open-user-bulk-upload"
@@ -195,12 +194,12 @@ Departments Management Section
         <li class="nav-item" role="presentation">
           <button
             class="nav-link"
-            id="bulk-uploads-tab"
+            id="clinic-staff-actions-tab"
             data-bs-toggle="tab"
-            data-bs-target="#bulk-uploads"
+            data-bs-target="#clinic-staff-actions"
             type="button"
             role="tab"
-            aria-controls="bulk-uploads"
+            aria-controls="clinic-staff-actions"
             aria-selected="false"
           >
             Clinic Staff Actions
@@ -262,34 +261,16 @@ Departments Management Section
           id="departments-and-courses"
           role="tabpanel"
           aria-labelledby="departments-and-courses-tab"
-        >
-          
-        </div>
+        ></div>
 
-        <!-- Bulk Uploads -->
+        <!-- Clinic Staff Actions -->
         <div
           class="tab-pane fade"
-          id="bulk-uploads"
+          id="clinic-staff-actions"
           role="tabpanel"
-          aria-labelledby="bulk-uploads-tab"
+          aria-labelledby="clinic-staff-actions-tab"
         >
-          <div class="table-responsive">
-            <table
-              class="table table-hover table-striped"
-              id="bulkUploadsTable"
-            >
-              <thead class="table-secondary">
-                <tr>
-                  <th>Uploaded By</th>
-                  <th>Date</th>
-                  <th>Records Uploaded</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- JS populated -->
-              </tbody>
-            </table>
-          </div>
+          <ul class="list-group list-group-flush"></ul>
         </div>
       </div>
     </div>
@@ -695,36 +676,73 @@ Departments Management Section
         </div>
       </div>
     </div>
-<!-- Edit Department Modal -->
-<div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <form id="edit-department-form" class="modal-body p-4">
-        <div class="mb-3">
-          <label for="modal-department-name" class="form-label">Manage Department</label>
-          <input type="text" id="modal-department-name" class="form-control" placeholder="Enter department name" required>
-        </div>
+    <!-- Edit Department Modal -->
+    <div
+      class="modal fade"
+      id="editDepartmentModal"
+      tabindex="-1"
+      aria-labelledby="editDepartmentModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <form id="edit-department-form" class="modal-body p-4">
+            <div class="mb-3">
+              <label for="modal-department-name" class="form-label"
+                >Manage Department</label
+              >
+              <input
+                type="text"
+                id="modal-department-name"
+                class="form-control"
+                placeholder="Enter department name"
+                required
+              />
+            </div>
 
-        <div class="mb-3">
-          <label class="form-label">Courses</label>
-          <div id="modal-courses-container">
-            <!-- Courses input rows will be added here -->
-          </div>
-          <button type="button" class="btn btn-sm btn-outline-primary" id="modal-add-course-btn">+ Add Course</button>
-        </div>
+            <div class="mb-3">
+              <label class="form-label">Courses</label>
+              <div id="modal-courses-container">
+                <!-- Courses input rows will be added here -->
+              </div>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                id="modal-add-course-btn"
+              >
+                + Add Course
+              </button>
+            </div>
 
-        <div class="d-flex justify-content-between mt-3">
-          <button type="button" class="btn btn-danger" id="modal-delete-department-btn">Delete Department</button>
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="modal-save-department-btn">Save</button>
-          </div>
+            <div class="d-flex justify-content-between mt-3">
+              <button
+                type="button"
+                class="btn btn-danger"
+                id="modal-delete-department-btn"
+              >
+                Delete Department
+              </button>
+              <div class="d-flex gap-2">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  id="modal-save-department-btn"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
-</div>
-
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

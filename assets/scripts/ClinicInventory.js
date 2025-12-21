@@ -160,20 +160,28 @@ form.addEventListener("submit", async (e) => {
   const borrowerData = {
     itemName,
     quantity,
-
     borrowerId: borrowerSelect.value,
     borrowerName: selectedOption.text,
-
     personnel: currentUserName || "Unknown User",
     dateBorrowed: `${formatDateLabel(currentDate)} ${formatTimeFromString(currentTime)}`,
     status: "Borrowed",
     dateReturned: "",
-
     createdAt: new Date(),
   };
 
   try {
-    await addDoc(collection(db, "ClinicInventory"), borrowerData);
+    // Add borrower to ClinicInventory
+    const docRef = await addDoc(collection(db, "ClinicInventory"), borrowerData);
+
+    // 🔹 Create audit log
+    const auditMessage = `${currentUserName || "Unknown User"} added borrower "${borrowerData.borrowerName}" with item "${borrowerData.itemName}" (Quantity: ${borrowerData.quantity})`;
+
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: auditMessage,
+      userId: currentUserId || null,
+      timestamp: new Date(),
+      section: "ClinicInventory",
+    });
 
     alert("✅ Borrower added successfully!");
     form.reset();
@@ -186,13 +194,14 @@ form.addEventListener("submit", async (e) => {
     loadBorrowers();
 
   } catch (error) {
-    console.error("Error adding borrower:", error);
+    console.error("Error adding borrower or audit log:", error);
     alert("⚠️ Failed to add borrower. Check console.");
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
   }
 });
+
 
 
 
