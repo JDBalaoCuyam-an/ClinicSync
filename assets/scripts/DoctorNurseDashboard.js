@@ -21,6 +21,7 @@ function formatDateLabel(dateStr) {
     year: "numeric",
   });
 }
+
 /* ======================================================
    CARDS VISITS BORROWWED ITEMS MEDICINES
 ====================================================== */

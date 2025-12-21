@@ -86,6 +86,92 @@ birthdateInput.addEventListener("change", () => {
     ageInput.value = "";
   }
 });
+
+// === Load Departments & Courses into Dropdowns (for patient/student info page) ===
+async function loadDepartmentsAndCourses() {
+  const departmentSelect = document.getElementById("department");
+  const courseSelect = document.getElementById("course");
+
+  if (!departmentSelect || !courseSelect) return;
+
+  // Initial state
+  departmentSelect.innerHTML = '<option value="">Loading departments...</option>';
+  courseSelect.innerHTML = '<option value="">Select department first</option>';
+  // departmentSelect.disabled = true;
+  // courseSelect.disabled = true;
+
+  try {
+    const snap = await getDocs(collection(db, "Departments"));
+    
+    // Clear and set default options
+    departmentSelect.innerHTML = '<option value="">Choose Department</option>';
+    courseSelect.innerHTML = '<option value="">Choose Course</option>';
+
+    if (snap.empty) {
+      departmentSelect.innerHTML = '<option value="">No departments available</option>';
+      // courseSelect.disabled = true;
+      return;
+    }
+
+    // Store full department data for course linking
+    const departmentsMap = new Map(); // key: department name → courses array
+
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const deptName = data.name;
+      const courses = data.courses || [];
+
+      // Add to department dropdown
+      const option = document.createElement("option");
+      option.value = deptName;
+      option.textContent = deptName;
+      departmentSelect.appendChild(option);
+
+      // Store courses for this department
+      departmentsMap.set(deptName, courses);
+    });
+
+    // === When department changes → populate courses ===
+    departmentSelect.addEventListener("change", () => {
+      const selectedDept = departmentSelect.value;
+      courseSelect.innerHTML = '<option value="">Choose Course</option>';
+
+      if (!selectedDept) {
+
+        return;
+      }
+
+      const courses = departmentsMap.get(selectedDept) || [];
+
+      if (courses.length === 0) {
+        courseSelect.innerHTML = '<option value="">No courses available</option>';
+
+        return;
+      }
+
+      courses.forEach((course) => {
+        const option = document.createElement("option");
+        option.value = course;
+        option.textContent = course;
+        courseSelect.appendChild(option);
+      });
+
+
+
+      // If user had a saved course, try to re-select it
+      const savedCourse = courseSelect.dataset.savedValue;
+      if (savedCourse && courses.includes(savedCourse)) {
+        courseSelect.value = savedCourse;
+        delete courseSelect.dataset.savedValue; // clear temp storage
+      }
+    });
+
+  } catch (err) {
+    console.error("Error loading departments for student form:", err);
+    departmentSelect.innerHTML = '<option value="">Error loading departments</option>';
+  }
+}
+loadDepartmentsAndCourses();
 /* -----------------------------------------------
    Patient Info Display
   ----------------------------------------------- */
@@ -97,6 +183,7 @@ onAuthStateChanged(auth, async (user) => {
     if (patientSnap.exists()) {
       const data = patientSnap.data();
 
+      // Fill personal info
       document.getElementById("lastName").value = data.lastName || "";
       document.getElementById("firstName").value = data.firstName || "";
       document.getElementById("middleName").value = data.middleName || "";
@@ -109,32 +196,57 @@ onAuthStateChanged(auth, async (user) => {
       document.getElementById("religion").value = data.religion || "";
 
       document.getElementById("schoolId").value = data.schoolId || "";
-      document.getElementById("department").value = data.department || "";
-      document.getElementById("course").value = data.course || "";
       document.getElementById("yearLevel").value = data.yearLevel || "";
 
+      // Parent info
       document.getElementById("fatherName").value = data.fatherName || "";
       document.getElementById("fatherAge").value = data.fatherAge || "";
-      document.getElementById("fatherOccupation").value =
-        data.fatherOccupation || "";
+      document.getElementById("fatherOccupation").value = data.fatherOccupation || "";
       document.getElementById("fatherHealth").value = data.fatherHealth || "";
       document.getElementById("motherName").value = data.motherName || "";
       document.getElementById("motherAge").value = data.motherAge || "";
-      document.getElementById("motherOccupation").value =
-        data.motherOccupation || "";
+      document.getElementById("motherOccupation").value = data.motherOccupation || "";
       document.getElementById("motherHealth").value = data.motherHealth || "";
 
+      // Contact info
       document.getElementById("phoneNumber").value = data.phoneNumber || "";
       document.getElementById("email").value = data.email || "";
       document.getElementById("address").value = data.address || "";
       document.getElementById("guardianName").value = data.guardianName || "";
       document.getElementById("guardianPhone").value = data.guardianPhone || "";
+
+      // === Store saved department/course for later restoration ===
+      const departmentSelect = document.getElementById("department");
+      const courseSelect = document.getElementById("course");
+
+      const savedDept = data.department || "";
+      const savedCourse = data.course || "";
+
+      if (departmentSelect) departmentSelect.dataset.savedValue = savedDept;
+      if (courseSelect) courseSelect.dataset.savedValue = savedCourse;
+
+      // === Load departments & courses from Firestore ===
+      await loadDepartmentsAndCourses();
+
+      // === Restore previously selected department & course ===
+      if (savedDept && departmentSelect) {
+        departmentSelect.value = savedDept;
+
+        // Trigger change event to populate courses
+        departmentSelect.dispatchEvent(new Event("change"));
+
+        // After courses load, restore the saved course
+        setTimeout(() => {
+          if (savedCourse && courseSelect && courseSelect.querySelector(`option[value="${savedCourse}"]`)) {
+            courseSelect.value = savedCourse;
+          }
+        }, 150); // Slightly increased delay for reliability
+      }
     }
+
+    loadStaff();
   }
-
-  loadStaff();
 });
-
 /* -----------------------------------------------
    Patient Info Edit Logic
 ----------------------------------------------- */
