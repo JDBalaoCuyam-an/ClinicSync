@@ -1,4 +1,4 @@
-import { db } from "../../firebaseconfig.js";
+import { db, currentUserName } from "../../firebaseconfig.js";
 import {
   collection,
   addDoc,
@@ -215,11 +215,32 @@ referralForm.addEventListener("submit", async (e) => {
     if (selectedReferralId) {
       const ref = doc(db, "EmergencyReferrals", selectedReferralId);
       await updateDoc(ref, data);
+
+      // 🔹 Audit log for update
+      const auditMessage = `${currentUserName || "Unknown User"} updated referral for "${data.name}" at (${data.department})`;
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
       alert("Referral Updated!");
     } else {
       await addDoc(collection(db, "EmergencyReferrals"), data);
+
+      // 🔹 Audit log for add
+      const auditMessage = `${currentUserName || "Unknown User"} added new referral for "${data.name}" at (${data.department})`;
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
       alert("Referral Added!");
     }
+
     closeReferralModal();
     loadReferrals();
   } catch (error) {
@@ -242,6 +263,7 @@ window.editReferral = async (id) => {
     if (docSnap.id === id) openReferralModal({ id, ...docSnap.data() });
   });
 };
+
 
 // Load Referrals
 async function loadReferrals() {
@@ -392,7 +414,8 @@ document.getElementById("applyDateFilter").addEventListener("click", () => {
 // =======================
 // Export Referral Chart as Image
 // =======================
-document.getElementById("exportReferralImageBtn").addEventListener("click", () => {
+// Export Referral Chart as Image
+document.getElementById("exportReferralImageBtn").addEventListener("click", async () => {
   if (!referralChart) {
     alert("No chart to export.");
     return;
@@ -422,11 +445,21 @@ document.getElementById("exportReferralImageBtn").addEventListener("click", () =
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
+  // 🔹 Audit Log
+  try {
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: `${currentUserName || "Unknown User"} exported emergency referral chart as IMAGE for ${formatDateLabel(chartStartDate.value)} → ${formatDateLabel(chartEndDate.value)}`,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+  } catch (err) {
+    console.error("Failed to log audit:", err);
+  }
 });
 
-// =======================
 // Export Referral Data as Excel
-// =======================
 document.getElementById("exportReferralExcelBtn").addEventListener("click", async () => {
   const startDateVal = chartStartDate.value;
   const endDateVal = chartEndDate.value;
@@ -445,7 +478,6 @@ document.getElementById("exportReferralExcelBtn").addEventListener("click", asyn
     const data = docSnap.data();
     if (!data.date) return;
 
-    // Handle Firestore Timestamp or string
     const recordDate = data.date.toDate ? data.date.toDate() : new Date(data.date);
     if (isNaN(recordDate)) return;
     if (recordDate < startDate || recordDate > endDate) return;
@@ -478,7 +510,17 @@ document.getElementById("exportReferralExcelBtn").addEventListener("click", asyn
   const fileName = `Emergency_Referrals_${formatDateLabel(startDateVal)}_to_${formatDateLabel(endDateVal)}.xlsx`;
   XLSX.writeFile(workbook, fileName);
 
-  // alert("Excel exported successfully!");
+  // 🔹 Audit Log
+  try {
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: `${currentUserName || "Unknown User"} exported emergency referral data as EXCEL for ${formatDateLabel(startDateVal)} → ${formatDateLabel(endDateVal)}`,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+  } catch (err) {
+    console.error("Failed to log audit:", err);
+  }
 });
 
 // Initial load
