@@ -1,11 +1,12 @@
 // ✅ Import Firebase tools
-import { auth, db } from "../../firebaseconfig.js";
+import { auth, db, currentUserName } from "../../firebaseconfig.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import {
   collection,
   doc,
   getDoc,
   getDocs, // ✅ <-- added
+  addDoc,
   query,
   where,
   orderBy,
@@ -377,14 +378,14 @@ applyFilterBtn.addEventListener("click", loadVisitsChart);
 loadVisitsChart();
 
 // ===========================================================
-// Export Visits Chart as PDF
+// Export Patient Visits Chart as Image
 // ===========================================================
-document.getElementById("exportImageBtn").addEventListener("click", () => {
+document.getElementById("exportImageBtn").addEventListener("click", async () => {
   if (!visitsChart) {
     alert("No chart to export.");
     return;
   }
-  // Map values to display-friendly text
+
   const departmentLabel =
     departmentInput.value === "all-dept"
       ? "All Departments"
@@ -397,42 +398,48 @@ document.getElementById("exportImageBtn").addEventListener("click", () => {
     yearLevelInput.value === "all-year"
       ? "All Year Levels"
       : yearLevelInput.value;
-  // Create a temporary canvas
+
   const tempCanvas = document.createElement("canvas");
   tempCanvas.width = visitsChart.canvas.width;
-  tempCanvas.height = visitsChart.canvas.height + 40; // extra space for filter text
+  tempCanvas.height = visitsChart.canvas.height + 40;
   const tempCtx = tempCanvas.getContext("2d");
 
-  // Draw the chart onto the temp canvas
   tempCtx.drawImage(visitsChart.canvas, 0, 40);
 
-  // Draw filter text above the chart
-  tempCtx.font = "bold 14px Arial";
-  tempCtx.fillStyle = "#444";
-  tempCtx.textAlign = "center";
-
   const filterText =
-    `Date: ${formatDateLabel(dateFromInput.value)} → ${formatDateLabel(
-      dateToInput.value
-    )} | ` +
+    `Date: ${formatDateLabel(dateFromInput.value)} → ${formatDateLabel(dateToInput.value)} | ` +
     `Department: ${departmentLabel} | ` +
     `Course: ${courseLabel} | ` +
     `Year Level: ${yearLevelLabel}`;
 
+  tempCtx.font = "bold 14px Arial";
+  tempCtx.fillStyle = "#444";
+  tempCtx.textAlign = "center";
   tempCtx.fillText(filterText, tempCanvas.width / 2, 20);
 
-  // Export temp canvas as image
   const imageURL = tempCanvas.toDataURL("image/png");
 
-  // Create download link
   const link = document.createElement("a");
   link.href = imageURL;
   link.download = "Patient_Visits_Chart.png";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
+  // 🔹 Audit Log
+  try {
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: `${currentUserName || "Unknown User"} exported Patient Visits chart as IMAGE for ${formatDateLabel(dateFromInput.value)} → ${formatDateLabel(dateToInput.value)}, Dept: ${departmentLabel}, Course: ${courseLabel}, Year: ${yearLevelLabel}`,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+  } catch (err) {
+    console.error("Failed to log audit:", err);
+  }
 });
 
+// Export Patient Visits Data as Excel
 document.getElementById("exportExcelBtn").addEventListener("click", async () => {
   const fromDateVal = dateFromInput.value;
   const toDateVal = dateToInput.value;
@@ -447,7 +454,6 @@ document.getElementById("exportExcelBtn").addEventListener("click", async () => 
   const courseFilter = courseInput.value;
   const yearLevelFilter = yearLevelInput.value;
 
-  // Fetch all consultations
   const snap = await getDocs(collectionGroup(db, "consultations"));
 
   const studentVisits = {};
@@ -459,7 +465,6 @@ document.getElementById("exportExcelBtn").addEventListener("click", async () => 
     const data = consultDoc.data();
     if (!data.date) continue;
 
-    // Parse date
     let visitDate;
     if (data.date.toDate) visitDate = data.date.toDate();
     else if (data.date instanceof Date) visitDate = data.date;
@@ -468,7 +473,6 @@ document.getElementById("exportExcelBtn").addEventListener("click", async () => 
     if (isNaN(visitDate)) continue;
     if (visitDate < fromDate || visitDate > toDate) continue;
 
-    // Get parent user
     const userRef = consultDoc.ref.parent.parent;
     if (!userRef) continue;
 
@@ -477,17 +481,13 @@ document.getElementById("exportExcelBtn").addEventListener("click", async () => 
 
     const user = userSnap.data();
 
-    // Apply filters
     if (departmentFilter !== "all-dept" && user.department !== departmentFilter) continue;
     if (courseFilter !== "all-course-strand-genEduc" && user.course !== courseFilter) continue;
     if (yearLevelFilter !== "all-year" && String(user.yearLevel) !== yearLevelFilter) continue;
 
     const label = visitDate.toISOString().split("T")[0];
-
-    // Build full name
     const name = `${user.lastName}, ${user.firstName}${user.middleName ? " " + user.middleName : ""}`;
 
-    // Count visits and store detailed info
     if (user.user_type === "student") {
       studentVisits[label] = (studentVisits[label] || 0) + 1;
       studentList.push({
@@ -517,13 +517,8 @@ document.getElementById("exportExcelBtn").addEventListener("click", async () => 
 
   const workbook = XLSX.utils.book_new();
 
-  // --------------------------
-  // Sheet 1: Visits Summary
-  // --------------------------
-  const allDates = Array.from(
-    new Set([...Object.keys(studentVisits), ...Object.keys(employeeVisits)])
-  ).sort();
-
+  // Visits Summary Sheet
+  const allDates = Array.from(new Set([...Object.keys(studentVisits), ...Object.keys(employeeVisits)])).sort();
   const summaryRows = allDates.map(date => ({
     Date: formatDateLabel(date),
     Weekday: new Date(date).toLocaleDateString(undefined, { weekday: "long" }),
@@ -543,26 +538,32 @@ document.getElementById("exportExcelBtn").addEventListener("click", async () => 
   XLSX.utils.sheet_add_json(summarySheet, summaryRows, { origin: "A6", skipHeader: false });
   XLSX.utils.book_append_sheet(workbook, summarySheet, "Visits Summary");
 
-  // --------------------------
-  // Sheet 2: Student Details
-  // --------------------------
   if (studentList.length > 0) {
     const studentSheet = XLSX.utils.json_to_sheet(studentList);
     XLSX.utils.book_append_sheet(workbook, studentSheet, "Students");
   }
 
-  // --------------------------
-  // Sheet 3: Employee Details
-  // --------------------------
   if (employeeList.length > 0) {
     const employeeSheet = XLSX.utils.json_to_sheet(employeeList);
     XLSX.utils.book_append_sheet(workbook, employeeSheet, "Employees");
   }
 
-  XLSX.writeFile(workbook, `Patient Visits ${formatDateLabel(fromDateVal)} → ${formatDateLabel(toDateVal)},${departmentLabel},${courseLabel},${yearLevelLabel}.xlsx`);
+  const fileName = `Patient Visits ${formatDateLabel(fromDateVal)} → ${formatDateLabel(toDateVal)}, ${departmentLabel}, ${courseLabel}, ${yearLevelLabel}.xlsx`;
+  XLSX.writeFile(workbook, fileName);
 
-  alert("Excel exported successfully with detailed visitor lists!");
+  // 🔹 Audit Log
+  try {
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: `${currentUserName || "Unknown User"} exported Patient Visits data as EXCEL for ${formatDateLabel(fromDateVal)} → ${formatDateLabel(toDateVal)}, Dept: ${departmentLabel}, Course: ${courseLabel}, Year: ${yearLevelLabel}`,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+  } catch (err) {
+    console.error("Failed to log audit:", err);
+  }
 });
+
 
 
 
@@ -681,64 +682,67 @@ document
 // ===========================================================
 // Export Chief Complaint Chart as Image
 // ===========================================================
-document
-  .getElementById("exportComplaintImageBtn")
-  .addEventListener("click", () => {
-    if (!chiefComplaintChart) {
-      alert("No chart to export.");
-      return;
-    }
+// Export Chief Complaints Chart as Image
+document.getElementById("exportComplaintImageBtn").addEventListener("click", async () => {
+  if (!chiefComplaintChart) {
+    alert("No chart to export.");
+    return;
+  }
 
-    // Get chart canvas
-    const canvas = document.getElementById("chiefComplaintChart");
+  const canvas = document.getElementById("chiefComplaintChart");
 
-    // Map filter values to readable text
-    const departmentLabel =
-      deptFilter.value === "all-dept" ? "All Departments" : deptFilter.value;
-    const courseLabel =
-      courseFilter.value === "all-course-strand-genEduc"
-        ? "All Course, Strand, and General Education"
-        : courseFilter.value;
-    const yearLevelLabel =
-      yearLevelFilter.value === "all-yearLevel"
-        ? "All Year Levels"
-        : yearLevelFilter.value;
+  const departmentLabel =
+    deptFilter.value === "all-dept" ? "All Departments" : deptFilter.value;
+  const courseLabel =
+    courseFilter.value === "all-course-strand-genEduc"
+      ? "All Course, Strand, and General Education"
+      : courseFilter.value;
+  const yearLevelLabel =
+    yearLevelFilter.value === "all-yearLevel"
+      ? "All Year Levels"
+      : yearLevelFilter.value;
 
-    // Create temporary canvas to add filter text
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height + 40; // extra space for filter text
-    const tempCtx = tempCanvas.getContext("2d");
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height + 40;
+  const tempCtx = tempCanvas.getContext("2d");
 
-    // Draw the chart onto temp canvas
-    tempCtx.drawImage(canvas, 0, 40);
+  tempCtx.drawImage(canvas, 0, 40);
 
-    // Draw filter text above the chart
-    tempCtx.font = "bold 14px Arial";
-    tempCtx.fillStyle = "#444";
-    tempCtx.textAlign = "center";
+  const filterText =
+    `Date: ${formatDateLabel(startDateInput.value)} → ${formatDateLabel(endDateInput.value)} | ` +
+    `Department: ${departmentLabel} | ` +
+    `Course: ${courseLabel} | ` +
+    `Year Level: ${yearLevelLabel}`;
 
-    const filterText =
-      `Date: ${formatDateLabel(startDateInput.value)} → ${formatDateLabel(
-        endDateInput.value
-      )} | ` +
-      `Department: ${departmentLabel} | ` +
-      `Course: ${courseLabel} | ` +
-      `Year Level: ${yearLevelLabel}`;
+  tempCtx.font = "bold 14px Arial";
+  tempCtx.fillStyle = "#444";
+  tempCtx.textAlign = "center";
+  tempCtx.fillText(filterText, tempCanvas.width / 2, 20);
 
-    tempCtx.fillText(filterText, tempCanvas.width / 2, 20);
+  const imageURL = tempCanvas.toDataURL("image/png");
 
-    // Convert to image and trigger download
-    const imageURL = tempCanvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.href = imageURL;
-    link.download = "Chief_Complaints_Chart.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  });
+  const link = document.createElement("a");
+  link.href = imageURL;
+  link.download = "Chief_Complaints_Chart.png";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-  
+  // 🔹 Audit Log
+  try {
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: `${currentUserName || "Unknown User"} exported Chief Complaints chart as IMAGE for ${formatDateLabel(startDateInput.value)} → ${formatDateLabel(endDateInput.value)}, Dept: ${departmentLabel}, Course: ${courseLabel}, Year: ${yearLevelLabel}`,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+  } catch (err) {
+    console.error("Failed to log audit:", err);
+  }
+});
+
+// Export Chief Complaints Data as Excel
 document.getElementById("exportComplaintExcelBtn").addEventListener("click", async () => {
   const startDateVal = startDateInput.value;
   const endDateVal = endDateInput.value;
@@ -763,7 +767,6 @@ document.getElementById("exportComplaintExcelBtn").addEventListener("click", asy
     const data = docSnap.data();
     if (!data.complaint || !data.date || !data.patientId) continue;
 
-    // Handle Firestore Timestamp or string
     const recordDate = data.date.toDate ? data.date.toDate() : new Date(data.date);
     if (isNaN(recordDate)) continue;
     if (recordDate < startDate || recordDate > endDate) continue;
@@ -775,7 +778,6 @@ document.getElementById("exportComplaintExcelBtn").addEventListener("click", asy
 
     if (!["student", "employee"].includes(user.user_type)) continue;
 
-    // Apply filters
     if (departmentFilterVal !== "all-dept" && user.department !== departmentFilterVal) continue;
     if (courseFilterVal !== "all-course-strand-genEduc" && user.course !== courseFilterVal) continue;
     if (yearLevelFilterVal !== "all-yearLevel" && String(user.yearLevel) !== yearLevelFilterVal) continue;
@@ -797,23 +799,21 @@ document.getElementById("exportComplaintExcelBtn").addEventListener("click", asy
     else if (user.user_type === "employee") employeeList.push(entry);
   }
 
-  // Check if any filtered data exists
   const summaryRows = Object.keys(complaintCounts).map(key => ({
     Complaint: key,
-    Count: complaintCounts[key]
+    Count: complaintCounts[key],
   }));
+
   if (summaryRows.length === 0 && studentList.length === 0 && employeeList.length === 0) {
     return alert("No data to export after applying filters.");
   }
 
-  // Filter labels
   const departmentLabel = departmentFilterVal === "all-dept" ? "All Departments" : departmentFilterVal;
   const courseLabel = courseFilterVal === "all-course-strand-genEduc" ? "All Course, Strand, and General Education" : courseFilterVal;
   const yearLevelLabel = yearLevelFilterVal === "all-yearLevel" ? "All Year Levels" : yearLevelFilterVal;
 
   const workbook = XLSX.utils.book_new();
 
-  // Sheet 1: Complaint Summary
   const summarySheet = XLSX.utils.json_to_sheet([]);
   XLSX.utils.sheet_add_aoa(summarySheet, [
     [`Date Range: ${formatDateLabel(startDateVal)} → ${formatDateLabel(endDateVal)}`],
@@ -825,13 +825,11 @@ document.getElementById("exportComplaintExcelBtn").addEventListener("click", asy
   XLSX.utils.sheet_add_json(summarySheet, summaryRows, { origin: "A6", skipHeader: false });
   XLSX.utils.book_append_sheet(workbook, summarySheet, "Complaint Summary");
 
-  // Sheet 2: Students
   if (studentList.length > 0) {
     const studentSheet = XLSX.utils.json_to_sheet(studentList);
     XLSX.utils.book_append_sheet(workbook, studentSheet, "Students");
   }
 
-  // Sheet 3: Employees
   if (employeeList.length > 0) {
     const employeeSheet = XLSX.utils.json_to_sheet(employeeList);
     XLSX.utils.book_append_sheet(workbook, employeeSheet, "Employees");
@@ -840,7 +838,18 @@ document.getElementById("exportComplaintExcelBtn").addEventListener("click", asy
   const fileName = `Chief_Complaints ${formatDateLabel(startDateVal)} → ${formatDateLabel(endDateVal)},${departmentLabel},${courseLabel},${yearLevelLabel}.xlsx`;
   XLSX.writeFile(workbook, fileName);
 
-  alert("Excel exported successfully with detailed complaints!");
+
+  // 🔹 Audit Log
+  try {
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: `${currentUserName || "Unknown User"} exported Chief Complaints data as EXCEL for ${formatDateLabel(startDateVal)} → ${formatDateLabel(endDateVal)}, Dept: ${departmentLabel}, Course: ${courseLabel}, Year: ${yearLevelLabel}`,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+  } catch (err) {
+    console.error("Failed to log audit:", err);
+  }
 });
 
 
