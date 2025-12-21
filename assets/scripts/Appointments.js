@@ -1,8 +1,9 @@
-import { db } from "../../firebaseconfig.js";
+import { db, currentUserName } from "../../firebaseconfig.js";
 import {
   collection,
   getDocs,
   getDoc,
+  addDoc,
   setDoc,
   deleteDoc,
   updateDoc,
@@ -168,7 +169,6 @@ let calMonth = new Date().getMonth();
 let calYear = new Date().getFullYear();
 let selectedDate = null;
 
-
 function manageAvailability(id, fullName) {
   selectedStaffId = id;
 
@@ -319,9 +319,9 @@ document.getElementById("backToCalendar").onclick = () => {
 async function handleDateClick(year, month, day) {
   selectedDate = new Date(year, month, day);
 
-  const dateStr = `${year}-${(month + 1)
+  const dateStr = `${year}-${(month + 1).toString().padStart(2, "0")}-${day
     .toString()
-    .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+    .padStart(2, "0")}`;
 
   // 🔁 Load existing availability (if any)
   timeSlots = [];
@@ -331,11 +331,11 @@ async function handleDateClick(year, month, day) {
 
   if (docSnap.exists()) {
     const availability = docSnap.data().availability || [];
-    const existing = availability.find(a => a.date === dateStr);
+    const existing = availability.find((a) => a.date === dateStr);
 
     if (existing) {
       // 👇 Load existing slots so we ADD, not duplicate
-      timeSlots = existing.slots.map(s => ({
+      timeSlots = existing.slots.map((s) => ({
         start: s.start,
         end: s.end,
       }));
@@ -364,7 +364,6 @@ async function handleDateClick(year, month, day) {
 
   setDefaultRepeatUntil();
 }
-
 
 function renderModalAvailability(staffId) {
   const staffRef = doc(db, "users", staffId);
@@ -468,7 +467,7 @@ function renderTimeSlots() {
       <input type="time" value="${slot.end}" readonly>
       <button class="btn btn-sm btn-outline-danger">✕</button>
     `;
- 
+
     const [startInput, endInput, removeBtn] =
       row.querySelectorAll("input, button");
 
@@ -495,7 +494,6 @@ function renderTimeSlots() {
     container.appendChild(row);
   });
 }
-
 
 const repeatType = document.getElementById("repeatType");
 const repeatUntilContainer = document.getElementById("repeatUntilContainer");
@@ -568,7 +566,8 @@ function updateRepeatInstances() {
 
     if (addInstance) {
       const li = document.createElement("li");
-      li.className = "list-group-item d-flex justify-content-between align-items-center py-1";
+      li.className =
+        "list-group-item d-flex justify-content-between align-items-center py-1";
 
       const dateText = document.createElement("span");
       dateText.textContent = current.toLocaleDateString(undefined, {
@@ -638,7 +637,7 @@ repeatUntilInput.onchange = () => {
 async function saveAvailability(staffId) {
   if (!selectedDate) return alert("Select a date first!");
 
-  const slots = timeSlots.filter(s => s.start && s.end);
+  const slots = timeSlots.filter((s) => s.start && s.end);
   if (!slots.length) return alert("Add at least one time slot!");
 
   const repeat = repeatType.value;
@@ -671,22 +670,20 @@ async function saveAvailability(staffId) {
     const data = docSnap.data();
     const availability = data.availability || [];
 
-    datesToSave.forEach(date => {
+    let newAvailabilitiesCount = 0;
+
+    datesToSave.forEach((date) => {
       const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1)
         .toString()
         .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-
       const weekday = date.toLocaleDateString("en-PH", { weekday: "long" });
 
-      const existingIndex = availability.findIndex(
-        a => a.date === dateStr
-      );
+      const existingIndex = availability.findIndex((a) => a.date === dateStr);
 
       if (existingIndex !== -1) {
-        // 🔁 MERGE slots into existing date
         availability[existingIndex].slots.push(...slots);
+        newAvailabilitiesCount += slots.length;
       } else {
-        // ➕ CREATE new date entry
         availability.push({
           date: dateStr,
           weekday,
@@ -701,6 +698,7 @@ async function saveAvailability(staffId) {
                 .padStart(2, "0")}`
             : null,
         });
+        newAvailabilitiesCount += slots.length;
       }
     });
 
@@ -709,17 +707,27 @@ async function saveAvailability(staffId) {
       lastUpdated: serverTimestamp(),
     });
 
+    // 🔹 Audit trail for saving availability
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: `${
+        currentUserName || "Unknown User"
+      } added ${newAvailabilitiesCount} new availabilities for ${
+        data.lastName
+      }, ${data.firstName}`,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+
     alert("Availability saved successfully!");
     bootstrap.Modal.getInstance(
       document.getElementById("availabilityStep2")
     ).hide();
-
   } catch (err) {
     console.error("Error saving availability:", err);
     alert("Failed to save availability. See console.");
   }
 }
-
 
 // Save button
 document.getElementById("saveAvailabilityBtn").onclick = () => {
@@ -825,61 +833,74 @@ async function loadClinicAppointments() {
         const acceptBtn = item.querySelector(".accept-btn");
 
         acceptBtn.addEventListener("click", async () => {
-          try {
-            acceptBtn.disabled = true;
-            acceptBtn.innerText = "Accepting...";
+          const confirmed = confirm(
+            `Are you sure you want to ACCEPT this appointment for ${
+              appt.patientName || "the patient"
+            }?\n\n` +
+              `Date: ${formatDateLabel(appt.date)}\n` +
+              `Time: ${formatTimeRange(appt.slot)}\n\n` +
+              `This will notify the patient via email.`
+          );
+          if (!confirmed) return;
 
-            // 1️⃣ Update appointment status in Firestore
+          acceptBtn.disabled = true;
+          acceptBtn.innerText = "Accepting...";
+
+          try {
+            // 1️⃣ Update appointment status
             await updateDoc(doc(db, "appointments", appt.id), {
               status: "Accepted",
             });
 
-            // 2️⃣ Refresh accepted appointments UI
+            // 2️⃣ Refresh UI
             loadClinicAppointments();
-
-            // 3️⃣ Remove card from Pending list
             item.remove();
 
-            // 4️⃣ Fetch patient email from users collection
+            // 3️⃣ Fetch patient info
             const userDoc = await getDoc(doc(db, "users", appt.patientId));
-            if (!userDoc.exists()) {
-              console.error("Patient user not found");
-              return;
-            }
-
-            // ← Add this line
+            if (!userDoc.exists()) throw new Error("Patient user not found");
             const userData = userDoc.data();
-
             const patientEmail = userData.email;
             const patientName = `${userData.lastName}, ${userData.firstName}`;
 
-            // 5️⃣ Send EmailJS notification
+            // 4️⃣ Send EmailJS notification
             const emailParams = {
               patient_name: patientName,
               date: formatDateLabel(appt.date),
               slot: formatTimeRange(appt.slot),
               status: "Accepted",
-              to_email: patientEmail, // fetched from users collection
+              to_email: patientEmail,
               name: "KCP ClinicSync",
             };
+            await emailjs.send(
+              "service_rfw77oo",
+              "template_n37ttab",
+              emailParams
+            );
 
-            emailjs
-              .send("service_rfw77oo", "template_n37ttab", emailParams)
-              .then(() => {
-                console.log("Email sent to patient successfully.");
-              })
-              .catch((err) => {
-                console.error("Failed to send email:", err);
-              });
+            // 5️⃣ Audit trail
+            await addDoc(collection(db, "AdminAuditTrail"), {
+              message: `${
+                currentUserName || "Unknown User"
+              } accepted appointment for ${patientName} on ${formatDateLabel(
+                appt.date
+              )} at ${formatTimeRange(appt.slot)}`,
+              userId: currentUserName || null,
+              timestamp: new Date(),
+              section: "ClinicStaffActions",
+            });
 
             console.log("Appointment accepted");
           } catch (err) {
             console.error("Failed to accept appointment:", err);
+            alert("Failed to accept appointment. Please try again.");
+          } finally {
             acceptBtn.disabled = false;
             acceptBtn.innerText = "Accept";
-            alert("Failed to accept appointment.");
+            loadAcceptedAppointments();
           }
         });
+
         // ✅ Reschedule Button
         const rescheduleBtn = item.querySelector(".reschedule-btn");
         rescheduleBtn.addEventListener("click", () => {
@@ -965,50 +986,51 @@ async function openRescheduleModal(appt) {
     }
 
     avail.slots.forEach((slot) => {
-  let startTime = parseTime(slot.start);
-  const endTime = parseTime(slot.end);
+      let startTime = parseTime(slot.start);
+      const endTime = parseTime(slot.end);
 
-  while (startTime < endTime) {
-    const nextTime = new Date(startTime.getTime() + 30 * 60000);
+      while (startTime < endTime) {
+        const nextTime = new Date(startTime.getTime() + 30 * 60000);
 
-    // Display label (AM/PM)
-    const displayLabel = `${formatTime12(startTime)} - ${formatTime12(nextTime)}`;
+        // Display label (AM/PM)
+        const displayLabel = `${formatTime12(startTime)} - ${formatTime12(
+          nextTime
+        )}`;
 
-    // Value for comparison and saving (24-hour)
-    const valueLabel = `${formatTime(startTime)} - ${formatTime(nextTime)}`;
+        // Value for comparison and saving (24-hour)
+        const valueLabel = `${formatTime(startTime)} - ${formatTime(nextTime)}`;
 
-    // Check if this slot is already booked (compare using 24-hour format)
-    const isBooked = bookedAppointments.some(
-      (a) => a.date === selectedDate && a.slot === valueLabel
-    );
+        // Check if this slot is already booked (compare using 24-hour format)
+        const isBooked = bookedAppointments.some(
+          (a) => a.date === selectedDate && a.slot === valueLabel
+        );
 
-    const btn = document.createElement("button");
-    btn.className = "btn btn-sm me-2 mb-2";
-    btn.textContent = displayLabel;
+        const btn = document.createElement("button");
+        btn.className = "btn btn-sm me-2 mb-2";
+        btn.textContent = displayLabel;
 
-    if (isBooked) {
-      btn.disabled = true;
-      btn.classList.add("btn-secondary");
-    } else {
-      btn.classList.add("btn-outline-primary");
-      btn.addEventListener("click", () => {
-        rescheduleSelectedSlot = valueLabel; // save 24-hour value for Firestore
+        if (isBooked) {
+          btn.disabled = true;
+          btn.classList.add("btn-secondary");
+        } else {
+          btn.classList.add("btn-outline-primary");
+          btn.addEventListener("click", () => {
+            rescheduleSelectedSlot = valueLabel; // save 24-hour value for Firestore
 
-        // Highlight selected button
-        slotContainer.querySelectorAll("button").forEach((b) => {
-          b.classList.remove("btn-primary", "text-white");
-          if (!b.disabled) b.classList.add("btn-outline-primary");
-        });
-        btn.classList.remove("btn-outline-primary");
-        btn.classList.add("btn-primary", "text-white");
-      });
-    }
+            // Highlight selected button
+            slotContainer.querySelectorAll("button").forEach((b) => {
+              b.classList.remove("btn-primary", "text-white");
+              if (!b.disabled) b.classList.add("btn-outline-primary");
+            });
+            btn.classList.remove("btn-outline-primary");
+            btn.classList.add("btn-primary", "text-white");
+          });
+        }
 
-    slotContainer.appendChild(btn);
-    startTime = nextTime;
-  }
-});
-
+        slotContainer.appendChild(btn);
+        startTime = nextTime;
+      }
+    });
 
     if (!slotContainer.querySelector("button:not(:disabled)")) {
       slotContainer.innerHTML =
@@ -1038,29 +1060,43 @@ document
     const newDate = daySelect.value;
     const newSlot = rescheduleSelectedSlot;
 
-    if (!newDate || !newSlot) return alert("Please select a date and slot");
+    if (!newDate || !newSlot) {
+      return alert("Please select a date and slot");
+    }
+
+    const confirmed = confirm(
+      `Are you sure you want to RESCHEDULE this appointment?\n\n` +
+        `New Date: ${formatDateLabel(newDate)}\n` +
+        `New Time: ${formatTimeRange(newSlot)}\n\n` +
+        `The appointment status will be set to "Accepted",\n` +
+        `and the patient will be notified via email.`
+    );
+    if (!confirmed) return;
+
+    const saveBtn = document.getElementById("rescheduleSaveBtn");
+    saveBtn.disabled = true;
+    saveBtn.innerText = "Saving...";
 
     try {
-      // 1️⃣ Update appointment in Firestore
+      // 1️⃣ Update appointment
       await updateDoc(doc(db, "appointments", apptId), {
         date: newDate,
         slot: newSlot,
         status: "Accepted",
       });
 
-      // 2️⃣ Fetch appointment to get patientId
+      // 2️⃣ Fetch appointment & patient info
       const apptSnap = await getDoc(doc(db, "appointments", apptId));
-      if (!apptSnap.exists()) return console.error("Appointment not found");
+      if (!apptSnap.exists()) throw new Error("Appointment not found");
       const apptData = apptSnap.data();
 
-      // 3️⃣ Fetch patient info
       const userSnap = await getDoc(doc(db, "users", apptData.patientId));
-      if (!userSnap.exists()) return console.error("Patient not found");
+      if (!userSnap.exists()) throw new Error("Patient not found");
       const userData = userSnap.data();
       const patientEmail = userData.email;
       const patientName = `${userData.lastName}, ${userData.firstName}`;
 
-      // 4️⃣ Prepare EmailJS params
+      // 3️⃣ Send EmailJS notification
       const emailParams = {
         patient_name: patientName,
         date: formatDateLabel(newDate),
@@ -1069,26 +1105,34 @@ document
         to_email: patientEmail,
         name: "KCP ClinicSync",
       };
+      await emailjs.send("service_rfw77oo", "template_tpgmqni", emailParams);
 
-      // 5️⃣ Send EmailJS notification
-      emailjs
-        .send("service_rfw77oo", "template_tpgmqni", emailParams)
-        .then(() => {
-          console.log("Reschedule email sent successfully.");
-        })
-        .catch((err) => {
-          console.error("Failed to send reschedule email:", err);
-        });
+      // 4️⃣ Audit trail
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: `${
+          currentUserName || "Unknown User"
+        } rescheduled appointment for ${patientName} to ${formatDateLabel(
+          newDate
+        )} at ${formatTimeRange(newSlot)}`,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
 
-      // 6️⃣ Close modal and refresh appointments
+      // 5️⃣ Close modal & refresh
       bootstrap.Modal.getInstance(
         document.getElementById("rescheduleModal")
       ).hide();
       loadClinicAppointments();
-      console.log("Appointment rescheduled successfully");
+      loadAcceptedAppointments();
+
+      alert("Appointment successfully rescheduled and patient notified!");
     } catch (err) {
       console.error("Failed to reschedule:", err);
-      alert("Failed to reschedule appointment");
+      alert("Failed to reschedule appointment. Please try again.");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerText = "Save Changes";
     }
   });
 
@@ -1165,30 +1209,92 @@ async function loadAcceptedAppointments() {
       const noShowBtn = col.querySelector(".no-show-btn");
 
       doneBtn.addEventListener("click", async () => {
+        const confirmed = confirm(
+          `Are you sure you want to mark this appointment as FINISHED?\n\n` +
+            `Patient: ${appt.patientName || "Unknown"}\n` +
+            `Date: ${formatDateLabel(appt.date)}\n` +
+            `Time: ${formatTimeRange(appt.slot)}\n\n` +
+            `This action cannot be undone easily.`
+        );
+        if (!confirmed) return;
+
         try {
+          doneBtn.disabled = true;
+          doneBtn.innerText = "Saving...";
+
           await updateDoc(doc(db, "appointments", appt.id), {
             status: "Finished",
           });
-          loadFinishedAppointments();
 
+          // 🔹 Audit log
+          await addDoc(collection(db, "AdminAuditTrail"), {
+            message: `${
+              currentUserName || "Unknown User"
+            } marked appointment for ${
+              appt.patientName || "Unknown"
+            } on ${formatDateLabel(appt.date)} at ${formatTimeRange(
+              appt.slot
+            )} as FINISHED`,
+            userId: currentUserName || null,
+            timestamp: new Date(),
+            section: "ClinicStaffActions",
+          });
+
+          loadFinishedAppointments();
           col.remove();
+
+          alert("Appointment marked as Finished.");
         } catch (err) {
-          console.error(err);
-          alert("Failed to mark as Finished");
+          console.error("Failed to mark as Finished:", err);
+          alert("Failed to mark appointment as Finished. Please try again.");
+        } finally {
+          doneBtn.disabled = false;
+          doneBtn.innerText = "Done";
         }
       });
 
       noShowBtn.addEventListener("click", async () => {
+        const confirmed = confirm(
+          `Are you sure you want to mark this appointment as NO SHOW?\n\n` +
+            `Patient: ${appt.patientName || "Unknown"}\n` +
+            `Date: ${formatDateLabel(appt.date)}\n` +
+            `Time: ${formatTimeRange(appt.slot)}\n\n` +
+            `This action cannot be undone easily.`
+        );
+        if (!confirmed) return;
+
         try {
+          noShowBtn.disabled = true;
+          noShowBtn.innerText = "Saving...";
+
           await updateDoc(doc(db, "appointments", appt.id), {
             status: "No Show",
           });
-          loadNoShowAppointments();
 
+          // 🔹 Audit log
+          await addDoc(collection(db, "AdminAuditTrail"), {
+            message: `${
+              currentUserName || "Unknown User"
+            } marked appointment for ${
+              appt.patientName || "Unknown"
+            } on ${formatDateLabel(appt.date)} at ${formatTimeRange(
+              appt.slot
+            )} as NO SHOW`,
+            userId: currentUserName || null,
+            timestamp: new Date(),
+            section: "ClinicStaffActions",
+          });
+
+          loadNoShowAppointments();
           col.remove();
+
+          alert("Appointment marked as No Show.");
         } catch (err) {
-          console.error(err);
-          alert("Failed to mark as No Show");
+          console.error("Failed to mark as No Show:", err);
+          alert("Failed to mark appointment as No Show. Please try again.");
+        } finally {
+          noShowBtn.disabled = false;
+          noShowBtn.innerText = "No Show";
         }
       });
 

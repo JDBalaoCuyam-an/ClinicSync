@@ -880,6 +880,7 @@ document.getElementById("confirmBookingBtn").onclick = async () => {
 
     // Refresh staff cards to reflect booked slots
     loadStaff();
+    loadAppointments();
   } catch (err) {
     console.error("Error booking appointment:", err);
     alert("Failed to book appointment. See console.");
