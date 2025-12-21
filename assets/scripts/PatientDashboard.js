@@ -357,9 +357,10 @@ saveBtn.addEventListener("click", async () => {
       formattedDate = formattedDate.replace(",", "");
 
       // Store in userChanges collection
-      await addDoc(collection(db, "userChanges"), {
+      await addDoc(collection(db, "AdminAuditTrail"), {
         message,
         dateTime: formattedDate,
+        section:"UserChanges"
       });
     }
 

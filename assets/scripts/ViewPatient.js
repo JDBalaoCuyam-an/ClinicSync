@@ -45,30 +45,41 @@ function formatTimeFromString(timeStr) {
   // Remove leading zero and format minutes (keep 2 digits)
   return `${hour}:${minutes} ${period}`;
 }
+function formatAuditDate(date = new Date()) {
+  const options = {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  };
+
+  let formatted = date.toLocaleString("en-US", options);
+  formatted = formatted.replace(/^(\w{3})/, "$1."); // Jan. Feb.
+  formatted = formatted.replace(",", ""); // remove extra comma
+  return formatted;
+}
 
 const departmentSelect = document.getElementById("department");
 const courseSelect = document.getElementById("course");
 
 // Store department → courses
 let departmentCourseMap = {};
-
 async function loadDepartments() {
   try {
     const snap = await getDocs(collection(db, "Departments"));
     if (snap.empty) return;
 
-    // Enable department dropdown
-    departmentSelect.disabled = false;
+    departmentSelect.innerHTML = `<option value="">Select Department</option>`;
 
     snap.forEach((docSnap) => {
       const data = docSnap.data();
       const deptName = data.name;
       const courses = data.courses || [];
 
-      // Save courses for later
       departmentCourseMap[deptName] = courses;
 
-      // Add department option
       const option = document.createElement("option");
       option.value = deptName;
       option.textContent = deptName;
@@ -79,21 +90,16 @@ async function loadDepartments() {
   }
 }
 
-function loadCoursesByDepartment() {
+function loadCoursesByDepartment(selectedCourse = "") {
   const selectedDept = departmentSelect.value;
 
-  // Reset courses dropdown
   courseSelect.innerHTML = `
     <option value="">Select Course/Strand/Gen. Educ.</option>
   `;
-  courseSelect.disabled = true;
 
   if (!selectedDept) return;
 
   const courses = departmentCourseMap[selectedDept] || [];
-  if (!courses.length) return;
-
-  courseSelect.disabled = false;
 
   courses.forEach((course) => {
     const option = document.createElement("option");
@@ -101,13 +107,17 @@ function loadCoursesByDepartment() {
     option.textContent = course;
     courseSelect.appendChild(option);
   });
+
+  // ✅ Set course AFTER options exist
+  if (selectedCourse) {
+    courseSelect.value = selectedCourse;
+  }
 }
 
 // Event listener
-departmentSelect.addEventListener("change", loadCoursesByDepartment);
-
-// Initial load
-loadDepartments();
+departmentSelect.addEventListener("change", () => {
+  loadCoursesByDepartment();
+});
 
 /* -----------------------------------------------
      🔹 LOAD PATIENT DATA (with medicalHistory subcollection)
@@ -181,8 +191,15 @@ async function loadPatient() {
     });
 
     /* 🧩 Select fields */
-    document.getElementById("department").value = data.department || "";
-    document.getElementById("course").value = data.course || "";
+    // Set department first
+    departmentSelect.value = data.department || "";
+
+    // Load courses AFTER department is set
+    loadCoursesByDepartment(data.course || "");
+
+    // Year level is independent
+    document.getElementById("yearLevel").value = data.yearLevel || "";
+
     document.getElementById("yearLevel").value = data.yearLevel || "";
 
     /* 🧩 Parent Info */
@@ -270,6 +287,10 @@ async function loadPatient() {
     console.error("Error fetching patient:", err);
   }
 }
+(async () => {
+  await loadDepartments(); // ✅ wait for departments
+  await loadPatient(); // ✅ now patient can safely set values
+})();
 
 /* -----------------------------------------------
      🔹 EDIT/SAVE CONTACT DETAILS
@@ -284,7 +305,7 @@ editBtn.addEventListener("click", async () => {
   const inputs = document.querySelectorAll(".patient-contacts input");
 
   if (!isEditingContacts) {
-    // Store original values
+    // 🔹 Store original values
     originalContactData = {
       phoneNumber: document.getElementById("phone-number").value,
       email: document.getElementById("email-address").value,
@@ -293,32 +314,66 @@ editBtn.addEventListener("click", async () => {
       guardianPhone: document.getElementById("guardian-phone").value,
     };
 
-    // Enable editing
     inputs.forEach((inp) => inp.removeAttribute("disabled"));
     editBtn.textContent = "💾 Save";
     cancelContactEditBtn.style.display = "inline-block";
     isEditingContacts = true;
-  } else {
-    // Save updated contact info
-    const updatedData = {
-      phoneNumber: document.getElementById("phone-number").value,
-      email: document.getElementById("email-address").value,
-      address: document.getElementById("home-address").value,
-      guardianName: document.getElementById("guardian-name").value,
-      guardianPhone: document.getElementById("guardian-phone").value,
-    };
+    return;
+  }
 
-    try {
-      await updateDoc(doc(db, "users", patientId), updatedData);
-      alert("Contact details updated!");
-      inputs.forEach((inp) => inp.setAttribute("disabled", "true"));
-      editBtn.textContent = "✏️ Edit";
-      cancelContactEditBtn.style.display = "none";
-      isEditingContacts = false;
-    } catch (err) {
-      console.error("Error updating contact details:", err);
-      alert("Failed to update contact details.");
+  // 🔹 Save updated contact info
+  const updatedData = {
+    phoneNumber: document.getElementById("phone-number").value,
+    email: document.getElementById("email-address").value,
+    address: document.getElementById("home-address").value,
+    guardianName: document.getElementById("guardian-name").value,
+    guardianPhone: document.getElementById("guardian-phone").value,
+  };
+
+  // 🔹 Detect changed fields
+  const changedFields = [];
+  Object.keys(updatedData).forEach((key) => {
+    if ((updatedData[key] || "") !== (originalContactData[key] || "")) {
+      changedFields.push(key);
     }
+  });
+
+  try {
+    // 🔹 Update Firestore
+    await updateDoc(doc(db, "users", patientId), updatedData);
+
+    // 🔹 Audit Log (only if changes exist)
+    if (changedFields.length > 0) {
+      const userSnap = await getDoc(doc(db, "users", patientId));
+      const userData = userSnap.data();
+
+      const fullName = `${userData.firstName} ${userData.middleName || ""} ${
+        userData.lastName
+      }`.trim();
+
+      const schoolId = userData.schoolId || "N/A";
+      const clinicStaff = currentUserName;
+
+      const message = `${clinicStaff} updated ${changedFields.join(", ")} ${
+        changedFields.length > 1 ? "fields" : "field"
+      } of ${fullName}'s (${schoolId}) Contact Information`;
+
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message,
+        dateTime: formatAuditDate(), // for UI
+        timestamp: new Date(), // for sorting
+        section: "UserChanges",
+      });
+    }
+
+    alert("Contact details updated!");
+    inputs.forEach((inp) => inp.setAttribute("disabled", "true"));
+    editBtn.textContent = "✏️ Edit";
+    cancelContactEditBtn.style.display = "none";
+    isEditingContacts = false;
+  } catch (err) {
+    console.error("Error updating contact details:", err);
+    alert("Failed to update contact details.");
   }
 });
 
@@ -577,67 +632,53 @@ editPatientInfoBtn.addEventListener("click", async () => {
   if (!isEditingPatientInfo) {
     storeOriginalPatientInfo(fields);
     enablePatientInfoEditing(fields);
-  } else {
-    const updatedData = {};
-    fields.forEach((f) => (updatedData[f.id] = f.value));
+    return;
+  }
 
-    try {
-      // Update patient info in 'users' collection
-      await updateDoc(doc(db, "users", patientId), updatedData);
+  const updatedData = {};
+  const changedFields = [];
 
-      // Prepare audit log
-      const changes = [];
-      fields.forEach((f) => {
-        const key = f.id;
-        if (f.value !== (originalPatientInfoData[key] || "")) {
-          changes.push(key);
-        }
-      });
+  fields.forEach((f) => {
+    updatedData[f.id] = f.value;
 
-      if (changes.length > 0) {
-        const userSnap = await getDoc(doc(db, "users", patientId));
-        const userData = userSnap.data();
-        const fullName = `${userData.firstName} ${userData.middleName || ""} ${
-          userData.lastName
-        }`.trim();
-        const schoolId = userData.schoolId || "N/A";
-        const clinicStaff = currentUserName;
-        const message = `${clinicStaff} updated ${changes.join(", ")} ${
-          changes.length > 1 ? "fields" : "field"
-        } of ${fullName} (${schoolId}) Personal Information`;
-
-        const timestamp = new Date();
-
-        const options = {
-          year: "numeric", // must be "numeric" or "2-digit"
-          month: "short", // "short" gives "Dec", "Jan", etc.
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true, // 12-hour format with AM/PM
-        };
-
-        // Get locale string
-        let formattedDate = timestamp.toLocaleString("en-US", options);
-
-        // Add dot after month
-        formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
-
-        // Remove extra comma if needed
-        formattedDate = formattedDate.replace(",", "");
-
-        await addDoc(collection(db, "userChanges"), {
-          message,
-          dateTime: formattedDate,
-        });
-      }
-
-      alert("Patient information updated!");
-      disablePatientInfoEditing(fields);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update patient information.");
+    if (f.value !== (originalPatientInfoData[f.id] || "")) {
+      changedFields.push(f.id);
     }
+  });
+
+  try {
+    // 🔹 Update patient record
+    await updateDoc(doc(db, "users", patientId), updatedData);
+
+    // 🔹 Audit log (only if something changed)
+    if (changedFields.length > 0) {
+      const userSnap = await getDoc(doc(db, "users", patientId));
+      const userData = userSnap.data();
+
+      const fullName = `${userData.firstName} ${userData.middleName || ""} ${
+        userData.lastName
+      }`.trim();
+
+      const schoolId = userData.schoolId || "N/A";
+      const clinicStaff = currentUserName;
+
+      const message = `${clinicStaff} updated ${changedFields.join(", ")} ${
+        changedFields.length > 1 ? "fields" : "field"
+      } of ${fullName}'s (${schoolId}) Personal Information`;
+
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message,
+        dateTime: formatAuditDate(), // for UI
+        timestamp: new Date(), // for sorting
+        section: "UserChanges",
+      });
+    }
+
+    alert("Patient information updated!");
+    disablePatientInfoEditing(fields);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to update patient information.");
   }
 });
 

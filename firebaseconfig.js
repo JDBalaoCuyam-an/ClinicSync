@@ -72,12 +72,13 @@ if (login) {
         }
 
         // Save login history
-        await setDoc(doc(collection(db, "loginHistory")), {
+        await setDoc(doc(collection(db, "AdminAuditTrail")), {
           userId: user.uid,
           email: userData.email || email,
           timestamp: new Date(),
           user_type: userData.user_type || "N/A",
           ip: ipAddress,
+          section:"LoginHistory"
         });
 
         // Redirect based on role

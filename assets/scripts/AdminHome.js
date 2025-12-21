@@ -10,7 +10,7 @@ import {
   where,
   orderBy,
   addDoc,
-  deleteDoc
+  deleteDoc,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import {
   sendPasswordResetEmail,
@@ -56,6 +56,22 @@ function parseAuditDate(dateStr) {
   // Convert to Date object
   return new Date(cleaned);
 }
+function formatAuditDate(date = new Date()) {
+  const options = {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  };
+
+  let formatted = date.toLocaleString("en-US", options);
+  formatted = formatted.replace(/^(\w{3})/, "$1.");
+  formatted = formatted.replace(",", "");
+  return formatted;
+}
+
 // Elements
 const addCourseBtn = document.getElementById("add-course-btn");
 const coursesContainer = document.getElementById("courses-container");
@@ -64,9 +80,13 @@ const manageDepartmentForm = document.getElementById("manage-department-form");
 const departmentSection = document.getElementById("departmentSection");
 const editDepartmentForm = document.getElementById("edit-department-form");
 const modalDepartmentName = document.getElementById("modal-department-name");
-const modalCoursesContainer = document.getElementById("modal-courses-container");
+const modalCoursesContainer = document.getElementById(
+  "modal-courses-container"
+);
 const modalAddCourseBtn = document.getElementById("modal-add-course-btn");
-const modalDeleteDepartmentBtn = document.getElementById("modal-delete-department-btn");
+const modalDeleteDepartmentBtn = document.getElementById(
+  "modal-delete-department-btn"
+);
 
 let editDepartmentId = null;
 let isEditMode = false;
@@ -89,11 +109,13 @@ coursesContainer.addEventListener("click", (e) => {
 manageDepartmentForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const departmentName = document.getElementById("department-name").value.trim();
+  const departmentName = document
+    .getElementById("department-name")
+    .value.trim();
 
   const courseInputs = coursesContainer.querySelectorAll(".course-name");
   const courses = Array.from(courseInputs)
-    .map(input => input.value.trim())
+    .map((input) => input.value.trim())
     .filter(Boolean);
 
   if (!departmentName) {
@@ -122,6 +144,14 @@ manageDepartmentForm.addEventListener("submit", async (e) => {
       courses,
       createdAt: new Date(),
     });
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      section: "DepartmentChanges",
+      message: `${currentAdmin} added department "${departmentName}" with courses: ${courses.join(
+        ", "
+      )}`,
+      dateTime: formatAuditDate(),
+      timestamp: new Date(),
+    });
 
     alert("✅ Department saved successfully!");
     manageDepartmentForm.reset();
@@ -141,7 +171,6 @@ manageDepartmentForm.addEventListener("submit", async (e) => {
 
     // Reload department list
     loadDepartments();
-
   } catch (error) {
     console.error("Error saving department:", error);
     alert("⚠️ Failed to save department. Please try again.");
@@ -156,7 +185,7 @@ function createCourseInput(container, value = "") {
       type="text"
       class="form-control course-name"
       placeholder="Course name"
-      value="${value.replace(/"/g, '&quot;')}"
+      value="${value.replace(/"/g, "&quot;")}"
       required
     />
     <button type="button" class="btn btn-outline-danger remove-course-btn">&times;</button>
@@ -175,7 +204,8 @@ modalAddCourseBtn.addEventListener("click", () => {
 modalCoursesContainer.addEventListener("click", (e) => {
   if (e.target.classList.contains("remove-course-btn")) {
     const courseRow = e.target.closest(".course-input");
-    const currentCourseCount = modalCoursesContainer.querySelectorAll(".course-input").length;
+    const currentCourseCount =
+      modalCoursesContainer.querySelectorAll(".course-input").length;
 
     // Prevent removing the last course (you need at least one)
     if (currentCourseCount === 1) {
@@ -183,7 +213,11 @@ modalCoursesContainer.addEventListener("click", (e) => {
     }
 
     // Ask for confirmation before deleting
-    if (confirm("⚠️ Are you sure you want to remove this course from the department?")) {
+    if (
+      confirm(
+        "⚠️ Are you sure you want to remove this course from the department?"
+      )
+    ) {
       courseRow.remove();
     }
   }
@@ -194,10 +228,21 @@ modalDeleteDepartmentBtn.addEventListener("click", async () => {
   if (!editDepartmentId) return;
 
   const name = modalDepartmentName.value.trim();
-  if (!name || !confirm(`⚠️ Are you sure you want to delete the department "${name}"?`)) return;
+  if (
+    !name ||
+    !confirm(`⚠️ Are you sure you want to delete the department "${name}"?`)
+  )
+    return;
 
   try {
     await deleteDoc(doc(db, "Departments", editDepartmentId));
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      section: "DepartmentChanges",
+      message: `${currentAdmin} deleted department "${name}"`,
+      dateTime: formatAuditDate(),
+      timestamp: new Date(),
+    });
+
     alert(`✅ Department "${name}" deleted.`);
 
     closeEditModal();
@@ -215,7 +260,7 @@ editDepartmentForm.addEventListener("submit", async (e) => {
 
   const courseInputs = modalCoursesContainer.querySelectorAll(".course-name");
   const courses = Array.from(courseInputs)
-    .map(input => input.value.trim())
+    .map((input) => input.value.trim())
     .filter(Boolean);
 
   // === VALIDATION 1: Department name required ===
@@ -229,68 +274,108 @@ editDepartmentForm.addEventListener("submit", async (e) => {
   }
 
   // === VALIDATION 3: No duplicate courses (case-insensitive) ===
-  const lowerCaseCourses = courses.map(c => c.toLowerCase());
-  const uniqueCourses = new Set(lowerCaseCourses);
-  if (uniqueCourses.size !== courses.length) {
-    return alert("⚠️ Duplicate courses detected. Each course name must be unique (case-insensitive).");
+  const lowerCaseCourses = courses.map((c) => c.toLowerCase());
+  if (new Set(lowerCaseCourses).size !== courses.length) {
+    return alert(
+      "⚠️ Duplicate courses detected. Each course name must be unique."
+    );
   }
 
   try {
     // === VALIDATION 4: Duplicate department name check ===
-    // (Allow current department to keep its own name during edit)
-    const q = query(
-      collection(db, "Departments"),
-      where("name", "==", name)
-    );
-    const querySnapshot = await getDocs(q);
+    const q = query(collection(db, "Departments"), where("name", "==", name));
 
+    const querySnapshot = await getDocs(q);
     let nameExists = false;
-    querySnapshot.forEach((doc) => {
-      if (doc.id !== editDepartmentId) {
-        nameExists = true;
-      }
+
+    querySnapshot.forEach((d) => {
+      if (d.id !== editDepartmentId) nameExists = true;
     });
 
     if (nameExists) {
-      return alert(`⚠️ Another department named "${name}" already exists. Please choose a different name.`);
+      return alert(`⚠️ Another department named "${name}" already exists.`);
     }
 
-    // === ALL VALIDATIONS PASSED → SAVE ===
+    // === EDIT MODE ===
     if (isEditMode && editDepartmentId) {
+      // 🔹 Get old data for audit
+      const oldSnap = await getDoc(doc(db, "Departments", editDepartmentId));
+      if (!oldSnap.exists()) {
+        return alert("Department no longer exists.");
+      }
+
+      const oldData = oldSnap.data();
+      const oldName = oldData.name;
+      const oldCourses = oldData.courses || [];
+
+      // 🔹 Save update
       await updateDoc(doc(db, "Departments", editDepartmentId), {
         name,
-        courses
+        courses,
       });
+
+      // 🔹 Detect changes
+      const changes = [];
+
+      if (oldName !== name) {
+        changes.push(`renamed from "${oldName}" to "${name}"`);
+      }
+
+      const addedCourses = courses.filter((c) => !oldCourses.includes(c));
+      const removedCourses = oldCourses.filter((c) => !courses.includes(c));
+
+      if (addedCourses.length) {
+        changes.push(`added courses: ${addedCourses.join(", ")}`);
+      }
+
+      if (removedCourses.length) {
+        changes.push(`removed courses: ${removedCourses.join(", ")}`);
+      }
+
+      // 🔹 Audit log
+      if (changes.length > 0) {
+        await addDoc(collection(db, "AdminAuditTrail"), {
+          section: "DepartmentChanges",
+          message: `${currentAdmin} updated department "${name}" — ${changes.join(
+            "; "
+          )}`,
+          dateTime: formatAuditDate(),
+          timestamp: new Date(),
+        });
+      }
+
       alert("✅ Department updated successfully!");
-    } else {
+    }
+
+    // === ADD MODE ===
+    else {
       await addDoc(collection(db, "Departments"), {
         name,
         courses,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
+
+      // 🔹 Audit log
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        section: "DepartmentChanges",
+        message: `${currentAdmin} added department "${name}" with courses: ${courses.join(
+          ", "
+        )}`,
+        dateTime: formatAuditDate(),
+        timestamp: new Date(),
+      });
+
       alert("✅ Department added successfully!");
     }
 
     // Close modal and refresh list
     closeEditModal();
     loadDepartments();
-
   } catch (err) {
     console.error("Error saving department:", err);
     alert("⚠️ Failed to save department. Please try again.");
   }
 });
-
-function closeEditModal() {
-  editDepartmentForm.reset();
-  modalCoursesContainer.innerHTML = ""; // Will be repopulated on next open
-  isEditMode = false;
-  editDepartmentId = null;
-
-  const modalEl = document.getElementById("editDepartmentModal");
-  const modalInstance = bootstrap.Modal.getInstance(modalEl);
-  if (modalInstance) modalInstance.hide();
-}
 
 // === Load Departments ===
 async function loadDepartments() {
@@ -313,9 +398,13 @@ async function loadDepartments() {
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="fw-semibold">${data.name}</div>
-            <div class="text-muted small">Courses: ${courses.length ? courses.join(", ") : "None"}</div>
+            <div class="text-muted small">Courses: ${
+              courses.length ? courses.join(", ") : "None"
+            }</div>
           </div>
-          <button class="btn btn-sm btn-outline-primary edit-department-btn" data-id="${docSnap.id}">
+          <button class="btn btn-sm btn-outline-primary edit-department-btn" data-id="${
+            docSnap.id
+          }">
             Edit
           </button>
         </div>
@@ -331,7 +420,7 @@ async function loadDepartments() {
 }
 
 function attachEditListeners() {
-  document.querySelectorAll(".edit-department-btn").forEach(btn => {
+  document.querySelectorAll(".edit-department-btn").forEach((btn) => {
     btn.onclick = async () => {
       const id = btn.dataset.id;
       try {
@@ -347,7 +436,7 @@ function attachEditListeners() {
         modalDepartmentName.value = data.name || "";
         modalCoursesContainer.innerHTML = ""; // Clear first
 
-        (data.courses || []).forEach(course => {
+        (data.courses || []).forEach((course) => {
           createCourseInput(modalCoursesContainer, course);
         });
 
@@ -371,10 +460,17 @@ function attachEditListeners() {
     };
   });
 }
-
+function closeEditModal() {
+  editDepartmentForm.reset();
+  modalCoursesContainer.innerHTML = "";
+  isEditMode = false;
+  editDepartmentId = null;
+  const modalEl = document.getElementById("editDepartmentModal");
+  const modalInstance = bootstrap.Modal.getInstance(modalEl);
+  if (modalInstance) modalInstance.hide();
+}
 // Initial load
 loadDepartments();
-
 
 const userTypeSelect = document.getElementById("user_type");
 const doctorTypeSelect = document.getElementById("doctor_type");
@@ -1037,8 +1133,12 @@ async function loadLoginHistory() {
 
   tableBody.innerHTML = "";
 
-  // Assuming you have a collection "loginHistory" with userId, timestamp, ip
-  const q = query(collection(db, "loginHistory"), orderBy("timestamp", "desc"));
+  const q = query(
+    collection(db, "AdminAuditTrail"),
+    where("section", "==", "LoginHistory"),
+    orderBy("timestamp", "desc")
+  );
+
   const snapshot = await getDocs(q);
 
   for (const docSnap of snapshot.docs) {
@@ -1050,33 +1150,33 @@ async function loadLoginHistory() {
     if (!userDoc.exists()) continue;
 
     const userData = userDoc.data();
+
     const firstName = userData.firstName || "";
     const middleName = userData.middleName || "";
     const lastName = userData.lastName || "";
-    const email = userData.email || data.email || "";
+    const email = data.email || userData.email || "";
 
-    // Format name: FirstName M. LastName
+    // FirstName M. LastName
     const middleInitial = middleName ? middleName[0].toUpperCase() + "." : "";
     const fullName = `${firstName} ${middleInitial} ${lastName}`;
 
-    // Format timestamp to local format (not US)
+    // Timestamp formatting
     const loginTime = data.timestamp?.toDate
       ? data.timestamp.toDate()
       : new Date();
-    const options = {
+
+    const formattedTime = loginTime.toLocaleString(undefined, {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-    };
-    const formattedTime = loginTime.toLocaleString(undefined, options);
+    });
 
-    // IP address (if stored)
     const ipAddress = data.ip || "N/A";
 
-    const row = `
+    tableBody.innerHTML += `
       <tr>
         <td>${formattedTime}</td>
         <td>${fullName}</td>
@@ -1085,8 +1185,6 @@ async function loadLoginHistory() {
         <td>${ipAddress}</td>
       </tr>
     `;
-
-    tableBody.innerHTML += row;
   }
 }
 
@@ -1098,32 +1196,44 @@ async function loadUserChanges() {
   userChangesTab.innerHTML = "<p>Loading...</p>";
 
   try {
-    const snapshot = await getDocs(collection(db, "userChanges"));
+    const q = query(
+      collection(db, "AdminAuditTrail"),
+      where("section", "==", "UserChanges"),
+      orderBy("timestamp", "desc")
+    );
+
+    const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
       userChangesTab.innerHTML = "<p>No changes recorded.</p>";
       return;
     }
 
-    // 🔹 Collect data first
-    const changes = [];
-    snapshot.forEach((doc) => {
-      changes.push(doc.data());
-    });
-
-    // 🔹 Sort by dateTime (newest first)
-    changes.sort((a, b) => {
-      return parseAuditDate(b.dateTime) - parseAuditDate(a.dateTime);
-    });
-
-    // 🔹 Render
     const list = document.createElement("ul");
     list.classList.add("list-group", "list-group-flush");
 
-    changes.forEach((data) => {
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      const changeTime = data.timestamp?.toDate
+        ? data.timestamp.toDate()
+        : new Date();
+
+      const formattedTime = changeTime.toLocaleString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+
+      const message = data.message || "No details provided";
+
       const item = document.createElement("li");
       item.classList.add("list-group-item");
-      item.textContent = `${data.dateTime} — ${data.message}`;
+      item.textContent = `${formattedTime} — ${message}`;
+
       list.appendChild(item);
     });
 
@@ -1145,37 +1255,124 @@ const userAccountTabButton = document.getElementById(
 
 userAccountTabButton.addEventListener("shown.bs.tab", async () => {
   const userAccountTab = document.getElementById("user-account-management");
-  const userAccountList = userAccountTab.querySelector("ul");
-  userAccountList.innerHTML = "<li>Loading...</li>";
+
+  // Clear previous content and show loading
+  userAccountTab.innerHTML = `<div class="text-muted">Loading user account logs...</div>`;
 
   try {
     const querySnapshot = await getDocs(collection(db, "UserAccountTrail"));
 
     if (querySnapshot.empty) {
-      userAccountList.innerHTML = "<li>No user account actions recorded.</li>";
+      userAccountTab.innerHTML = `<div class="text-muted">No user account actions recorded.</div>`;
       return;
     }
 
-    // 🔹 Collect docs into array
+    // Collect docs into array
     const logs = [];
     querySnapshot.forEach((doc) => {
       logs.push(doc.data());
     });
 
-    // 🔹 Sort by dateTime (newest first)
-    logs.sort((a, b) => {
-      return parseAuditDate(b.dateTime) - parseAuditDate(a.dateTime);
-    });
+    // Sort by dateTime descending
+    logs.sort((a, b) => parseAuditDate(b.dateTime) - parseAuditDate(a.dateTime));
 
-    // 🔹 Render
-    userAccountList.innerHTML = "";
+    // Create a Bootstrap list group
+    const list = document.createElement("ul");
+    list.classList.add("list-group", "list-group-flush");
+
     logs.forEach((data) => {
       const li = document.createElement("li");
-      li.textContent = `${data.dateTime} — ${data.message}`;
-      userAccountList.appendChild(li);
+      li.classList.add("list-group-item");
+
+      // Parse timestamp
+      let logTime;
+      if (data.timestamp?.toDate) {
+        logTime = data.timestamp.toDate();
+      } else if (data.dateTime) {
+        logTime = new Date(data.dateTime);
+      } else {
+        logTime = new Date();
+      }
+
+      const formattedTime = logTime.toLocaleString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+
+      li.textContent = `${formattedTime} — ${data.message || "No details provided"}`;
+      list.appendChild(li);
     });
+
+    // Render the list
+    userAccountTab.innerHTML = "";
+    userAccountTab.appendChild(list);
   } catch (err) {
     console.error(err);
-    userAccountList.innerHTML = "<li>Failed to load logs.</li>";
+    userAccountTab.innerHTML = `<div class="text-danger">Failed to load logs.</div>`;
+  }
+});
+
+
+const departmentsTabButton = document.getElementById(
+  "departments-and-courses-tab"
+);
+
+departmentsTabButton.addEventListener("shown.bs.tab", async () => {
+  const departmentsTab = document.getElementById("departments-and-courses");
+
+  // Clear previous content and show loading
+  departmentsTab.innerHTML = `<div class="text-muted">Loading department audit logs...</div>`;
+
+  try {
+    // Query AdminAuditTrail for department changes
+    const q = query(
+      collection(db, "AdminAuditTrail"),
+      where("section", "==", "DepartmentChanges"),
+      orderBy("timestamp", "desc")
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      departmentsTab.innerHTML = `<div class="text-muted">No department actions recorded.</div>`;
+      return;
+    }
+
+    // Create list
+    const list = document.createElement("ul");
+    list.classList.add("list-group", "list-group-flush");
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      const logTime = data.timestamp?.toDate
+        ? data.timestamp.toDate()
+        : new Date();
+      const formattedTime = logTime.toLocaleString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+
+      const li = document.createElement("li");
+      li.classList.add("list-group-item");
+      li.textContent = `${formattedTime} — ${data.message}`;
+
+      list.appendChild(li);
+    });
+
+    // Render list
+    departmentsTab.innerHTML = "";
+    departmentsTab.appendChild(list);
+  } catch (err) {
+    console.error("Error loading department audit logs:", err);
+    departmentsTab.innerHTML = `<div class="text-danger">Failed to load department audit logs.</div>`;
   }
 });
