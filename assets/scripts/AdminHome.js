@@ -171,14 +171,20 @@ modalAddCourseBtn.addEventListener("click", () => {
   createCourseInput(modalCoursesContainer);
 });
 
-// Delegated removal for edit modal (always active)
+// Remove course in Edit modal - WITH CONFIRMATION
 modalCoursesContainer.addEventListener("click", (e) => {
   if (e.target.classList.contains("remove-course-btn")) {
-    const inputGroup = e.target.closest(".course-input");
-    if (modalCoursesContainer.children.length > 1) {
-      inputGroup.remove();
-    } else {
-      alert("⚠️ You must have at least one course.");
+    const courseRow = e.target.closest(".course-input");
+    const currentCourseCount = modalCoursesContainer.querySelectorAll(".course-input").length;
+
+    // Prevent removing the last course (you need at least one)
+    if (currentCourseCount === 1) {
+      return alert("⚠️ You must keep at least one course in the department.");
+    }
+
+    // Ask for confirmation before deleting
+    if (confirm("⚠️ Are you sure you want to remove this course from the department?")) {
+      courseRow.remove();
     }
   }
 });
@@ -202,38 +208,76 @@ modalDeleteDepartmentBtn.addEventListener("click", async () => {
   }
 });
 
-// Submit edit form (update or add)
 editDepartmentForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const name = modalDepartmentName.value.trim();
+
   const courseInputs = modalCoursesContainer.querySelectorAll(".course-name");
   const courses = Array.from(courseInputs)
     .map(input => input.value.trim())
     .filter(Boolean);
 
+  // === VALIDATION 1: Department name required ===
   if (!name) {
     return alert("⚠️ Department name is required.");
   }
 
+  // === VALIDATION 2: At least one course ===
   if (courses.length === 0) {
     return alert("⚠️ Please add at least one course.");
   }
 
+  // === VALIDATION 3: No duplicate courses (case-insensitive) ===
+  const lowerCaseCourses = courses.map(c => c.toLowerCase());
+  const uniqueCourses = new Set(lowerCaseCourses);
+  if (uniqueCourses.size !== courses.length) {
+    return alert("⚠️ Duplicate courses detected. Each course name must be unique (case-insensitive).");
+  }
+
   try {
+    // === VALIDATION 4: Duplicate department name check ===
+    // (Allow current department to keep its own name during edit)
+    const q = query(
+      collection(db, "Departments"),
+      where("name", "==", name)
+    );
+    const querySnapshot = await getDocs(q);
+
+    let nameExists = false;
+    querySnapshot.forEach((doc) => {
+      if (doc.id !== editDepartmentId) {
+        nameExists = true;
+      }
+    });
+
+    if (nameExists) {
+      return alert(`⚠️ Another department named "${name}" already exists. Please choose a different name.`);
+    }
+
+    // === ALL VALIDATIONS PASSED → SAVE ===
     if (isEditMode && editDepartmentId) {
-      await updateDoc(doc(db, "Departments", editDepartmentId), { name, courses });
+      await updateDoc(doc(db, "Departments", editDepartmentId), {
+        name,
+        courses
+      });
       alert("✅ Department updated successfully!");
     } else {
-      await addDoc(collection(db, "Departments"), { name, courses, createdAt: new Date() });
+      await addDoc(collection(db, "Departments"), {
+        name,
+        courses,
+        createdAt: new Date()
+      });
       alert("✅ Department added successfully!");
     }
 
+    // Close modal and refresh list
     closeEditModal();
     loadDepartments();
+
   } catch (err) {
     console.error("Error saving department:", err);
-    alert("⚠️ Failed to save department.");
+    alert("⚠️ Failed to save department. Please try again.");
   }
 });
 
