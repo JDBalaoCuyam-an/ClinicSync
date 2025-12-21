@@ -157,6 +157,94 @@ updateLowStockItems();
 /* ======================================================
    OPTIMIZED & FIXED FETCH VISIT DATA FUNCTION
 ====================================================== */
+// ------------------------
+// Dropdown Elements
+// ------------------------
+const departmentSelect = document.getElementById("department");
+const courseSelect = document.getElementById("course");
+
+const departmentComplaintSelect = document.getElementById("departmentComplaintFilter");
+const courseComplaintSelect = document.getElementById("courseComplaintFilter");
+
+// Store departments and courses in memory
+let departmentCourseMap = {};
+
+// ------------------------
+// Load Departments & Courses
+// ------------------------
+async function loadDepartmentsAndCourses() {
+  // Keep first options
+  const firstDeptOption = departmentSelect.querySelector("option[value='all-dept']");
+  departmentSelect.innerHTML = "";
+  departmentSelect.appendChild(firstDeptOption);
+
+  const firstCourseOption = courseSelect.querySelector("option[value='all-course-strand-genEduc']");
+  courseSelect.innerHTML = "";
+  courseSelect.appendChild(firstCourseOption);
+
+  const firstDeptComplaintOption = departmentComplaintSelect.querySelector("option[value='all-dept']");
+  departmentComplaintSelect.innerHTML = "";
+  departmentComplaintSelect.appendChild(firstDeptComplaintOption);
+
+  const firstCourseComplaintOption = courseComplaintSelect.querySelector("option[value='all-course-strand-genEduc']");
+  courseComplaintSelect.innerHTML = "";
+  courseComplaintSelect.appendChild(firstCourseComplaintOption);
+
+  try {
+    const snap = await getDocs(collection(db, "Departments"));
+    if (snap.empty) return;
+
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const deptName = data.name;
+      const courses = data.courses || [];
+
+      // Store in memory
+      departmentCourseMap[deptName] = courses;
+
+      // Add to department selects
+      const deptOption1 = document.createElement("option");
+      deptOption1.value = deptName;
+      deptOption1.textContent = deptName;
+      departmentSelect.appendChild(deptOption1);
+
+      const deptOption2 = document.createElement("option");
+      deptOption2.value = deptName;
+      deptOption2.textContent = deptName;
+      departmentComplaintSelect.appendChild(deptOption2);
+    });
+  } catch (err) {
+    console.error("Error loading departments:", err);
+  }
+}
+
+// ------------------------
+// Update Courses Based on Department
+// ------------------------
+function updateCourseDropdown(selectedDept, courseDropdown) {
+  // Keep first option
+  const firstCourseOption = courseDropdown.querySelector("option[value='all-course-strand-genEduc']");
+  courseDropdown.innerHTML = "";
+  courseDropdown.appendChild(firstCourseOption);
+
+  if (selectedDept === "all-dept") return;
+
+  const courses = departmentCourseMap[selectedDept] || [];
+  courses.forEach((courseName) => {
+    const courseOption = document.createElement("option");
+    courseOption.value = courseName;
+    courseOption.textContent = courseName;
+    courseDropdown.appendChild(courseOption);
+  });
+}
+
+// Event listeners
+departmentSelect.addEventListener("change", () => updateCourseDropdown(departmentSelect.value, courseSelect));
+departmentComplaintSelect.addEventListener("change", () => updateCourseDropdown(departmentComplaintSelect.value, courseComplaintSelect));
+
+// Initial load
+loadDepartmentsAndCourses();
+
 let visitsChart;
 
 // Default current year
@@ -193,6 +281,7 @@ async function loadVisitsChart() {
     const data = consultDoc.data();
     if (!data.date) continue;
 
+    // Convert Firestore Timestamp to Date
     let visitDate;
     if (data.date.toDate) visitDate = data.date.toDate();
     else if (data.date instanceof Date) visitDate = data.date;
@@ -213,33 +302,27 @@ async function loadVisitsChart() {
     const user = userSnap.data();
 
     // Filter by department, course, yearLevel
-    if (department !== "all-dept" && user.department !== department) continue;
-    if (course !== "all-course-strand-genEduc" && user.course !== course)
-      continue;
-    if (yearLevel !== "all-year" && String(user.yearLevel) !== yearLevel)
-      continue;
+    if (department !== "all-dept" && user.department?.trim() !== department) continue;
+    if (course !== "all-course-strand-genEduc" && user.course?.trim() !== course) continue;
+    if (yearLevel !== "all-year" && String(user.yearLevel)?.trim() !== yearLevel) continue;
 
     const type = user.user_type;
-    if (type === "student")
-      studentVisits[label] = (studentVisits[label] || 0) + 1;
-    if (type === "employee")
-      employeeVisits[label] = (employeeVisits[label] || 0) + 1;
+    if (type === "student") studentVisits[label] = (studentVisits[label] || 0) + 1;
+    if (type === "employee") employeeVisits[label] = (employeeVisits[label] || 0) + 1;
   }
 
   renderVisitsChart(studentVisits, employeeVisits, fromDate, toDate);
-  // At the end of loadVisitsChart()
   window.currentStudentVisits = studentVisits;
   window.currentEmployeeVisits = employeeVisits;
 }
 
 // Render chart
 function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
-  // 🔹 Raw date keys (YYYY-MM-DD)
   let rawLabels = Array.from(
     new Set([...Object.keys(studentData), ...Object.keys(employeeData)])
   ).sort();
 
-  // 🔹 If no data, generate date range
+  // If no data, generate date range
   if (rawLabels.length === 0 && fromDate && toDate) {
     rawLabels = [];
     const current = new Date(fromDate);
@@ -249,11 +332,8 @@ function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
     }
   }
 
-  // 🔹 Chart values must use RAW keys
   const studentValues = rawLabels.map((d) => studentData[d] || 0);
   const employeeValues = rawLabels.map((d) => employeeData[d] || 0);
-
-  // 🔹 Display labels (formatted)
   const displayLabels = rawLabels.map(formatDateLabel);
 
   const ctx = document.getElementById("visitsChart");
@@ -262,7 +342,7 @@ function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
   visitsChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: displayLabels, // 👈 formatted labels
+      labels: displayLabels,
       datasets: [
         {
           label: "Student Visits",
@@ -284,20 +364,18 @@ function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
       responsive: true,
       interaction: { mode: "index", intersect: false },
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { precision: 0 },
-        },
+        y: { beginAtZero: true, ticks: { precision: 0 } },
       },
     },
   });
 }
 
-// ✅ Only trigger chart on button click
+// Apply filter button
 applyFilterBtn.addEventListener("click", loadVisitsChart);
 
-// Initial load on page
+// Initial chart load
 loadVisitsChart();
+
 // ===========================================================
 // Export Visits Chart as PDF
 // ===========================================================
