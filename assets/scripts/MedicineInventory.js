@@ -1,4 +1,4 @@
-import { db } from "../../firebaseconfig.js";
+import { db, currentUserName} from "../../firebaseconfig.js";
 import {
   collection,
   addDoc,
@@ -49,9 +49,9 @@ form.addEventListener("submit", async (e) => {
   saveBtn.textContent = editMode ? "Updating..." : "Saving...";
 
   const name = document.getElementById("medicine-name").value.trim();
-  const stock = parseInt(document.getElementById("stock-quantity").value);
+  const stock = parseInt(document.getElementById("stock-quantity").value, 10);
   const expiry = document.getElementById("expiry-date").value;
-  const perPack = parseInt(document.getElementById("per-pack")?.value || 0);
+  const perPack = parseInt(document.getElementById("per-pack")?.value || 0, 10);
   const datePurchased =
     document.getElementById("date-purchased")?.value ||
     new Date().toISOString().split("T")[0];
@@ -74,6 +74,15 @@ form.addEventListener("submit", async (e) => {
         datePurchased,
       });
 
+      // 🔹 Audit log for update
+      const auditMessage = `${currentUserName || "Unknown User"} updated medicine "${name}" (Stock: ${stock}, Expiry: ${formatDateLabel(expiry)})`;
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
       alert("✅ Medicine updated successfully!");
       editMode = false;
       editId = null;
@@ -91,6 +100,15 @@ form.addEventListener("submit", async (e) => {
         createdAt: new Date(),
       });
 
+      // 🔹 Audit log for add
+      const auditMessage = `${currentUserName || "Unknown User"} added new medicine "${name}" (Stock: ${stock}, Expiry: ${formatDateLabel(expiry)})`;
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
       alert("✅ Medicine added successfully!");
     }
 
@@ -98,13 +116,14 @@ form.addEventListener("submit", async (e) => {
     addMedicineModal.hide(); // Bootstrap: close modal
     loadMedicines();
   } catch (error) {
-    console.error("Error saving medicine:", error);
+    console.error("Error saving medicine or logging audit:", error);
     alert("⚠️ Failed to save medicine. Check console.");
   } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = originalText;
   }
 });
+
 
 
 /* ============================================================
@@ -305,7 +324,7 @@ document.getElementById("preview-bulk-btn").onclick = () => {
 
 
 // Download CSV Template
-document.getElementById("download-template-btn").onclick = () => {
+document.getElementById("download-template-btn").onclick = async () => {
   const headers = ["Name", "Stock", "Expiry(YYYY-MM-DD)", "Per Pack", "Date Purchased(YYYY-MM-DD)"];
   const csvContent = [headers.join(",")].join("\n");
 
@@ -317,6 +336,19 @@ document.getElementById("download-template-btn").onclick = () => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
+  // 🔹 Audit log for template download
+  try {
+    const auditMessage = `${currentUserName || "Unknown User"} downloaded the medicine CSV template.`;
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: auditMessage,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+  } catch (err) {
+    console.error("Failed to log audit for template download:", err);
+  }
 };
 
 /* ============================================================
@@ -353,6 +385,15 @@ document.getElementById("upload-bulk-btn").onclick = async () => {
       alert("✅ Bulk upload completed!");
       document.getElementById("bulk-upload-modal").classList.add("d-none");
       loadMedicines(); // refresh table
+
+      // 🔹 Audit log for bulk upload
+      const auditMessage = `${currentUserName || "Unknown User"} performed a bulk upload of ${dataRows.length} medicines.`;
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
     } catch (err) {
       console.error(err);
       alert("⚠ Error uploading medicines. Check console.");
