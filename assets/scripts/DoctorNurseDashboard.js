@@ -226,9 +226,10 @@ async function loadVisitsChart() {
   }
 
   renderVisitsChart(studentVisits, employeeVisits, fromDate, toDate);
+  // At the end of loadVisitsChart()
+  window.currentStudentVisits = studentVisits;
+  window.currentEmployeeVisits = employeeVisits;
 }
-
-
 
 // Render chart
 function renderVisitsChart(studentData, employeeData, fromDate, toDate) {
@@ -352,6 +353,138 @@ document.getElementById("exportImageBtn").addEventListener("click", () => {
   link.click();
   document.body.removeChild(link);
 });
+document.getElementById("exportExcelBtn").addEventListener("click", async () => {
+  const fromDateVal = dateFromInput.value;
+  const toDateVal = dateToInput.value;
+
+  if (!fromDateVal || !toDateVal) return alert("Select a date range first.");
+
+  const fromDate = new Date(fromDateVal);
+  const toDate = new Date(toDateVal);
+  toDate.setHours(23, 59, 59, 999);
+
+  const departmentFilter = departmentInput.value;
+  const courseFilter = courseInput.value;
+  const yearLevelFilter = yearLevelInput.value;
+
+  // Fetch all consultations
+  const snap = await getDocs(collectionGroup(db, "consultations"));
+
+  const studentVisits = {};
+  const employeeVisits = {};
+  const studentList = [];
+  const employeeList = [];
+
+  for (const consultDoc of snap.docs) {
+    const data = consultDoc.data();
+    if (!data.date) continue;
+
+    // Parse date
+    let visitDate;
+    if (data.date.toDate) visitDate = data.date.toDate();
+    else if (data.date instanceof Date) visitDate = data.date;
+    else visitDate = new Date(data.date);
+
+    if (isNaN(visitDate)) continue;
+    if (visitDate < fromDate || visitDate > toDate) continue;
+
+    // Get parent user
+    const userRef = consultDoc.ref.parent.parent;
+    if (!userRef) continue;
+
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) continue;
+
+    const user = userSnap.data();
+
+    // Apply filters
+    if (departmentFilter !== "all-dept" && user.department !== departmentFilter) continue;
+    if (courseFilter !== "all-course-strand-genEduc" && user.course !== courseFilter) continue;
+    if (yearLevelFilter !== "all-year" && String(user.yearLevel) !== yearLevelFilter) continue;
+
+    const label = visitDate.toISOString().split("T")[0];
+
+    // Build full name
+    const name = `${user.lastName}, ${user.firstName}${user.middleName ? " " + user.middleName : ""}`;
+
+    // Count visits and store detailed info
+    if (user.user_type === "student") {
+      studentVisits[label] = (studentVisits[label] || 0) + 1;
+      studentList.push({
+        Name: name,
+        Department: user.department || "",
+        Course: user.course || "",
+        YearLevel: user.yearLevel || "",
+        Date: formatDateLabel(label),
+      });
+    } else if (user.user_type === "employee") {
+      employeeVisits[label] = (employeeVisits[label] || 0) + 1;
+      employeeList.push({
+        Name: name,
+        Department: user.department || "",
+        Course: user.course || "",
+        YearLevel: user.yearLevel || "",
+        Date: formatDateLabel(label),
+      });
+    }
+  }
+
+  if (!snap.docs.length) return alert("No data to export.");
+
+  const departmentLabel = departmentFilter === "all-dept" ? "All Departments" : departmentFilter;
+  const courseLabel = courseFilter === "all-course-strand-genEduc" ? "All Course, Strand, and General Education" : courseFilter;
+  const yearLevelLabel = yearLevelFilter === "all-year" ? "All Year Levels" : yearLevelFilter;
+
+  const workbook = XLSX.utils.book_new();
+
+  // --------------------------
+  // Sheet 1: Visits Summary
+  // --------------------------
+  const allDates = Array.from(
+    new Set([...Object.keys(studentVisits), ...Object.keys(employeeVisits)])
+  ).sort();
+
+  const summaryRows = allDates.map(date => ({
+    Date: formatDateLabel(date),
+    Weekday: new Date(date).toLocaleDateString(undefined, { weekday: "long" }),
+    Students: studentVisits[date] || 0,
+    Employees: employeeVisits[date] || 0,
+  }));
+
+  const summarySheet = XLSX.utils.json_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(summarySheet, [
+    [`Date Range: ${formatDateLabel(fromDateVal)} → ${formatDateLabel(toDateVal)}`],
+    [`Department: ${departmentLabel}`],
+    [`Course: ${courseLabel}`],
+    [`Year Level: ${yearLevelLabel}`],
+    []
+  ], { origin: "A1" });
+
+  XLSX.utils.sheet_add_json(summarySheet, summaryRows, { origin: "A6", skipHeader: false });
+  XLSX.utils.book_append_sheet(workbook, summarySheet, "Visits Summary");
+
+  // --------------------------
+  // Sheet 2: Student Details
+  // --------------------------
+  if (studentList.length > 0) {
+    const studentSheet = XLSX.utils.json_to_sheet(studentList);
+    XLSX.utils.book_append_sheet(workbook, studentSheet, "Students");
+  }
+
+  // --------------------------
+  // Sheet 3: Employee Details
+  // --------------------------
+  if (employeeList.length > 0) {
+    const employeeSheet = XLSX.utils.json_to_sheet(employeeList);
+    XLSX.utils.book_append_sheet(workbook, employeeSheet, "Employees");
+  }
+
+  XLSX.writeFile(workbook, `Patient Visits ${formatDateLabel(fromDateVal)} → ${formatDateLabel(toDateVal)},${departmentLabel},${courseLabel},${yearLevelLabel}.xlsx`);
+
+  alert("Excel exported successfully with detailed visitor lists!");
+});
+
+
 
 /* ===========================================
 Chief Complaints Chart
@@ -468,53 +601,62 @@ document
 // ===========================================================
 // Export Chief Complaint Chart as Image
 // ===========================================================
-document.getElementById("exportComplaintImageBtn").addEventListener("click", () => {
-  if (!chiefComplaintChart) {
-    alert("No chart to export.");
-    return;
-  }
+document
+  .getElementById("exportComplaintImageBtn")
+  .addEventListener("click", () => {
+    if (!chiefComplaintChart) {
+      alert("No chart to export.");
+      return;
+    }
 
-  // Get chart canvas
-  const canvas = document.getElementById("chiefComplaintChart");
+    // Get chart canvas
+    const canvas = document.getElementById("chiefComplaintChart");
 
-  // Map filter values to readable text
-  const departmentLabel = deptFilter.value === "all-dept" ? "All Departments" : deptFilter.value;
-  const courseLabel = courseFilter.value === "all-course-strand-genEduc" ? 
-                      "All Course, Strand, and General Education" : courseFilter.value;
-  const yearLevelLabel = yearLevelFilter.value === "all-yearLevel" ? "All Year Levels" : yearLevelFilter.value;
+    // Map filter values to readable text
+    const departmentLabel =
+      deptFilter.value === "all-dept" ? "All Departments" : deptFilter.value;
+    const courseLabel =
+      courseFilter.value === "all-course-strand-genEduc"
+        ? "All Course, Strand, and General Education"
+        : courseFilter.value;
+    const yearLevelLabel =
+      yearLevelFilter.value === "all-yearLevel"
+        ? "All Year Levels"
+        : yearLevelFilter.value;
 
-  // Create temporary canvas to add filter text
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = canvas.width;
-  tempCanvas.height = canvas.height + 40; // extra space for filter text
-  const tempCtx = tempCanvas.getContext("2d");
+    // Create temporary canvas to add filter text
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height + 40; // extra space for filter text
+    const tempCtx = tempCanvas.getContext("2d");
 
-  // Draw the chart onto temp canvas
-  tempCtx.drawImage(canvas, 0, 40);
+    // Draw the chart onto temp canvas
+    tempCtx.drawImage(canvas, 0, 40);
 
-  // Draw filter text above the chart
-  tempCtx.font = "bold 14px Arial";
-  tempCtx.fillStyle = "#444";
-  tempCtx.textAlign = "center";
+    // Draw filter text above the chart
+    tempCtx.font = "bold 14px Arial";
+    tempCtx.fillStyle = "#444";
+    tempCtx.textAlign = "center";
 
-  const filterText = 
-    `Date: ${formatDateLabel(startDateInput.value)} → ${formatDateLabel(endDateInput.value)} | ` +
-    `Department: ${departmentLabel} | ` +
-    `Course: ${courseLabel} | ` +
-    `Year Level: ${yearLevelLabel}`;
+    const filterText =
+      `Date: ${formatDateLabel(startDateInput.value)} → ${formatDateLabel(
+        endDateInput.value
+      )} | ` +
+      `Department: ${departmentLabel} | ` +
+      `Course: ${courseLabel} | ` +
+      `Year Level: ${yearLevelLabel}`;
 
-  tempCtx.fillText(filterText, tempCanvas.width / 2, 20);
+    tempCtx.fillText(filterText, tempCanvas.width / 2, 20);
 
-  // Convert to image and trigger download
-  const imageURL = tempCanvas.toDataURL("image/png");
-  const link = document.createElement("a");
-  link.href = imageURL;
-  link.download = "Chief_Complaints_Chart.png";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-});
-
+    // Convert to image and trigger download
+    const imageURL = tempCanvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = imageURL;
+    link.download = "Chief_Complaints_Chart.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
 
 /* ===========================================
    Medicine Chart
@@ -655,7 +797,6 @@ renderStockChart(currentFilter);
 
 // 🔄 Optional: Auto-refresh every minute
 setInterval(() => renderStockChart(currentFilter), 60000);
-
 
 // const appointmentsList = document.getElementById("appointmentsList");
 // const currentDateTimeSpan = document.getElementById("currentDateTime");
