@@ -10,6 +10,7 @@ import {
   where,
   orderBy,
   addDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 import {
   sendPasswordResetEmail,
@@ -55,6 +56,281 @@ function parseAuditDate(dateStr) {
   // Convert to Date object
   return new Date(cleaned);
 }
+// Elements
+const addCourseBtn = document.getElementById("add-course-btn");
+const coursesContainer = document.getElementById("courses-container");
+const manageDepartmentForm = document.getElementById("manage-department-form");
+
+const departmentSection = document.getElementById("departmentSection");
+const editDepartmentForm = document.getElementById("edit-department-form");
+const modalDepartmentName = document.getElementById("modal-department-name");
+const modalCoursesContainer = document.getElementById("modal-courses-container");
+const modalAddCourseBtn = document.getElementById("modal-add-course-btn");
+const modalDeleteDepartmentBtn = document.getElementById("modal-delete-department-btn");
+
+let editDepartmentId = null;
+let isEditMode = false;
+
+// === Add Department Modal ===
+
+// Add course row
+addCourseBtn.addEventListener("click", () => {
+  createCourseInput(coursesContainer);
+});
+
+// Remove course (delegated)
+coursesContainer.addEventListener("click", (e) => {
+  if (e.target.classList.contains("remove-course-btn")) {
+    e.target.closest(".course-input").remove();
+  }
+});
+
+// Submit new department - WITH DUPLICATE CHECK
+manageDepartmentForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const departmentName = document.getElementById("department-name").value.trim();
+
+  const courseInputs = coursesContainer.querySelectorAll(".course-name");
+  const courses = Array.from(courseInputs)
+    .map(input => input.value.trim())
+    .filter(Boolean);
+
+  if (!departmentName) {
+    return alert("⚠️ Department name is required.");
+  }
+
+  if (courses.length === 0) {
+    return alert("⚠️ Please add at least one course.");
+  }
+
+  try {
+    // === CHECK FOR DUPLICATE DEPARTMENT NAME ===
+    const q = query(
+      collection(db, "Departments"),
+      where("name", "==", departmentName)
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      return alert(`⚠️ A department named "${departmentName}" already exists.`);
+    }
+
+    // === NO DUPLICATE → PROCEED TO SAVE ===
+    await addDoc(collection(db, "Departments"), {
+      name: departmentName,
+      courses,
+      createdAt: new Date(),
+    });
+
+    alert("✅ Department saved successfully!");
+    manageDepartmentForm.reset();
+
+    // Reset courses container to one empty input
+    coursesContainer.innerHTML = `
+      <div class="input-group mb-2 course-input">
+        <input type="text" class="form-control course-name" placeholder="Course name" required />
+        <button type="button" class="btn btn-outline-danger remove-course-btn">&times;</button>
+      </div>
+    `;
+
+    // Close the modal
+    const modalEl = document.getElementById("manageDepartmentModal");
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+
+    // Reload department list
+    loadDepartments();
+
+  } catch (error) {
+    console.error("Error saving department:", error);
+    alert("⚠️ Failed to save department. Please try again.");
+  }
+});
+// === Shared function to create a course input row ===
+function createCourseInput(container, value = "") {
+  const div = document.createElement("div");
+  div.className = "input-group mb-2 course-input";
+  div.innerHTML = `
+    <input
+      type="text"
+      class="form-control course-name"
+      placeholder="Course name"
+      value="${value.replace(/"/g, '&quot;')}"
+      required
+    />
+    <button type="button" class="btn btn-outline-danger remove-course-btn">&times;</button>
+  `;
+  container.appendChild(div);
+}
+
+// === Edit Modal Functionality ===
+
+// Add course in edit modal
+modalAddCourseBtn.addEventListener("click", () => {
+  createCourseInput(modalCoursesContainer);
+});
+
+// Delegated removal for edit modal (always active)
+modalCoursesContainer.addEventListener("click", (e) => {
+  if (e.target.classList.contains("remove-course-btn")) {
+    const inputGroup = e.target.closest(".course-input");
+    if (modalCoursesContainer.children.length > 1) {
+      inputGroup.remove();
+    } else {
+      alert("⚠️ You must have at least one course.");
+    }
+  }
+});
+
+// Delete department
+modalDeleteDepartmentBtn.addEventListener("click", async () => {
+  if (!editDepartmentId) return;
+
+  const name = modalDepartmentName.value.trim();
+  if (!name || !confirm(`⚠️ Are you sure you want to delete the department "${name}"?`)) return;
+
+  try {
+    await deleteDoc(doc(db, "Departments", editDepartmentId));
+    alert(`✅ Department "${name}" deleted.`);
+
+    closeEditModal();
+    loadDepartments();
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Failed to delete department.");
+  }
+});
+
+// Submit edit form (update or add)
+editDepartmentForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = modalDepartmentName.value.trim();
+  const courseInputs = modalCoursesContainer.querySelectorAll(".course-name");
+  const courses = Array.from(courseInputs)
+    .map(input => input.value.trim())
+    .filter(Boolean);
+
+  if (!name) {
+    return alert("⚠️ Department name is required.");
+  }
+
+  if (courses.length === 0) {
+    return alert("⚠️ Please add at least one course.");
+  }
+
+  try {
+    if (isEditMode && editDepartmentId) {
+      await updateDoc(doc(db, "Departments", editDepartmentId), { name, courses });
+      alert("✅ Department updated successfully!");
+    } else {
+      await addDoc(collection(db, "Departments"), { name, courses, createdAt: new Date() });
+      alert("✅ Department added successfully!");
+    }
+
+    closeEditModal();
+    loadDepartments();
+  } catch (err) {
+    console.error("Error saving department:", err);
+    alert("⚠️ Failed to save department.");
+  }
+});
+
+function closeEditModal() {
+  editDepartmentForm.reset();
+  modalCoursesContainer.innerHTML = ""; // Will be repopulated on next open
+  isEditMode = false;
+  editDepartmentId = null;
+
+  const modalEl = document.getElementById("editDepartmentModal");
+  const modalInstance = bootstrap.Modal.getInstance(modalEl);
+  if (modalInstance) modalInstance.hide();
+}
+
+// === Load Departments ===
+async function loadDepartments() {
+  departmentSection.innerHTML = `<div class="text-muted">Loading departments...</div>`;
+  try {
+    const snap = await getDocs(collection(db, "Departments"));
+    if (snap.empty) {
+      departmentSection.innerHTML = `<div class="text-muted">No departments added yet.</div>`;
+      return;
+    }
+
+    departmentSection.innerHTML = "";
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const courses = data.courses || [];
+      const item = document.createElement("div");
+      item.className = "list-group-item";
+
+      item.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="fw-semibold">${data.name}</div>
+            <div class="text-muted small">Courses: ${courses.length ? courses.join(", ") : "None"}</div>
+          </div>
+          <button class="btn btn-sm btn-outline-primary edit-department-btn" data-id="${docSnap.id}">
+            Edit
+          </button>
+        </div>
+      `;
+      departmentSection.appendChild(item);
+    });
+
+    attachEditListeners();
+  } catch (err) {
+    console.error("Error loading departments:", err);
+    departmentSection.innerHTML = `<div class="text-danger">Failed to load departments.</div>`;
+  }
+}
+
+function attachEditListeners() {
+  document.querySelectorAll(".edit-department-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.id;
+      try {
+        const docSnap = await getDoc(doc(db, "Departments", id));
+        if (!docSnap.exists()) {
+          alert("Department not found!");
+          return;
+        }
+
+        const data = docSnap.data();
+
+        // Populate modal
+        modalDepartmentName.value = data.name || "";
+        modalCoursesContainer.innerHTML = ""; // Clear first
+
+        (data.courses || []).forEach(course => {
+          createCourseInput(modalCoursesContainer, course);
+        });
+
+        // If no courses, add one empty
+        if (!(data.courses || []).length) {
+          createCourseInput(modalCoursesContainer);
+        }
+
+        // Set edit mode
+        editDepartmentId = id;
+        isEditMode = true;
+
+        // Show modal (Bootstrap handles via data attributes, but ensure it's shown)
+        const modalEl = document.getElementById("editDepartmentModal");
+        const modalInstance = new bootstrap.Modal(modalEl);
+        modalInstance.show();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load department data.");
+      }
+    };
+  });
+}
+
+// Initial load
+loadDepartments();
+
 
 const userTypeSelect = document.getElementById("user_type");
 const doctorTypeSelect = document.getElementById("doctor_type");
@@ -291,7 +567,9 @@ searchInput.addEventListener("input", () => {
   }
 
   const filteredUsers = allUsers.filter((user) => {
-    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
+    const fullName = `${user.firstName || ""} ${
+      user.lastName || ""
+    }`.toLowerCase();
     const schoolId = (user.schoolId || "").toLowerCase();
     const email = (user.email || "").toLowerCase();
 
@@ -304,7 +582,6 @@ searchInput.addEventListener("input", () => {
 
   renderUsers(filteredUsers);
 });
-
 
 // =============================================================
 // 📌 OPEN OVERVIEW MODAL & HANDLE USER ACTIONS
@@ -402,30 +679,30 @@ document
           disabledAt: null,
         });
         // Local timestamp
-      const timestamp = new Date();
+        const timestamp = new Date();
 
-      const options = {
-        year: "numeric", // must be "numeric" or "2-digit"
-        month: "short", // "short" gives "Dec", "Jan", etc.
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true, // 12-hour format with AM/PM
-      };
+        const options = {
+          year: "numeric", // must be "numeric" or "2-digit"
+          month: "short", // "short" gives "Dec", "Jan", etc.
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true, // 12-hour format with AM/PM
+        };
 
-      // Get locale string
-      let formattedDate = timestamp.toLocaleString("en-US", options);
+        // Get locale string
+        let formattedDate = timestamp.toLocaleString("en-US", options);
 
-      // Add dot after month
-      formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
+        // Add dot after month
+        formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
 
-      // Remove extra comma if needed
-      formattedDate = formattedDate.replace(",", "");
+        // Remove extra comma if needed
+        formattedDate = formattedDate.replace(",", "");
 
-      await addDoc(collection(db, "UserAccountTrail"), {
-        message: `${currentAdmin} Enabled User Account for ${data.firstName} ${data.lastName}(${data.schoolId})`,
-        dateTime: formattedDate,
-      });
+        await addDoc(collection(db, "UserAccountTrail"), {
+          message: `${currentAdmin} Enabled User Account for ${data.firstName} ${data.lastName}(${data.schoolId})`,
+          dateTime: formattedDate,
+        });
         alert("✅ Account enabled.");
       }
       // DISABLE USER
@@ -440,30 +717,30 @@ document
           disabledAt: new Date(),
         });
         // Local timestamp
-      const timestamp = new Date();
+        const timestamp = new Date();
 
-      const options = {
-        year: "numeric", // must be "numeric" or "2-digit"
-        month: "short", // "short" gives "Dec", "Jan", etc.
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true, // 12-hour format with AM/PM
-      };
+        const options = {
+          year: "numeric", // must be "numeric" or "2-digit"
+          month: "short", // "short" gives "Dec", "Jan", etc.
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true, // 12-hour format with AM/PM
+        };
 
-      // Get locale string
-      let formattedDate = timestamp.toLocaleString("en-US", options);
+        // Get locale string
+        let formattedDate = timestamp.toLocaleString("en-US", options);
 
-      // Add dot after month
-      formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
+        // Add dot after month
+        formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
 
-      // Remove extra comma if needed
-      formattedDate = formattedDate.replace(",", "");
+        // Remove extra comma if needed
+        formattedDate = formattedDate.replace(",", "");
 
-      await addDoc(collection(db, "UserAccountTrail"), {
-        message: `${currentAdmin} Disabled User Account for ${data.firstName} ${data.lastName} (${data.schoolId})`,
-        dateTime: formattedDate,
-      });
+        await addDoc(collection(db, "UserAccountTrail"), {
+          message: `${currentAdmin} Disabled User Account for ${data.firstName} ${data.lastName} (${data.schoolId})`,
+          dateTime: formattedDate,
+        });
         alert("⚠️ Account disabled.");
       }
 
@@ -831,8 +1108,7 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
     const querySnapshot = await getDocs(collection(db, "UserAccountTrail"));
 
     if (querySnapshot.empty) {
-      userAccountList.innerHTML =
-        "<li>No user account actions recorded.</li>";
+      userAccountList.innerHTML = "<li>No user account actions recorded.</li>";
       return;
     }
 
