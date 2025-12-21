@@ -45,7 +45,21 @@ function formatTime12(date) {
   hours = hours % 12 || 12; // convert 0 -> 12
   return `${hours}:${minutes} ${ampm}`;
 }
+function formatAuditDate(date = new Date()) {
+  const options = {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  };
 
+  let formatted = date.toLocaleString("en-US", options);
+  formatted = formatted.replace(/^(\w{3})/, "$1."); // Jan. Feb.
+  formatted = formatted.replace(",", ""); // remove extra comma
+  return formatted;
+}
 document.querySelectorAll(".name-only").forEach((input) => {
   input.addEventListener("input", () => {
     input.value = input.value.replace(/[^a-zA-Z\s-]/g, "");
@@ -95,20 +109,22 @@ async function loadDepartmentsAndCourses() {
   if (!departmentSelect || !courseSelect) return;
 
   // Initial state
-  departmentSelect.innerHTML = '<option value="">Loading departments...</option>';
+  departmentSelect.innerHTML =
+    '<option value="">Loading departments...</option>';
   courseSelect.innerHTML = '<option value="">Select department first</option>';
   // departmentSelect.disabled = true;
   // courseSelect.disabled = true;
 
   try {
     const snap = await getDocs(collection(db, "Departments"));
-    
+
     // Clear and set default options
     departmentSelect.innerHTML = '<option value="">Choose Department</option>';
     courseSelect.innerHTML = '<option value="">Choose Course</option>';
 
     if (snap.empty) {
-      departmentSelect.innerHTML = '<option value="">No departments available</option>';
+      departmentSelect.innerHTML =
+        '<option value="">No departments available</option>';
       // courseSelect.disabled = true;
       return;
     }
@@ -137,14 +153,14 @@ async function loadDepartmentsAndCourses() {
       courseSelect.innerHTML = '<option value="">Choose Course</option>';
 
       if (!selectedDept) {
-
         return;
       }
 
       const courses = departmentsMap.get(selectedDept) || [];
 
       if (courses.length === 0) {
-        courseSelect.innerHTML = '<option value="">No courses available</option>';
+        courseSelect.innerHTML =
+          '<option value="">No courses available</option>';
 
         return;
       }
@@ -156,8 +172,6 @@ async function loadDepartmentsAndCourses() {
         courseSelect.appendChild(option);
       });
 
-
-
       // If user had a saved course, try to re-select it
       const savedCourse = courseSelect.dataset.savedValue;
       if (savedCourse && courses.includes(savedCourse)) {
@@ -165,10 +179,10 @@ async function loadDepartmentsAndCourses() {
         delete courseSelect.dataset.savedValue; // clear temp storage
       }
     });
-
   } catch (err) {
     console.error("Error loading departments for student form:", err);
-    departmentSelect.innerHTML = '<option value="">Error loading departments</option>';
+    departmentSelect.innerHTML =
+      '<option value="">Error loading departments</option>';
   }
 }
 loadDepartmentsAndCourses();
@@ -201,11 +215,13 @@ onAuthStateChanged(auth, async (user) => {
       // Parent info
       document.getElementById("fatherName").value = data.fatherName || "";
       document.getElementById("fatherAge").value = data.fatherAge || "";
-      document.getElementById("fatherOccupation").value = data.fatherOccupation || "";
+      document.getElementById("fatherOccupation").value =
+        data.fatherOccupation || "";
       document.getElementById("fatherHealth").value = data.fatherHealth || "";
       document.getElementById("motherName").value = data.motherName || "";
       document.getElementById("motherAge").value = data.motherAge || "";
-      document.getElementById("motherOccupation").value = data.motherOccupation || "";
+      document.getElementById("motherOccupation").value =
+        data.motherOccupation || "";
       document.getElementById("motherHealth").value = data.motherHealth || "";
 
       // Contact info
@@ -237,7 +253,11 @@ onAuthStateChanged(auth, async (user) => {
 
         // After courses load, restore the saved course
         setTimeout(() => {
-          if (savedCourse && courseSelect && courseSelect.querySelector(`option[value="${savedCourse}"]`)) {
+          if (
+            savedCourse &&
+            courseSelect &&
+            courseSelect.querySelector(`option[value="${savedCourse}"]`)
+          ) {
             courseSelect.value = savedCourse;
           }
         }, 150); // Slightly increased delay for reliability
@@ -331,9 +351,9 @@ saveBtn.addEventListener("click", async () => {
       const { firstName, middleName, lastName, schoolId } = userData;
       const fullName = `${firstName} ${middleName || ""} ${lastName}`.trim();
 
-      const message = `${fullName} (${schoolId}) Updated ${changes.join(", ")} ${
-        changes.length > 1 ? "fields" : "field"
-      }`;
+      const message = `${fullName} (${schoolId}) Updated ${changes.join(
+        ", "
+      )} ${changes.length > 1 ? "fields" : "field"}`;
 
       // Local timestamp
       const timestamp = new Date();
@@ -359,8 +379,9 @@ saveBtn.addEventListener("click", async () => {
       // Store in userChanges collection
       await addDoc(collection(db, "AdminAuditTrail"), {
         message,
-        dateTime: formattedDate,
-        section:"UserChanges"
+        dateTime: formatAuditDate(), // for UI
+        timestamp: new Date(), // for sorting
+        section: "UserChanges",
       });
     }
 
