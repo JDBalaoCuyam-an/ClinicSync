@@ -510,12 +510,14 @@ document
     const civilStatus = document.getElementById("civil-status")?.value || "";
     const nationality = document.getElementById("nationality")?.value || "";
     const religion = document.getElementById("religion")?.value || "";
+
     // ✅ Contacts
     const email = document.getElementById("reg_email").value.trim();
     const phoneNumber = document.getElementById("phoneNumber")?.value || "";
     const homeAddress = document.getElementById("homeAddress")?.value || "";
     const guardianName = document.getElementById("guardianName")?.value || "";
     const guardianPhone = document.getElementById("guardianPhone")?.value || "";
+
     // ✅ Parents Info
     const fatherName = document.getElementById("fatherName")?.value || "";
     const fatherAge = document.getElementById("fatherAge")?.value || "";
@@ -536,11 +538,9 @@ document
     }
 
     try {
-      // Create user with Firebase Auth
-      // --- Secondary app to create user without replacing admin session ---
+      // Create user with Firebase Auth (secondary app to avoid replacing admin session)
       const secondaryApp = initializeApp(firebaseConfig, "Secondary");
       const secondaryAuth = getAuth(secondaryApp);
-
       const password = schoolId; // default password = school ID
       const userCredential = await createUserWithEmailAndPassword(
         secondaryAuth,
@@ -583,31 +583,14 @@ document
         motherHealth,
         createdAt: new Date(),
       });
-      // Local timestamp
-      const timestamp = new Date();
 
-      const options = {
-        year: "numeric", // must be "numeric" or "2-digit"
-        month: "short", // "short" gives "Dec", "Jan", etc.
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true, // 12-hour format with AM/PM
-      };
-
-      // Get locale string
-      let formattedDate = timestamp.toLocaleString("en-US", options);
-
-      // Add dot after month
-      formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
-
-      // Remove extra comma if needed
-      formattedDate = formattedDate.replace(",", "");
-
-      await addDoc(collection(db, "UserAccountTrail"), {
-        message: `${currentAdmin} added 1 new User`,
-        dateTime: formattedDate,
+      // Save to AdminAuditTrail instead of UserAccountTrail
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        section: "AccountsManagement",
+        message: `${currentAdmin} added 1 new user`,
+        timestamp: new Date(),
       });
+
       alert("✅ User Created Successfully!");
       document.getElementById("createUserForm").reset();
     } catch (error) {
@@ -615,6 +598,7 @@ document
       alert("❌ Failed: " + error.message);
     }
   });
+
 document.querySelectorAll(".name-only").forEach((input) => {
   input.addEventListener("input", () => {
     input.value = input.value.replace(/[^a-zA-Z\s-]/g, "");
@@ -839,9 +823,10 @@ document
         // Remove extra comma if needed
         formattedDate = formattedDate.replace(",", "");
 
-        await addDoc(collection(db, "UserAccountTrail"), {
+        await addDoc(collection(db, "AdminAuditTrail"), {
           message: `${currentAdmin} Enabled User Account for ${data.firstName} ${data.lastName}(${data.schoolId})`,
-          dateTime: formattedDate,
+          timestamp: new Date(),
+          section: "AccountsManagement",
         });
         alert("✅ Account enabled.");
       }
@@ -877,9 +862,10 @@ document
         // Remove extra comma if needed
         formattedDate = formattedDate.replace(",", "");
 
-        await addDoc(collection(db, "UserAccountTrail"), {
+        await addDoc(collection(db, "AdminAuditTrail"), {
           message: `${currentAdmin} Disabled User Account for ${data.firstName} ${data.lastName} (${data.schoolId})`,
-          dateTime: formattedDate,
+          timestamp: new Date(),
+          section: "AccountsManagement",
         });
         alert("⚠️ Account disabled.");
       }
@@ -1101,9 +1087,10 @@ document.getElementById("user-upload-btn").onclick = async () => {
         formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
         formattedDate = formattedDate.replace(",", "");
 
-        await addDoc(collection(db, "UserAccountTrail"), {
+        await addDoc(collection(db, "AdminAuditTrail"), {
           message: `${adminName} added ${addedCount} new user(s) via bulk upload`,
-          dateTime: formattedDate,
+          timestamp: new Date(),
+          section: "AccountsManagement",
         });
       }
 
@@ -1254,7 +1241,6 @@ userChangesTabButton.addEventListener("shown.bs.tab", () => {
   loadUserChanges();
 });
 
-
 // Load when the tab is shown
 const userAccountTabButton = document.getElementById(
   "user-account-management-tab"
@@ -1267,10 +1253,16 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
   userAccountTab.innerHTML = `<div class="text-muted">Loading user account logs...</div>`;
 
   try {
-    const querySnapshot = await getDocs(collection(db, "UserAccountTrail"));
+    // Query AdminAuditTrail for UserChanges section
+    const q = query(
+      collection(db, "AdminAuditTrail"),
+      where("section", "==", "AccountsManagement"),
+      orderBy("timestamp", "desc")
+    );
+    const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      userAccountTab.innerHTML = `<div class="text-muted">No user account actions recorded.</div>`;
+      userAccountTab.innerHTML = `<div class="text-muted">No user account management actions recorded.</div>`;
       return;
     }
 
@@ -1280,8 +1272,12 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
       logs.push(doc.data());
     });
 
-    // Sort by dateTime descending
-    logs.sort((a, b) => parseAuditDate(b.dateTime) - parseAuditDate(a.dateTime));
+    // Sort by timestamp descending (redundant if already ordered, but safe)
+    logs.sort((a, b) => {
+      const tA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date();
+      const tB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date();
+      return tB - tA;
+    });
 
     // Create a Bootstrap list group
     const list = document.createElement("ul");
@@ -1292,15 +1288,9 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
       li.classList.add("list-group-item");
 
       // Parse timestamp
-      let logTime;
-      if (data.timestamp?.toDate) {
-        logTime = data.timestamp.toDate();
-      } else if (data.dateTime) {
-        logTime = new Date(data.dateTime);
-      } else {
-        logTime = new Date();
-      }
-
+      let logTime = data.timestamp?.toDate
+        ? data.timestamp.toDate()
+        : new Date();
       const formattedTime = logTime.toLocaleString(undefined, {
         year: "numeric",
         month: "long",
@@ -1310,7 +1300,9 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
         hour12: true,
       });
 
-      li.textContent = `${formattedTime} — ${data.message || "No details provided"}`;
+      li.textContent = `${formattedTime} — ${
+        data.message || "No details provided"
+      }`;
       list.appendChild(li);
     });
 
@@ -1322,7 +1314,6 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
     userAccountTab.innerHTML = `<div class="text-danger">Failed to load logs.</div>`;
   }
 });
-
 
 const departmentsTabButton = document.getElementById(
   "departments-and-courses-tab"
@@ -1384,7 +1375,9 @@ departmentsTabButton.addEventListener("shown.bs.tab", async () => {
   }
 });
 
-const clinicStaffTabButton = document.getElementById("clinic-staff-actions-tab");
+const clinicStaffTabButton = document.getElementById(
+  "clinic-staff-actions-tab"
+);
 
 clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
   const clinicStaffTab = document.getElementById("clinic-staff-actions");
@@ -1422,7 +1415,9 @@ clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
       li.classList.add("list-group-item");
 
       // Format timestamp
-      const logTime = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
+      const logTime = data.timestamp?.toDate
+        ? data.timestamp.toDate()
+        : new Date();
       const formattedTime = logTime.toLocaleString(undefined, {
         year: "numeric",
         month: "long",
@@ -1432,7 +1427,9 @@ clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
         hour12: true,
       });
 
-      li.textContent = `${formattedTime} — ${data.message || "No details provided"}`;
+      li.textContent = `${formattedTime} — ${
+        data.message || "No details provided"
+      }`;
       logList.appendChild(li);
     });
   } catch (err) {
@@ -1440,4 +1437,3 @@ clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
     logList.innerHTML = `<li class="list-group-item text-danger">Failed to load clinic staff actions.</li>`;
   }
 });
-
