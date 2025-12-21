@@ -353,6 +353,7 @@ document.getElementById("exportImageBtn").addEventListener("click", () => {
   link.click();
   document.body.removeChild(link);
 });
+
 document.getElementById("exportExcelBtn").addEventListener("click", async () => {
   const fromDateVal = dateFromInput.value;
   const toDateVal = dateToInput.value;
@@ -657,6 +658,112 @@ document
     link.click();
     document.body.removeChild(link);
   });
+
+  
+document.getElementById("exportComplaintExcelBtn").addEventListener("click", async () => {
+  const startDateVal = startDateInput.value;
+  const endDateVal = endDateInput.value;
+
+  if (!startDateVal || !endDateVal) return alert("Select a date range first.");
+
+  const startDate = new Date(startDateVal);
+  const endDate = new Date(endDateVal);
+  endDate.setHours(23, 59, 59, 999);
+
+  const departmentFilterVal = deptFilter.value;
+  const courseFilterVal = courseFilter.value;
+  const yearLevelFilterVal = yearLevelFilter.value;
+
+  const complaintSnap = await getDocs(collection(db, "complaintRecords"));
+
+  const complaintCounts = {};
+  const studentList = [];
+  const employeeList = [];
+
+  for (const docSnap of complaintSnap.docs) {
+    const data = docSnap.data();
+    if (!data.complaint || !data.date || !data.patientId) continue;
+
+    // Handle Firestore Timestamp or string
+    const recordDate = data.date.toDate ? data.date.toDate() : new Date(data.date);
+    if (isNaN(recordDate)) continue;
+    if (recordDate < startDate || recordDate > endDate) continue;
+
+    const userRef = doc(db, "users", data.patientId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) continue;
+    const user = userSnap.data();
+
+    if (!["student", "employee"].includes(user.user_type)) continue;
+
+    // Apply filters
+    if (departmentFilterVal !== "all-dept" && user.department !== departmentFilterVal) continue;
+    if (courseFilterVal !== "all-course-strand-genEduc" && user.course !== courseFilterVal) continue;
+    if (yearLevelFilterVal !== "all-yearLevel" && String(user.yearLevel) !== yearLevelFilterVal) continue;
+
+    const complaintName = data.complaint.trim();
+    complaintCounts[complaintName] = (complaintCounts[complaintName] || 0) + 1;
+
+    const fullName = `${user.lastName}, ${user.firstName}${user.middleName ? " " + user.middleName : ""}`;
+    const entry = {
+      Name: fullName,
+      Department: user.department || "",
+      Course: user.course || "",
+      YearLevel: user.yearLevel || "",
+      Complaint: complaintName,
+      Date: formatDateLabel(recordDate),
+    };
+
+    if (user.user_type === "student") studentList.push(entry);
+    else if (user.user_type === "employee") employeeList.push(entry);
+  }
+
+  // Check if any filtered data exists
+  const summaryRows = Object.keys(complaintCounts).map(key => ({
+    Complaint: key,
+    Count: complaintCounts[key]
+  }));
+  if (summaryRows.length === 0 && studentList.length === 0 && employeeList.length === 0) {
+    return alert("No data to export after applying filters.");
+  }
+
+  // Filter labels
+  const departmentLabel = departmentFilterVal === "all-dept" ? "All Departments" : departmentFilterVal;
+  const courseLabel = courseFilterVal === "all-course-strand-genEduc" ? "All Course, Strand, and General Education" : courseFilterVal;
+  const yearLevelLabel = yearLevelFilterVal === "all-yearLevel" ? "All Year Levels" : yearLevelFilterVal;
+
+  const workbook = XLSX.utils.book_new();
+
+  // Sheet 1: Complaint Summary
+  const summarySheet = XLSX.utils.json_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(summarySheet, [
+    [`Date Range: ${formatDateLabel(startDateVal)} → ${formatDateLabel(endDateVal)}`],
+    [`Department: ${departmentLabel}`],
+    [`Course: ${courseLabel}`],
+    [`Year Level: ${yearLevelLabel}`],
+    []
+  ], { origin: "A1" });
+  XLSX.utils.sheet_add_json(summarySheet, summaryRows, { origin: "A6", skipHeader: false });
+  XLSX.utils.book_append_sheet(workbook, summarySheet, "Complaint Summary");
+
+  // Sheet 2: Students
+  if (studentList.length > 0) {
+    const studentSheet = XLSX.utils.json_to_sheet(studentList);
+    XLSX.utils.book_append_sheet(workbook, studentSheet, "Students");
+  }
+
+  // Sheet 3: Employees
+  if (employeeList.length > 0) {
+    const employeeSheet = XLSX.utils.json_to_sheet(employeeList);
+    XLSX.utils.book_append_sheet(workbook, employeeSheet, "Employees");
+  }
+
+  const fileName = `Chief_Complaints ${formatDateLabel(startDateVal)} → ${formatDateLabel(endDateVal)},${departmentLabel},${courseLabel},${yearLevelLabel}.xlsx`;
+  XLSX.writeFile(workbook, fileName);
+
+  alert("Excel exported successfully with detailed complaints!");
+});
+
 
 /* ===========================================
    Medicine Chart
