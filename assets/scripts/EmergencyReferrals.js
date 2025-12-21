@@ -389,6 +389,97 @@ function updateChart(referrals) {
 document.getElementById("applyDateFilter").addEventListener("click", () => {
   loadReferrals(); // assumes loadReferrals calls updateChart()
 });
+// =======================
+// Export Referral Chart as Image
+// =======================
+document.getElementById("exportReferralImageBtn").addEventListener("click", () => {
+  if (!referralChart) {
+    alert("No chart to export.");
+    return;
+  }
+
+  const canvas = document.getElementById("referralChart");
+
+  // Create temporary canvas to add filter text
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height + 40;
+  const tempCtx = tempCanvas.getContext("2d");
+
+  tempCtx.drawImage(canvas, 0, 40);
+
+  const filterText = `Date: ${formatDateLabel(chartStartDate.value)} → ${formatDateLabel(chartEndDate.value)}`;
+
+  tempCtx.font = "bold 14px Arial";
+  tempCtx.fillStyle = "#444";
+  tempCtx.textAlign = "center";
+  tempCtx.fillText(filterText, tempCanvas.width / 2, 20);
+
+  const imageURL = tempCanvas.toDataURL("image/png");
+  const link = document.createElement("a");
+  link.href = imageURL;
+  link.download = `Emergency_Referrals_${chartStartDate.value}_to_${chartEndDate.value}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+// =======================
+// Export Referral Data as Excel
+// =======================
+document.getElementById("exportReferralExcelBtn").addEventListener("click", async () => {
+  const startDateVal = chartStartDate.value;
+  const endDateVal = chartEndDate.value;
+  if (!startDateVal || !endDateVal) return alert("Select a date range first.");
+
+  const startDate = new Date(startDateVal);
+  const endDate = new Date(endDateVal);
+  endDate.setHours(23, 59, 59, 999);
+
+  const q = query(collection(db, "EmergencyReferrals"), orderBy("createdAt", "desc"));
+  const snapshot = await getDocs(q);
+
+  const rows = [];
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    if (!data.date) return;
+
+    // Handle Firestore Timestamp or string
+    const recordDate = data.date.toDate ? data.date.toDate() : new Date(data.date);
+    if (isNaN(recordDate)) return;
+    if (recordDate < startDate || recordDate > endDate) return;
+
+    const row = {
+      Date: formatDateLabel(recordDate),
+      Time: formatTimeFromString(data.time) || "",
+      Name: data.name || "",
+      Age: data.age || "",
+      Gender: data.gender || "",
+      Department: data.department || "",
+      Complaint: data.complaint || "",
+    };
+    rows.push(row);
+  });
+
+  if (rows.length === 0) return alert("No data to export.");
+
+  // Create worksheet
+  const worksheet = XLSX.utils.json_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(worksheet, [
+    [`Date Range: ${formatDateLabel(startDateVal)} → ${formatDateLabel(endDateVal)}`],
+    [],
+  ], { origin: "A1" });
+  XLSX.utils.sheet_add_json(worksheet, rows, { origin: "A4", skipHeader: false });
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Emergency Referrals");
+
+  const fileName = `Emergency_Referrals_${formatDateLabel(startDateVal)}_to_${formatDateLabel(endDateVal)}.xlsx`;
+  XLSX.writeFile(workbook, fileName);
+
+  // alert("Excel exported successfully!");
+});
 
 // Initial load
 document.addEventListener("DOMContentLoaded", loadReferrals);
