@@ -144,7 +144,7 @@ async function loadStaff() {
               : ""
           }
 
-          <div class="availability-container">${availabilityHtml}</div>
+          <!--<div class="availability-container">${availabilityHtml}</div> -->
         </div>
       `;
 

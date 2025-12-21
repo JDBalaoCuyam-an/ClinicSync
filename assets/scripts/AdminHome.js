@@ -1190,6 +1190,7 @@ async function loadLoginHistory() {
 
 // Call the function to populate table
 loadLoginHistory();
+const userChangesTabButton = document.getElementById("user-changes-tab");
 const userChangesTab = document.getElementById("user-changes");
 
 async function loadUserChanges() {
@@ -1245,8 +1246,14 @@ async function loadUserChanges() {
   }
 }
 
-// Load immediately
+// Load immediately on first page load
 loadUserChanges();
+
+// Reload every time tab is shown
+userChangesTabButton.addEventListener("shown.bs.tab", () => {
+  loadUserChanges();
+});
+
 
 // Load when the tab is shown
 const userAccountTabButton = document.getElementById(

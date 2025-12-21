@@ -692,7 +692,7 @@ async function loadStaff() {
             </button>
           </div>
 
-          ${availabilityHtml}
+         <!-- ${availabilityHtml} -->
         </div>
       `;
 
