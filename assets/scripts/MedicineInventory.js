@@ -16,12 +16,11 @@ function formatDateLabel(dateStr) {
   });
 }
 
-const form = document.getElementById("add-medicine-form");
 const tableBody = document.getElementById("medicine-table-body");
 const searchBar = document.getElementById("search-bar");
 const modal = document.getElementById("add-medicine");
 const overlay = document.getElementById("overlay");
-const modalTitle = modal.querySelector("h2"); // 🔹 The modal label
+
 const saveBtn = document.getElementById("save-btn");
 
 let medicines = []; // cache all medicines
@@ -31,13 +30,23 @@ let editId = null;
 /* ============================================================
    ✅ ADD or UPDATE MEDICINE
 ============================================================ */
+// Bootstrap modal instance
+const addMedicineModalEl = document.getElementById("addMedicineModal");
+const addMedicineModal = new bootstrap.Modal(addMedicineModalEl, {
+  backdrop: 'static', // prevent closing on click outside
+  keyboard: false
+});
+
+const modalTitle = addMedicineModalEl.querySelector(".modal-title");
+const form = document.getElementById("add-medicine-form");
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const saveBtn = form.querySelector('button[type="submit"]');
-  saveBtn.disabled = true;            // Disable button to prevent double click
+  saveBtn.disabled = true;
   const originalText = saveBtn.textContent;
-  saveBtn.textContent = editMode ? "Updating..." : "Saving..."; // Loading text
+  saveBtn.textContent = editMode ? "Updating..." : "Saving...";
 
   const name = document.getElementById("medicine-name").value.trim();
   const stock = parseInt(document.getElementById("stock-quantity").value);
@@ -86,14 +95,14 @@ form.addEventListener("submit", async (e) => {
     }
 
     form.reset();
-    closeButtonOverlay();
+    addMedicineModal.hide(); // Bootstrap: close modal
     loadMedicines();
   } catch (error) {
     console.error("Error saving medicine:", error);
     alert("⚠️ Failed to save medicine. Check console.");
   } finally {
-    saveBtn.disabled = false;       // Re-enable button
-    saveBtn.textContent = originalText; // Restore original text
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
   }
 });
 
@@ -171,33 +180,32 @@ function renderMedicines() {
   });
 
   // Edit button listener
-  document.querySelectorAll(".update-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = btn.getAttribute("data-id");
-      const med = medicines.find((m) => m.id === id);
-      if (!med) return;
+ document.querySelectorAll(".update-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const id = btn.getAttribute("data-id");
+    const med = medicines.find((m) => m.id === id);
+    if (!med) return;
 
-      // Fill form fields
-      document.getElementById("medicine-name").value = med.name || "";
-      document.getElementById("stock-quantity").value = med.stock || 0;
-      document.getElementById("per-pack").value = med.perPack || 0;
-      document.getElementById("date-purchased").value =
-        med.datePurchased || new Date().toISOString().split("T")[0];
-      document.getElementById("expiry-date").value = med.expiry || "";
+    // Fill form fields
+    document.getElementById("medicine-name").value = med.name || "";
+    document.getElementById("stock-quantity").value = med.stock || 0;
+    document.getElementById("per-pack").value = med.perPack || 0;
+    document.getElementById("date-purchased").value =
+      med.datePurchased || new Date().toISOString().split("T")[0];
+    document.getElementById("expiry-date").value = med.expiry || "";
 
-      // Switch to Edit mode
-      editMode = true;
-      editId = id;
+    // Switch to Edit mode
+    editMode = true;
+    editId = id;
 
-      // Change modal title & button
-      modalTitle.textContent = "Edit Medicine";
-      saveBtn.textContent = "Update";
+    // Change modal title & button
+    modalTitle.textContent = "Edit Medicine";
+    form.querySelector('button[type="submit"]').textContent = "Update";
 
-      // Show modal
-      modal.style.display = "block";
-      overlay.classList.add("show");
-    });
+    // Show Bootstrap modal
+    addMedicineModal.show();
   });
+});
 }
 
 
@@ -269,17 +277,14 @@ document.getElementById("preview-bulk-btn").onclick = () => {
       return alert("⚠ CSV has no data rows!");
     }
 
-    // Skip the first row (header)
+    // Skip header row
     const dataRows = rows.slice(1);
-
     const previewTable = document.getElementById("bulk-preview-table");
     const tbody = previewTable.querySelector("tbody");
-
     tbody.innerHTML = "";
 
     dataRows.forEach((row) => {
       const [name, stock, expiry, perPack, datePurchased] = row;
-
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${name}</td>

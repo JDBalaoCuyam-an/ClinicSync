@@ -118,6 +118,8 @@ async function loadNames() {
 // Load on page ready
 loadNames();
 
+// Grab form element
+
 // Submit new borrower
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -128,8 +130,7 @@ form.addEventListener("submit", async (e) => {
   submitBtn.textContent = "Saving...";
 
   const borrowerSelect = document.getElementById("borrower-name");
-  const selectedOption =
-    borrowerSelect.options[borrowerSelect.selectedIndex];
+  const selectedOption = borrowerSelect.options[borrowerSelect.selectedIndex];
 
   if (!borrowerSelect.value) {
     alert("Please select a borrower.");
@@ -146,13 +147,22 @@ form.addEventListener("submit", async (e) => {
     hour12: false,
   });
 
-  const borrowerData = {
-    itemName: document.getElementById("item-name").value.trim(),
-    quantity: parseInt(document.getElementById("quantity").value, 10),
+  const itemName = document.getElementById("item-name").value.trim();
+  const quantity = parseInt(document.getElementById("quantity").value, 10) || 0;
 
-    // ✅ Borrower info
-    borrowerId: borrowerSelect.value, // Firestore user ID
-    borrowerName: selectedOption.text, // Human-readable name
+  if (!itemName || quantity <= 0) {
+    alert("Please enter a valid item name and quantity.");
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+    return;
+  }
+
+  const borrowerData = {
+    itemName,
+    quantity,
+
+    borrowerId: borrowerSelect.value,
+    borrowerName: selectedOption.text,
 
     personnel: currentUserName || "Unknown User",
     dateBorrowed: `${formatDateLabel(currentDate)} ${formatTimeFromString(currentTime)}`,
@@ -167,18 +177,23 @@ form.addEventListener("submit", async (e) => {
 
     alert("✅ Borrower added successfully!");
     form.reset();
-    closeButtonOverlay();
+
+    // Hide Bootstrap modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById("addBorrowerModal"));
+    if (modal) modal.hide();
+
+    // Reload borrowers list
     loadBorrowers();
 
   } catch (error) {
     console.error("Error adding borrower:", error);
     alert("⚠️ Failed to add borrower. Check console.");
-
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
   }
 });
+
 
 
 // ✅ Load borrowers and clean up old returned ones
@@ -243,28 +258,24 @@ function renderBorrowers() {
       <td>${b.personnel || "-"}</td>
       <td>${b.dateBorrowed || "-"}</td>
       <td>
-        <span style="
-          background-color:${statusColor};
-          color:white;
-          padding:2px 8px;
-          border-radius:12px;
-          font-weight:bold;
-          text-transform:capitalize;
-        ">
-          ${b.status || "-"}
-        </span>
-      </td>
-      <td>${
-        b.dateReturned ? formatDateLabel(b.dateReturned) : "Not Returned"
-      }</td>
+  <span class="badge" 
+        style="background-color: ${statusColor}; text-transform: capitalize; font-weight: bold;">
+    ${b.status || "-"}
+  </span>
+</td>
 
-      <td>
-        ${
-          status === "borrowed"
-            ? `<button class="check-btn" data-id="${b.id}">Return</button>`
-            : `<button class="undo-btn" data-id="${b.id}">Undo</button>`
-        }
-      </td>
+<td>
+  ${b.dateReturned ? formatDateLabel(b.dateReturned) : "Not Returned"}
+</td>
+
+<td>
+  ${
+    status === "borrowed"
+      ? `<button class="btn btn-sm btn-success check-btn" data-id="${b.id}">Return</button>`
+      : `<button class="btn btn-sm btn-warning undo-btn" data-id="${b.id}">Undo</button>`
+  }
+</td>
+
     `;
     tableBody.appendChild(row);
   });

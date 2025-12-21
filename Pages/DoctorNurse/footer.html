@@ -1,63 +1,42 @@
 <!-- =======================
      FOOTER SECTION
 ======================= -->
-<footer class="footer-container">
-  <div class="footer-content">
-    <!-- 🔹 Logo + System Name -->
-    <div class="footer-logo">
-      <img src="../../assets/images/ClinicSyncLogo.png" alt="ClinicSync Logo" class="footer-logo-img" />
-      <h3>ClinicSync EMR</h3>
-      <p class="footer-desc">Efficient • Secure • Connected</p>
+<footer class="text-white mt-auto footer" style="background-color: #1e3a8a;">
+  <div class="container py-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+    
+    <!-- Logo + System Name -->
+    <div class="d-flex align-items-center mb-3 mb-md-0">
+      <img src="../../assets/images/ClinicSyncLogo.png" alt="ClinicSync Logo" class="me-2" style="height:50px;">
+      <div>
+        <h5 class="mb-0">ClinicSync EMR</h5>
+        <small>Efficient • Secure • Connected</small>
+      </div>
     </div>
 
-    <!-- 🔹 Quick Links -->
-    <div class="footer-links">
-      <h4>Quick Links</h4>
-      <ul>
-        <li>
-          <a href="DoctorNurseDashboard.html"
-            ><i class="fas fa-home"></i> Home</a
-          >
-        </li>
-        <li>
-          <a href="Patients.html"
-            ><i class="fas fa-file-medical"></i> Medical Records</a
-          >
-        </li>
-        <li>
-          <a href="Appointments.html"
-            ><i class="fas fa-calendar-alt"></i> Appointments</a
-          >
-        </li>
-        <li>
-          <a href="MedicineInventory.html"
-            ><i class="fas fa-pills"></i> Medicine Inventory</a
-          >
-        </li>
-        <li>
-          <a href="ClinicInventory.html"
-            ><i class="fas fa-clipboard-list"></i> Clinic Inventory</a
-          >
-        </li>
-        <li>
-          <a href="EmergenyReferrals.html">
-            <i class="fas fa-ambulance"></i> Emergency Referrals
-          </a>
-        </li>
+    <!-- Quick Links -->
+    <div class="mb-3 mb-md-0">
+      <h6>Quick Links</h6>
+      <ul class="list-unstyled mb-0">
+        <li><a href="DoctorNurseDashboard.html" class="text-white text-decoration-none"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li><a href="Patients.html" class="text-white text-decoration-none"><i class="fas fa-file-medical me-1"></i>Medical Records</a></li>
+        <li><a href="Appointments.html" class="text-white text-decoration-none"><i class="fas fa-calendar-alt me-1"></i>Appointments</a></li>
+        <li><a href="MedicineInventory.html" class="text-white text-decoration-none"><i class="fas fa-pills me-1"></i>Medicine Inventory</a></li>
+        <li><a href="ClinicInventory.html" class="text-white text-decoration-none"><i class="fas fa-clipboard-list me-1"></i>Clinic Inventory</a></li>
+        <li><a href="EmergenyReferrals.html" class="text-white text-decoration-none"><i class="fas fa-ambulance me-1"></i>Emergency Referrals</a></li>
       </ul>
     </div>
 
-    <!-- 🔹 Back to Top Button -->
-    <div class="footer-backtop">
-      <button class="backToTop">
-        <i class="fas fa-arrow-up"></i> Back to Top
+    <!-- Back to Top Button -->
+    <div>
+      <button class="btn btn-outline-light btn-sm" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <i class="fas fa-arrow-up me-1"></i> Back to Top
       </button>
     </div>
+
   </div>
 
-  <!-- 🔹 Copyright -->
-  <div class="footer-bottom">
-    <p>&copy; ClinicSync EMR | Capstone Project - BSIT 4A</p>
+  <!-- Copyright -->
+  <div class="bg-dark text-center py-2">
+    <small>&copy; ClinicSync EMR | Capstone Project - BSIT 4A</small>
   </div>
 </footer>
-
