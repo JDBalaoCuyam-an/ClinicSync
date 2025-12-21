@@ -45,6 +45,70 @@ function formatTimeFromString(timeStr) {
   // Remove leading zero and format minutes (keep 2 digits)
   return `${hour}:${minutes} ${period}`;
 }
+
+const departmentSelect = document.getElementById("department");
+const courseSelect = document.getElementById("course");
+
+// Store department → courses
+let departmentCourseMap = {};
+
+async function loadDepartments() {
+  try {
+    const snap = await getDocs(collection(db, "Departments"));
+    if (snap.empty) return;
+
+    // Enable department dropdown
+    departmentSelect.disabled = false;
+
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const deptName = data.name;
+      const courses = data.courses || [];
+
+      // Save courses for later
+      departmentCourseMap[deptName] = courses;
+
+      // Add department option
+      const option = document.createElement("option");
+      option.value = deptName;
+      option.textContent = deptName;
+      departmentSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error loading departments:", err);
+  }
+}
+
+function loadCoursesByDepartment() {
+  const selectedDept = departmentSelect.value;
+
+  // Reset courses dropdown
+  courseSelect.innerHTML = `
+    <option value="">Select Course/Strand/Gen. Educ.</option>
+  `;
+  courseSelect.disabled = true;
+
+  if (!selectedDept) return;
+
+  const courses = departmentCourseMap[selectedDept] || [];
+  if (!courses.length) return;
+
+  courseSelect.disabled = false;
+
+  courses.forEach((course) => {
+    const option = document.createElement("option");
+    option.value = course;
+    option.textContent = course;
+    courseSelect.appendChild(option);
+  });
+}
+
+// Event listener
+departmentSelect.addEventListener("change", loadCoursesByDepartment);
+
+// Initial load
+loadDepartments();
+
 /* -----------------------------------------------
      🔹 LOAD PATIENT DATA (with medicalHistory subcollection)
   ----------------------------------------------- */
