@@ -1376,3 +1376,61 @@ departmentsTabButton.addEventListener("shown.bs.tab", async () => {
     departmentsTab.innerHTML = `<div class="text-danger">Failed to load department audit logs.</div>`;
   }
 });
+
+const clinicStaffTabButton = document.getElementById("clinic-staff-actions-tab");
+
+clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
+  const clinicStaffTab = document.getElementById("clinic-staff-actions");
+  const logList = clinicStaffTab.querySelector("ul");
+
+  // Show loading
+  logList.innerHTML = `<li class="list-group-item text-muted">Loading clinic staff actions...</li>`;
+
+  try {
+    // Query Firestore for AdminAuditTrail with section "ClinicStaffActions"
+    const q = query(
+      collection(db, "AdminAuditTrail"),
+      where("section", "==", "ClinicStaffActions"),
+      orderBy("timestamp", "desc")
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      logList.innerHTML = `<li class="list-group-item text-muted">No clinic staff actions recorded.</li>`;
+      return;
+    }
+
+    // Collect logs into array for sorting
+    const logs = [];
+    snapshot.forEach((doc) => logs.push(doc.data()));
+
+    // Sort by timestamp descending
+    logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+    // Render logs
+    logList.innerHTML = ""; // clear loading
+    logs.forEach((data) => {
+      const li = document.createElement("li");
+      li.classList.add("list-group-item");
+
+      // Format timestamp
+      const logTime = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
+      const formattedTime = logTime.toLocaleString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+
+      li.textContent = `${formattedTime} — ${data.message || "No details provided"}`;
+      logList.appendChild(li);
+    });
+  } catch (err) {
+    console.error(err);
+    logList.innerHTML = `<li class="list-group-item text-danger">Failed to load clinic staff actions.</li>`;
+  }
+});
+
