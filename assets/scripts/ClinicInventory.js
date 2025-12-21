@@ -7,7 +7,7 @@ import {
   deleteDoc,
   doc,
   query,
-  where
+  where,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 function setToCurrentDate() {
   const now = new Date();
@@ -32,7 +32,6 @@ function formatDateLabel(dateStr) {
     day: "numeric",
     year: "numeric",
   });
-
 }
 
 function formatTimeFromString(timeStr) {
@@ -82,8 +81,7 @@ function isOlderThan(dateString, days) {
 const borrowerSelect = document.getElementById("borrower-name");
 
 async function loadNames() {
-  borrowerSelect.innerHTML =
-    `<option value="" selected disabled>Loading borrowers...</option>`;
+  borrowerSelect.innerHTML = `<option value="" selected disabled>Loading borrowers...</option>`;
 
   try {
     const usersRef = collection(db, "users");
@@ -95,8 +93,7 @@ async function loadNames() {
 
     const snapshot = await getDocs(q);
 
-    borrowerSelect.innerHTML =
-      `<option value="" selected disabled>Select borrower</option>`;
+    borrowerSelect.innerHTML = `<option value="" selected disabled>Select borrower</option>`;
 
     snapshot.forEach((doc) => {
       const user = doc.data();
@@ -104,14 +101,12 @@ async function loadNames() {
       const option = document.createElement("option");
       option.value = doc.id; // or user.fullName if preferred
       option.textContent = `${user.firstName} ${user.lastName}`;
-      
+
       borrowerSelect.appendChild(option);
     });
-
   } catch (error) {
     console.error("Failed to load borrowers:", error);
-    borrowerSelect.innerHTML =
-      `<option value="" disabled>Error loading borrowers</option>`;
+    borrowerSelect.innerHTML = `<option value="" disabled>Error loading borrowers</option>`;
   }
 }
 
@@ -163,7 +158,9 @@ form.addEventListener("submit", async (e) => {
     borrowerId: borrowerSelect.value,
     borrowerName: selectedOption.text,
     personnel: currentUserName || "Unknown User",
-    dateBorrowed: `${formatDateLabel(currentDate)} ${formatTimeFromString(currentTime)}`,
+    dateBorrowed: `${formatDateLabel(currentDate)} ${formatTimeFromString(
+      currentTime
+    )}`,
     status: "Borrowed",
     dateReturned: "",
     createdAt: new Date(),
@@ -171,28 +168,36 @@ form.addEventListener("submit", async (e) => {
 
   try {
     // Add borrower to ClinicInventory
-    const docRef = await addDoc(collection(db, "ClinicInventory"), borrowerData);
+    const docRef = await addDoc(
+      collection(db, "ClinicInventory"),
+      borrowerData
+    );
 
     // 🔹 Create audit log
-    const auditMessage = `${currentUserName || "Unknown User"} added borrower "${borrowerData.borrowerName}" with item "${borrowerData.itemName}" (Quantity: ${borrowerData.quantity})`;
+    const auditMessage = `${
+      currentUserName || "Unknown User"
+    } added borrower "${borrowerData.borrowerName}" with item "${
+      borrowerData.itemName
+    }" (Quantity: ${borrowerData.quantity})`;
 
     await addDoc(collection(db, "AdminAuditTrail"), {
       message: auditMessage,
-      userId: currentUserId || null,
+      userId: currentUserName || null,
       timestamp: new Date(),
-      section: "ClinicInventory",
+      section: "ClinicStaffActions",
     });
 
     alert("✅ Borrower added successfully!");
     form.reset();
 
     // Hide Bootstrap modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById("addBorrowerModal"));
+    const modal = bootstrap.Modal.getInstance(
+      document.getElementById("addBorrowerModal")
+    );
     if (modal) modal.hide();
 
     // Reload borrowers list
     loadBorrowers();
-
   } catch (error) {
     console.error("Error adding borrower or audit log:", error);
     alert("⚠️ Failed to add borrower. Check console.");
@@ -201,9 +206,6 @@ form.addEventListener("submit", async (e) => {
     submitBtn.textContent = originalText;
   }
 });
-
-
-
 
 // ✅ Load borrowers and clean up old returned ones
 async function loadBorrowers() {
@@ -308,13 +310,29 @@ function renderBorrowers() {
         minute: "2-digit",
       });
 
-      await updateDoc(doc(db, "ClinicInventory", id), {
-        status: "Returned",
-        dateReturned: `${today} ${currentTime}`,
-      });
+      try {
+        await updateDoc(doc(db, "ClinicInventory", id), {
+          status: "Returned",
+          dateReturned: `${today} ${currentTime}`,
+        });
 
-      alert("✅ Item marked as returned.");
-      loadBorrowers();
+        // 🔹 Audit log
+        const auditMessage = `${currentUserName || "Unknown User"} marked "${
+          borrower.itemName
+        }" borrowed by ${borrower.borrowerName} as Returned.`;
+        await addDoc(collection(db, "AdminAuditTrail"), {
+          message: auditMessage,
+          userId: currentUserName || null,
+          timestamp: new Date(),
+          section: "ClinicStaffActions",
+        });
+
+        alert("✅ Item marked as returned.");
+        loadBorrowers();
+      } catch (err) {
+        console.error("Error updating return status or saving audit:", err);
+        alert("⚠️ Failed to mark item as returned. Check console.");
+      }
     });
   });
 
@@ -330,13 +348,31 @@ function renderBorrowers() {
       );
       if (!confirmUndo) return;
 
-      await updateDoc(doc(db, "ClinicInventory", id), {
-        status: "Borrowed",
-        dateReturned: "",
-      });
+      try {
+        await updateDoc(doc(db, "ClinicInventory", id), {
+          status: "Borrowed",
+          dateReturned: "",
+        });
 
-      alert("↩️ Undo successful. Marked back as Borrowed.");
-      loadBorrowers();
+        // 🔹 Audit log
+        const auditMessage = `${
+          currentUserName || "Unknown User"
+        } undid return for "${borrower.itemName}" borrowed by ${
+          borrower.borrowerName
+        }. Marked back as Borrowed.`;
+        await addDoc(collection(db, "AdminAuditTrail"), {
+          message: auditMessage,
+          userId: currentUserName || null,
+          timestamp: new Date(),
+          section: "ClinicStaffActions",
+        });
+
+        alert("↩️ Undo successful. Marked back as Borrowed.");
+        loadBorrowers();
+      } catch (err) {
+        console.error("Error undoing return or saving audit:", err);
+        alert("⚠️ Failed to undo return. Check console.");
+      }
     });
   });
 }
