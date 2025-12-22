@@ -383,40 +383,56 @@ function renderModalAvailability(staffId) {
     }
 
     availability.forEach((a) => {
-      const slotsHtml = a.slots
-        .map(
-          (slot) =>
-            `${formatTimeFromString(slot.start)} - ${formatTimeFromString(
-              slot.end
-            )}`
-        )
-        .join("<br>");
-      const li = document.createElement("li");
-      li.className =
-        "list-group-item d-flex justify-content-between align-items-start flex-column";
-      li.innerHTML = `
-        <div><b>${formatDateLabel(a.date)} (${
-        a.weekday
-      })</b>:<br>${slotsHtml}</div>
-        <button class="btn btn-sm btn-outline-danger mt-2 remove-btn">Remove</button>
-      `;
+  const slotsHtml = a.slots
+    .map(
+      (slot) =>
+        `${formatTimeFromString(slot.start)} - ${formatTimeFromString(
+          slot.end
+        )}`
+    )
+    .join("<br>");
 
-      // Remove availability
-      li.querySelector(".remove-btn").onclick = async () => {
-        try {
-          await updateDoc(staffRef, {
-            availability: arrayRemove(a),
-          });
-          li.remove(); // remove from UI
-          loadStaff(); // refresh staff cards
-        } catch (err) {
-          console.error("Error removing availability:", err);
-          alert("Failed to remove availability. See console.");
-        }
-      };
+  const li = document.createElement("li");
+  li.className =
+    "list-group-item d-flex justify-content-between align-items-start flex-column";
 
-      list.appendChild(li);
-    });
+  li.innerHTML = `
+    <div>
+      <b>${formatDateLabel(a.date)} (${a.weekday})</b>:<br>
+      ${slotsHtml}
+    </div>
+    <button class="btn btn-sm btn-outline-danger mt-2 remove-btn">
+      Remove
+    </button>
+  `;
+
+  // ✅ Remove availability with confirmation
+  li.querySelector(".remove-btn").onclick = async () => {
+    const confirmed = confirm(
+      `Are you sure you want to remove availability on ${formatDateLabel(
+        a.date
+      )}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await updateDoc(staffRef, {
+        availability: arrayRemove(a),
+      });
+      renderCalendar(calYear, calMonth);
+      li.remove();
+      loadStaff();
+      
+    } catch (err) {
+      console.error("Error removing availability:", err);
+      alert("Failed to remove availability. See console.");
+    }
+  };
+  list.appendChild(li);
+  
+});
+
   });
 }
 
@@ -652,10 +668,11 @@ async function saveAvailability(staffId) {
   } else {
     let current = new Date(selectedDate);
     while (current <= repeatUntil) {
-      if (repeat === "daily") {
-        datesToSave.push(new Date(current));
-      }
-      if (repeat === "weekly" && current.getDay() === selectedDate.getDay()) {
+      if (repeat === "daily") datesToSave.push(new Date(current));
+      if (
+        repeat === "weekly" &&
+        current.getDay() === selectedDate.getDay()
+      ) {
         datesToSave.push(new Date(current));
       }
       current.setDate(current.getDate() + 1);
@@ -675,22 +692,52 @@ async function saveAvailability(staffId) {
     datesToSave.forEach((date) => {
       const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1)
         .toString()
-        .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-      const weekday = date.toLocaleDateString("en-PH", { weekday: "long" });
+        .padStart(2, "0")}-${date
+        .getDate()
+        .toString()
+        .padStart(2, "0")}`;
 
-      const existingIndex = availability.findIndex((a) => a.date === dateStr);
+      const weekday = date.toLocaleDateString("en-PH", {
+        weekday: "long",
+      });
+
+      const existingIndex = availability.findIndex(
+        (a) => a.date === dateStr
+      );
 
       if (existingIndex !== -1) {
-        availability[existingIndex].slots.push(...slots);
-        newAvailabilitiesCount += slots.length;
+        const existingSlots = availability[existingIndex].slots;
+
+        const uniqueNewSlots = slots.filter(
+          (newSlot) =>
+            !existingSlots.some(
+              (existing) =>
+                existing.start === newSlot.start &&
+                existing.end === newSlot.end
+            )
+        );
+
+        if (uniqueNewSlots.length) {
+          existingSlots.push(...uniqueNewSlots);
+          existingSlots.sort((a, b) =>
+            a.start.localeCompare(b.start)
+          );
+          newAvailabilitiesCount += uniqueNewSlots.length;
+        }
       } else {
+        const sortedSlots = [...slots].sort((a, b) =>
+          a.start.localeCompare(b.start)
+        );
+
         availability.push({
           date: dateStr,
           weekday,
-          slots: [...slots],
+          slots: sortedSlots,
           repeat,
           repeatUntil: repeatUntil
-            ? `${repeatUntil.getFullYear()}-${(repeatUntil.getMonth() + 1)
+            ? `${repeatUntil.getFullYear()}-${(
+                repeatUntil.getMonth() + 1
+              )
                 .toString()
                 .padStart(2, "0")}-${repeatUntil
                 .getDate()
@@ -698,16 +745,20 @@ async function saveAvailability(staffId) {
                 .padStart(2, "0")}`
             : null,
         });
-        newAvailabilitiesCount += slots.length;
+
+        newAvailabilitiesCount += sortedSlots.length;
       }
     });
+
+    // ✅ SORT AVAILABILITY BY DATE (FINAL STEP)
+    availability.sort((a, b) => a.date.localeCompare(b.date));
 
     await updateDoc(staffRef, {
       availability,
       lastUpdated: serverTimestamp(),
     });
 
-    // 🔹 Audit trail for saving availability
+    // 🔹 Audit trail
     await addDoc(collection(db, "AdminAuditTrail"), {
       message: `${
         currentUserName || "Unknown User"
@@ -719,20 +770,26 @@ async function saveAvailability(staffId) {
       section: "ClinicStaffActions",
     });
 
+    // ✅ Render AFTER save
+    renderModalAvailability(staffId);
+    renderCalendar(calYear, calMonth);
     alert("Availability saved successfully!");
     bootstrap.Modal.getInstance(
       document.getElementById("availabilityStep2")
     ).hide();
+    bootstrap.Modal.getInstance(document.getElementById("availabilityModal")).show();
   } catch (err) {
     console.error("Error saving availability:", err);
     alert("Failed to save availability. See console.");
   }
 }
 
+
 // Save button
 document.getElementById("saveAvailabilityBtn").onclick = () => {
   saveAvailability(selectedStaffId);
   loadStaff(); // refresh staff cards
+  
 };
 
 /* ===================================== */
