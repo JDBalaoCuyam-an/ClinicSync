@@ -915,10 +915,7 @@ document
 
     const now = new Date();
     const medDate = now.toISOString().split("T")[0];
-    const medTime = now.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const medTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
     // Collect medicines
     const medsDispensed = Array.from(document.querySelectorAll(".med-row"))
@@ -933,7 +930,6 @@ document
       }))
       .filter((med) => med.name !== "");
 
-    // Capitalize helper
     function capitalizeFirstLetter(text) {
       if (!text) return "";
       return text.charAt(0).toUpperCase() + text.slice(1);
@@ -941,9 +937,7 @@ document
 
     // Handle Complaint
     let complaintValue = document.getElementById("consult-complaint").value;
-    let newComplaintText = document
-      .getElementById("new-complaint-input")
-      .value.trim();
+    let newComplaintText = document.getElementById("new-complaint-input").value.trim();
     let finalComplaint =
       complaintValue === "__add_new__"
         ? capitalizeFirstLetter(newComplaintText)
@@ -959,22 +953,15 @@ document
     // Save new complaint if needed
     if (complaintValue === "__add_new__") {
       const complaintsRef = collection(db, "complaints");
-      const snap = await getDocs(
-        query(complaintsRef, where("name", "==", finalComplaint))
-      );
+      const snap = await getDocs(query(complaintsRef, where("name", "==", finalComplaint)));
       if (snap.empty) {
-        await addDoc(complaintsRef, {
-          name: finalComplaint,
-          createdAt: new Date(),
-        });
+        await addDoc(complaintsRef, { name: finalComplaint, createdAt: new Date() });
       }
     }
 
     // Handle Diagnosis
     let diagnosisValue = document.getElementById("consult-diagnosis").value;
-    let newDiagnosisText = document
-      .getElementById("new-diagnosis-input")
-      .value.trim();
+    let newDiagnosisText = document.getElementById("new-diagnosis-input").value.trim();
     let finalDiagnosis =
       diagnosisValue === "__add_new__"
         ? capitalizeFirstLetter(newDiagnosisText)
@@ -990,9 +977,7 @@ document
     // Save new diagnosis if needed
     if (diagnosisValue === "__add_new__") {
       const diagRef = collection(db, "diagnoses");
-      const snap = await getDocs(
-        query(diagRef, where("name", "==", finalDiagnosis))
-      );
+      const snap = await getDocs(query(diagRef, where("name", "==", finalDiagnosis)));
       if (snap.empty) {
         await addDoc(diagRef, { name: finalDiagnosis, createdAt: new Date() });
       }
@@ -1029,36 +1014,53 @@ document
       for (const med of medsDispensed) {
         if (med.name && med.quantity > 0) {
           const invRef = collection(db, "MedicineInventory");
-          const snap = await getDocs(
-            query(invRef, where("name", "==", med.name))
-          );
+          const snap = await getDocs(query(invRef, where("name", "==", med.name)));
           if (!snap.empty) {
             const medDoc = snap.docs[0];
             const data = medDoc.data();
             const newStock = Math.max((data.stock || 0) - med.quantity, 0);
             const newDispensed = (data.dispensed || 0) + med.quantity;
-            await updateDoc(medDoc.ref, {
-              stock: newStock,
-              dispensed: newDispensed,
-            });
+            await updateDoc(medDoc.ref, { stock: newStock, dispensed: newDispensed });
           }
         }
       }
 
-      // Save edit log
+      // -----------------------
+      // Fetch patient info for audit
+      let patientInfo = { name: patientId, schoolId: "N/A" };
+      try {
+        const patientDoc = await getDoc(doc(db, "users", patientId));
+        if (patientDoc.exists()) {
+          const data = patientDoc.data();
+          patientInfo = { name: `${data.lastName}, ${data.firstName}`, schoolId: data.schoolId || "N/A" };
+        }
+      } catch (patientError) {
+        console.error("Failed to fetch patient info for audit:", patientError);
+      }
+
+      // -----------------------
+      // Add centralized Admin Audit Trail
+      const auditMessage = `${currentUserName || "Unknown User"} added a consultation for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId}) with doctor "${doctorName}"`;
+
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
+      // -----------------------
+      // Add patient-specific edit log
       const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
-          "en-US",
-          {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }
-        )}`,
+        message: `Added consultation by ${currentUserName} · ${new Date().toLocaleString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })}`,
         timestamp: new Date(),
         editor: currentUserName,
         section: "Medical Consultation Record",
@@ -1067,7 +1069,6 @@ document
       alert("✅ Consultation Record Saved + Visit Logged + Medicine Deducted!");
 
       addConsultationModal.hide();
-      // Reload data
       loadConsultations();
       loadComplaints();
       loadMedicineOptions();
@@ -1079,6 +1080,7 @@ document
       submitBtn.textContent = originalText;
     }
   });
+
 
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
@@ -1189,8 +1191,6 @@ editOverviewBtn.addEventListener("click", async () => {
   // ✅ ENTER EDIT MODE
   if (editOverviewBtn.textContent.includes("✏️")) {
     editableInputs.forEach((input) => input.removeAttribute("disabled"));
-
-    // Change Edit button text to Save
     editOverviewBtn.textContent = "💾 Save";
     return;
   }
@@ -1219,20 +1219,42 @@ editOverviewBtn.addEventListener("click", async () => {
 
     await updateDoc(consultRef, updatedData);
 
-    // ✅ Save edit log in subcollection
+    // -----------------------
+    // Fetch patient info for audit
+    let patientInfo = { name: patientId, schoolId: "N/A" };
+    try {
+      const patientDoc = await getDoc(doc(db, "users", patientId));
+      if (patientDoc.exists()) {
+        const data = patientDoc.data();
+        patientInfo = { name: `${data.lastName}, ${data.firstName}`, schoolId: data.schoolId || "N/A" };
+      }
+    } catch (patientError) {
+      console.error("Failed to fetch patient info for audit:", patientError);
+    }
+
+    // -----------------------
+    // Add centralized Admin Audit Trail
+    const auditMessage = `${currentUserName || "Unknown User"} edited consultation record for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId})`;
+
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: auditMessage,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+
+    // -----------------------
+    // Save patient-specific edit log
     const editLogRef = collection(db, "users", patientId, "editLogs");
     await addDoc(editLogRef, {
-      message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
-        "en-US",
-        {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }
-      )}`,
+      message: `Edited by ${currentUserName} · ${new Date().toLocaleString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })}`,
       timestamp: new Date(),
       editor: currentUserName,
       section: "Medical Consultation Record",
@@ -1256,6 +1278,7 @@ editOverviewBtn.addEventListener("click", async () => {
     alert("Failed to update consultation.");
   }
 });
+
 
 // When modal is hidden, exit edit mode automatically
 consultationModalEl.addEventListener("hidden.bs.modal", () => {
