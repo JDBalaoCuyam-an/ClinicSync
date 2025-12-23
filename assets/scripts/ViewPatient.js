@@ -2215,7 +2215,11 @@ document
       }
 
       /* ---------- ADMIN AUDIT TRAIL ---------- */
-      const auditMessage = `${currentUserName || "Unknown User"} added a nurse note for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId})`;
+      const auditMessage = `${
+        currentUserName || "Unknown User"
+      } added a nurse note for patient "${patientInfo.name}" (School ID: ${
+        patientInfo.schoolId
+      })`;
       await addDoc(collection(db, "AdminAuditTrail"), {
         message: auditMessage,
         userId: currentUserName || null,
@@ -2223,9 +2227,10 @@ document
         section: "ClinicStaffActions",
       });
 
-
       // Close modal and reset form
-      bootstrap.Modal.getInstance(document.getElementById("nurseNoteModal")).hide();
+      bootstrap.Modal.getInstance(
+        document.getElementById("nurseNoteModal")
+      ).hide();
       e.target.reset();
 
       loadNurseNotes();
@@ -2287,73 +2292,77 @@ async function loadNurseNotes() {
       // Edit button functionality
       const editBtn = card.querySelector(".edit-btn");
       editBtn.addEventListener("click", () => {
-  const noteParagraph = card.querySelector(".note-text");
-  const currentNote = noteParagraph.textContent;
+        const noteParagraph = card.querySelector(".note-text");
+        const currentNote = noteParagraph.textContent;
 
-  const textarea = document.createElement("textarea");
-  textarea.className = "form-control mb-2";
-  textarea.value = currentNote;
+        const textarea = document.createElement("textarea");
+        textarea.className = "form-control mb-2";
+        textarea.value = currentNote;
 
-  const saveBtn = document.createElement("button");
-  saveBtn.className = "btn btn-sm btn-success me-2";
-  saveBtn.textContent = "Save";
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "btn btn-sm btn-success me-2";
+        saveBtn.textContent = "Save";
 
-  const cancelBtn = document.createElement("button");
-  cancelBtn.className = "btn btn-sm btn-secondary";
-  cancelBtn.textContent = "Cancel";
+        const cancelBtn = document.createElement("button");
+        cancelBtn.className = "btn btn-sm btn-secondary";
+        cancelBtn.textContent = "Cancel";
 
-  // Replace note text with textarea and buttons
-  noteParagraph.replaceWith(textarea);
-  editBtn.replaceWith(saveBtn);
-  saveBtn.after(cancelBtn);
+        // Replace note text with textarea and buttons
+        noteParagraph.replaceWith(textarea);
+        editBtn.replaceWith(saveBtn);
+        saveBtn.after(cancelBtn);
 
-  // Save updated note
-  saveBtn.addEventListener("click", async () => {
-    try {
-      await updateDoc(doc(db, "users", patientId, "nurseNotes", docId), {
-        note: textarea.value,
-        updatedAt: new Date(),
+        // Save updated note
+        saveBtn.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "users", patientId, "nurseNotes", docId), {
+              note: textarea.value,
+              updatedAt: new Date(),
+            });
+
+            /* ---------- FETCH PATIENT INFO FOR AUDIT ---------- */
+            let patientInfo = { name: patientId, schoolId: "N/A" };
+            try {
+              const patientDoc = await getDoc(doc(db, "users", patientId));
+              if (patientDoc.exists()) {
+                const pData = patientDoc.data();
+                patientInfo = {
+                  name: `${pData.lastName}, ${pData.firstName}`,
+                  schoolId: pData.schoolId || "N/A",
+                };
+              }
+            } catch (patientError) {
+              console.error(
+                "Failed to fetch patient info for audit:",
+                patientError
+              );
+            }
+
+            /* ---------- ADMIN AUDIT TRAIL ---------- */
+            const auditMessage = `${
+              currentUserName || "Unknown User"
+            } edited a nurse note for patient "${
+              patientInfo.name
+            }" (School ID: ${patientInfo.schoolId})`;
+            await addDoc(collection(db, "AdminAuditTrail"), {
+              message: auditMessage,
+              userId: currentUserName || null,
+              timestamp: new Date(),
+              section: "ClinicStaffActions",
+            });
+
+            loadNurseNotes(); // reload notes
+          } catch (err) {
+            console.error("Error updating nurse note:", err);
+            alert("Failed to update note");
+          }
+        });
+
+        // Cancel editing
+        cancelBtn.addEventListener("click", () => {
+          loadNurseNotes(); // reload notes
+        });
       });
-
-      /* ---------- FETCH PATIENT INFO FOR AUDIT ---------- */
-      let patientInfo = { name: patientId, schoolId: "N/A" };
-      try {
-        const patientDoc = await getDoc(doc(db, "users", patientId));
-        if (patientDoc.exists()) {
-          const pData = patientDoc.data();
-          patientInfo = {
-            name: `${pData.lastName}, ${pData.firstName}`,
-            schoolId: pData.schoolId || "N/A",
-          };
-        }
-      } catch (patientError) {
-        console.error("Failed to fetch patient info for audit:", patientError);
-      }
-
-      /* ---------- ADMIN AUDIT TRAIL ---------- */
-      const auditMessage = `${currentUserName || "Unknown User"} edited a nurse note for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId})`;
-      await addDoc(collection(db, "AdminAuditTrail"), {
-        message: auditMessage,
-        userId: currentUserName || null,
-        timestamp: new Date(),
-        section: "ClinicStaffActions",
-      });
-
-      
-
-      loadNurseNotes(); // reload notes
-    } catch (err) {
-      console.error("Error updating nurse note:", err);
-      alert("Failed to update note");
-    }
-  });
-
-  // Cancel editing
-  cancelBtn.addEventListener("click", () => {
-    loadNurseNotes(); // reload notes
-  });
-});
-
 
       container.appendChild(card);
     });
@@ -2414,7 +2423,7 @@ document
       const time = now.toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
-      }); //
+      });
 
       await addDoc(dentalRef, {
         procedure,
@@ -2457,32 +2466,57 @@ document
         }
       }
 
-      // 3️⃣ Log edit action
+      // 3️⃣ FETCH PATIENT INFO FOR AUDIT
+      let patientInfo = { name: patientId, schoolId: "N/A" };
+      try {
+        const patientDoc = await getDoc(doc(db, "users", patientId));
+        if (patientDoc.exists()) {
+          const pData = patientDoc.data();
+          patientInfo = {
+            name: `${pData.lastName}, ${pData.firstName}`,
+            schoolId: pData.schoolId || "N/A",
+          };
+        }
+      } catch (patientError) {
+        console.error("Failed to fetch patient info for audit:", patientError);
+      }
+
+      // 4️⃣ Admin Audit Trail
+      const auditMessage = `${
+        currentUserName || "Unknown User"
+      } added a dental record for patient "${patientInfo.name}" (School ID: ${
+        patientInfo.schoolId
+      })`;
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
+      // 5️⃣ Patient-specific edit log
       const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
-          "en-US",
-          {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }
-        )}`,
+        message: `Edited by ${currentUserName} · ${now.toLocaleString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })}`,
         timestamp: new Date(),
         editor: currentUserName,
         section: "Dental Records",
       });
 
-      // 4️⃣ Close modal & reset
+      // 6️⃣ Close modal & reset
       bootstrap.Modal.getInstance(
         document.getElementById("dentalModal")
       ).hide();
       e.target.reset();
 
-      // 5️⃣ Reload records & medicine options
+      // 7️⃣ Reload records & medicine options
       loadDentalRecords();
       loadMedicineOptions();
 
@@ -2666,15 +2700,67 @@ function openEditDentalModal(record) {
       date: document.getElementById("editDate").value,
       time: document.getElementById("editTime").value,
       notes: document.getElementById("editNotes").value,
+      updatedAt: new Date(),
     };
 
     try {
+      // 1️⃣ Update dental record
       await updateDoc(
         doc(db, "users", patientId, "dentalRecords", record.id),
         updatedRecord
       );
+
+      // 2️⃣ Fetch patient info for audit
+      let patientInfo = { name: patientId, schoolId: "N/A" };
+      try {
+        const patientDoc = await getDoc(doc(db, "users", patientId));
+        if (patientDoc.exists()) {
+          const pData = patientDoc.data();
+          patientInfo = {
+            name: `${pData.lastName}, ${pData.firstName}`,
+            schoolId: pData.schoolId || "N/A",
+          };
+        }
+      } catch (patientError) {
+        console.error("Failed to fetch patient info for audit:", patientError);
+      }
+
+      // 3️⃣ Admin Audit Trail
+      const auditMessage = `${
+        currentUserName || "Unknown User"
+      } edited a dental record for patient "${patientInfo.name}" (School ID: ${
+        patientInfo.schoolId
+      })`;
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
+      // 4️⃣ Patient-specific edit log
+      const editLogRef = collection(db, "users", patientId, "editLogs");
+      await addDoc(editLogRef, {
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
+        timestamp: new Date(),
+        editor: currentUserName,
+        section: "Dental Records",
+      });
+
+      // 5️⃣ Close modal & reload
       bsModal.hide();
-      loadDentalRecords(); // reload records
+      loadDentalRecords();
+      alert("✅ Dental record updated successfully!");
     } catch (err) {
       console.error("Error updating dental record:", err);
       alert("Failed to update record");
