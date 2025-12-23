@@ -60,7 +60,11 @@ function formatAuditDate(date = new Date()) {
   formatted = formatted.replace(",", ""); // remove extra comma
   return formatted;
 }
-
+document.querySelectorAll(".name-only").forEach((input) => {
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/[^a-zA-Z\s-]/g, "");
+  });
+});
 const departmentSelect = document.getElementById("department");
 const courseSelect = document.getElementById("course");
 
@@ -607,7 +611,7 @@ function restoreOriginalPatientInfo(fields) {
 function enablePatientInfoEditing(fields) {
   fields.forEach((el) => {
     el.removeAttribute("disabled");
-    el.removeAttribute("readonly"); // <- this ensures Bootstrap read-only styling is removed
+   
   });
   editPatientInfoBtn.textContent = "💾 Save";
   cancelPatientInfoBtn.style.display = "inline-block";
@@ -618,7 +622,6 @@ function enablePatientInfoEditing(fields) {
 function disablePatientInfoEditing(fields) {
   fields.forEach((el) => {
     el.setAttribute("disabled", "true");
-    // optional: el.setAttribute("readonly", "true");
   });
   editPatientInfoBtn.textContent = "✏️ Edit";
   cancelPatientInfoBtn.style.display = "none";

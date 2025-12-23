@@ -155,6 +155,42 @@ async function updateLowStockItems() {
 // Call the function
 updateLowStockItems();
 
+async function updateWeeklyAppointmentsCard() {
+  try {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + (6 - today.getDay())); // Saturday
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    // Query all appointments with status Pending or Accepted
+    const snap = await getDocs(collection(db, "appointments"));
+
+    let weeklyCount = 0;
+    snap.forEach((docSnap) => {
+      const appt = docSnap.data();
+      if (appt.status !== "Pending" && appt.status !== "Accepted") return;
+
+      const apptDate = new Date(appt.date);
+      if (apptDate >= startOfWeek && apptDate <= endOfWeek) {
+        weeklyCount++;
+      }
+    });
+
+    // Update dashboard card
+    document.getElementById("weeklyAppointments").innerText = weeklyCount;
+  } catch (err) {
+    console.error("Error updating weekly appointments card:", err);
+    document.getElementById("weeklyAppointments").innerText = "-";
+  }
+}
+
+// Call this after loading appointments
+updateWeeklyAppointmentsCard();
+
 /* ======================================================
    OPTIMIZED & FIXED FETCH VISIT DATA FUNCTION
 ====================================================== */
@@ -682,7 +718,6 @@ document
 // ===========================================================
 // Export Chief Complaint Chart as Image
 // ===========================================================
-// Export Chief Complaints Chart as Image
 document.getElementById("exportComplaintImageBtn").addEventListener("click", async () => {
   if (!chiefComplaintChart) {
     alert("No chart to export.");
