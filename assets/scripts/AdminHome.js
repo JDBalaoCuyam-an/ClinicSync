@@ -504,8 +504,7 @@ document
     const birthdate = document.getElementById("birthdate")?.value || "";
     const age = document.getElementById("age")?.value || "";
     const department = document.getElementById("department")?.value || "";
-    const courseStrandGenEduc =
-      document.getElementById("courseStrandGenEduc")?.value || "";
+    const courseStrandGenEduc = document.getElementById("courseStrandGenEduc")?.value || "";
     const yearLevel = document.getElementById("yearLevel")?.value || "";
     const civilStatus = document.getElementById("civil-status")?.value || "";
     const nationality = document.getElementById("nationality")?.value || "";
@@ -521,16 +520,12 @@ document
     // ✅ Parents Info
     const fatherName = document.getElementById("fatherName")?.value || "";
     const fatherAge = document.getElementById("fatherAge")?.value || "";
-    const fatherOccupation =
-      document.getElementById("fatherOccupation")?.value || "";
-    const fatherHealth =
-      document.getElementById("fatherHealthStatus")?.value || "";
+    const fatherOccupation = document.getElementById("fatherOccupation")?.value || "";
+    const fatherHealth = document.getElementById("fatherHealthStatus")?.value || "";
     const motherName = document.getElementById("motherName")?.value || "";
     const motherAge = document.getElementById("motherAge")?.value || "";
-    const motherOccupation =
-      document.getElementById("motherOccupation")?.value || "";
-    const motherHealth =
-      document.getElementById("motherHealthStatus")?.value || "";
+    const motherOccupation = document.getElementById("motherOccupation")?.value || "";
+    const motherHealth = document.getElementById("motherHealthStatus")?.value || "";
 
     if (!firstName || !lastName || !schoolId || !email || !userType) {
       alert("Please fill in all required fields!");
@@ -538,10 +533,47 @@ document
     }
 
     try {
-      // Create user with Firebase Auth (secondary app to avoid replacing admin session)
       const secondaryApp = initializeApp(firebaseConfig, "Secondary");
       const secondaryAuth = getAuth(secondaryApp);
-      const password = schoolId; // default password = school ID
+      const password = schoolId + "@" + lastName;
+
+      let invalidReason = "";
+      const fullName = [firstName, middleName, lastName, extName].join(" ").trim();
+
+      // ✅ Validation: email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) invalidReason += "Invalid email format";
+
+      // ✅ Validation: names
+      // const nameRegex = /^[A-Za-z\s'-]*$/;
+      // if (![firstName, middleName, lastName, extName].every(n => nameRegex.test(n))) {
+      //   invalidReason += (invalidReason ? ", " : "") + "Names contain invalid characters or numbers";
+      // }
+
+      // ✅ Duplicate checks (only if no format errors)
+      if (!invalidReason) {
+        const emailQuery = await getDocs(query(collection(db, "users"), where("email", "==", email)));
+        if (!emailQuery.empty) invalidReason += "Email already exists";
+
+        const schoolQuery = await getDocs(query(collection(db, "users"), where("schoolId", "==", schoolId)));
+        if (!schoolQuery.empty) invalidReason += (invalidReason ? ", " : "") + "School ID already exists";
+
+        const nameQuery = await getDocs(query(
+          collection(db, "users"),
+          where("firstName", "==", firstName),
+          where("middleName", "==", middleName),
+          where("lastName", "==", lastName),
+          where("extName", "==", extName)
+        ));
+        if (!nameQuery.empty) invalidReason += (invalidReason ? ", " : "") + "Duplicate name";
+      }
+
+      if (invalidReason) {
+        alert("❌ Cannot create user: " + invalidReason);
+        return;
+      }
+
+      // ✅ Create user in Firebase
       const userCredential = await createUserWithEmailAndPassword(
         secondaryAuth,
         email,
@@ -584,7 +616,7 @@ document
         createdAt: new Date(),
       });
 
-      // Save to AdminAuditTrail instead of UserAccountTrail
+      // Log creation
       await addDoc(collection(db, "AdminAuditTrail"), {
         section: "AccountsManagement",
         message: `${currentAdmin} added 1 new user`,
@@ -1004,7 +1036,8 @@ document.getElementById("download-csv-template").onclick = (e) => {
 /* ============================================================
    📌 UPLOAD USERS TO FIREBASE
 ============================================================ */
-const skippedUsers = []; // <-- collect skipped emails
+const invalidUsers = []; // collect invalid users with reasons
+
 document.getElementById("user-upload-btn").onclick = async () => {
   const file = document.getElementById("user-bulk-file").files[0];
   if (!file) return alert("⚠ Please choose a CSV file!");
@@ -1018,7 +1051,7 @@ document.getElementById("user-upload-btn").onclick = async () => {
     if (rows.length > 0) rows = rows.slice(1);
 
     try {
-      // Get current admin's name from users collection
+      // Get current admin's name
       const currentAdmin = auth.currentUser;
       let adminName = "Unknown Admin";
       if (currentAdmin) {
@@ -1035,16 +1068,54 @@ document.getElementById("user-upload-btn").onclick = async () => {
 
       let addedCount = 0;
 
+      // Regex for email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // Regex for names (no numbers)
+      const nameRegex = /^[A-Za-z\s'-]*$/;
+
       for (const row of rows) {
         const [firstName, middleName, lastName, extName, schoolId, email] = row;
 
-        // Skip empty rows
+        // Skip completely empty rows
         if (!firstName && !lastName && !schoolId && !email) continue;
 
-        const password = schoolId; // default password
+        const password = schoolId + "@" + lastName; // default password
+        let invalidReason = "";
 
+        // Validate email format
+        if (!emailRegex.test(email)) invalidReason += "Invalid email format";
+
+        // Validate names
+        const fullName = [firstName, middleName, lastName, extName].join(" ").trim();
+        if (![firstName, middleName, lastName, extName].every(n => nameRegex.test(n))) {
+          invalidReason += (invalidReason ? ", " : "") + "Names contain invalid characters or numbers";
+        }
+
+        // Check for duplicates in Firestore only if no format errors
+        if (!invalidReason) {
+          const emailQuery = await getDocs(query(collection(db, "users"), where("email", "==", email)));
+          if (!emailQuery.empty) invalidReason += "Email already exists";
+
+          const schoolQuery = await getDocs(query(collection(db, "users"), where("schoolId", "==", schoolId)));
+          if (!schoolQuery.empty) invalidReason += (invalidReason ? ", " : "") + "School ID already exists";
+
+          const nameQuery = await getDocs(query(
+            collection(db, "users"),
+            where("firstName", "==", firstName),
+            where("middleName", "==", middleName),
+            where("lastName", "==", lastName),
+            where("extName", "==", extName)
+          ));
+          if (!nameQuery.empty) invalidReason += (invalidReason ? ", " : "") + "Duplicate name";
+        }
+
+        if (invalidReason) {
+          invalidUsers.push({ email, schoolId, name: fullName, reason: invalidReason });
+          continue;
+        }
+
+        // Try creating the user
         try {
-          // Create Firebase Auth account
           const userCredential = await createUserWithEmailAndPassword(
             secondaryAuth,
             email,
@@ -1052,7 +1123,6 @@ document.getElementById("user-upload-btn").onclick = async () => {
           );
           const newUser = userCredential.user;
 
-          // Save user info in Firestore
           await setDoc(doc(db, "users", newUser.uid), {
             uid: newUser.uid,
             firstName,
@@ -1067,26 +1137,12 @@ document.getElementById("user-upload-btn").onclick = async () => {
 
           addedCount++;
         } catch (err) {
-          skippedUsers.push(email); // <-- store skipped email
-          continue;
+          invalidUsers.push({ email, schoolId, name: fullName, reason: err.message });
         }
       }
 
-      // Log bulk upload in UserAccountTrail
+      // Log bulk upload
       if (addedCount > 0) {
-        const timestamp = new Date();
-        const options = {
-          year: "numeric",
-          month: "short",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        };
-        let formattedDate = timestamp.toLocaleString("en-US", options);
-        formattedDate = formattedDate.replace(/^(\w{3})/, "$1.");
-        formattedDate = formattedDate.replace(",", "");
-
         await addDoc(collection(db, "AdminAuditTrail"), {
           message: `${adminName} added ${addedCount} new user(s) via bulk upload`,
           timestamp: new Date(),
@@ -1094,16 +1150,13 @@ document.getElementById("user-upload-btn").onclick = async () => {
         });
       }
 
-      // --- After processing all rows ---
-      let message = `✅ Bulk User Upload Complete! ${addedCount} user(s) added.`;
-
-      if (skippedUsers.length > 0) {
-        message += `\n⚠ Skipped ${
-          skippedUsers.length
-        } user(s):\n${skippedUsers.join(", ")}`;
+      // Show modal with invalid users
+      if (invalidUsers.length > 0) {
+        showInvalidUsersModal(invalidUsers, rows.length, addedCount);
+      } else {
+        alert(`✅ Bulk User Upload Complete! ${addedCount} user(s) added out of ${rows.length}.`);
       }
 
-      alert(message);
     } catch (err) {
       console.error(err);
       alert("❌ Error uploading users: " + err.message);
@@ -1112,6 +1165,74 @@ document.getElementById("user-upload-btn").onclick = async () => {
 
   reader.readAsText(file);
 };
+
+
+function showInvalidUsersModal(users, totalRows, addedCount) {
+  // Remove previous modal if exists
+  const oldModal = document.getElementById("invalidUsersModal");
+  if (oldModal) oldModal.remove();
+
+  const invalidCount = users.length;
+
+  let modalHtml = `
+<div class="modal fade" id="invalidUsersModal" tabindex="-1" aria-labelledby="invalidUsersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content border border-warning border-5">
+      <div class="modal-header">
+        <h5 class="modal-title" id="invalidUsersModalLabel">⚠ Bulk Upload Summary - Invalid Users</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Uploaded:</strong> ${addedCount} out of ${totalRows}</p>
+        <p><strong>Invalid:</strong> ${invalidCount}</p>
+        ${invalidCount > 0 ? `
+        <table class="table table-bordered table-sm">
+          <thead class="table-warning">
+            <tr>
+              <th>Email</th>
+              <th>School ID</th>
+              <th>Name</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(u => `<tr>
+              <td>${u.email}</td>
+              <td>${u.schoolId}</td>
+              <td>${u.name}</td>
+              <td>${u.reason}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>` : '<p>No invalid users!</p>'}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  // Initialize Bootstrap modal
+  const invalidModalEl = document.getElementById('invalidUsersModal');
+  const invalidModal = new bootstrap.Modal(invalidModalEl);
+
+  // Listen for modal close event to reset the form
+  invalidModalEl.addEventListener('hidden.bs.modal', () => {
+    // Reset the file input form
+    const fileInput = document.getElementById("user-bulk-file");
+    if (fileInput) fileInput.value = ""; // clears the selected file
+
+    // Optionally clear invalid users array
+    invalidUsers.length = 0;
+  });
+
+  invalidModal.show();
+}
+
+
+
 
 async function loadLoginHistory() {
   const tableBody = document

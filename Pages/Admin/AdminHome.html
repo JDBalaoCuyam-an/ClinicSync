@@ -34,9 +34,10 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item d-flex align-items-center">
-              <span id="displayName"></span>
-              <button class="btn btn-outline-light" id="logout-button">
+            <li class="nav-item d-flex align-items-center gap-3">
+              <span id="displayName" class="text-white fw-semibold"></span>
+
+              <button class="btn btn-outline-light btn-sm" id="logout-button">
                 <i class="bi bi-box-arrow-right me-1"></i> Log Out
               </button>
             </li>
@@ -461,7 +462,12 @@ Departments Management Section
 
               <div class="mb-3">
                 <label for="ov_contact" class="form-label">School ID</label>
-                <input type="text" class="form-control" id="ov_schoolId" />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ov_schoolId"
+                  disabled
+                />
               </div>
 
               <div class="mb-3">
