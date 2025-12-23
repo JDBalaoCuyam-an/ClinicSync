@@ -88,13 +88,13 @@
       >
         <!-- Button to trigger Add Medicine Modal -->
         <button
-          class="btn btn-primary"
+          class="btn btn-primary btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#addMedicineModal"
         >
           + Add Medicine
         </button>
-        <button id="open-bulk-upload" class="btn btn-secondary">
+        <button id="open-bulk-upload" class="btn btn-secondary btn-sm">
           Bulk Upload
         </button>
 
@@ -106,6 +106,8 @@
             id="search-bar"
           />
         </form>
+        <button id="export-btn">Export to Excel</button>
+
       </div>
 
       <div class="table-responsive">
@@ -350,6 +352,7 @@
   ></script>
   <script src="../../assets/scripts/modal.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script>
     // Wait for the DOM to fully load
     document.addEventListener("DOMContentLoaded", () => {

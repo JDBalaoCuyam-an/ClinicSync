@@ -453,45 +453,27 @@ editHistoryBtn.addEventListener("click", async () => {
     );
     currentHistoryId = !historySnap.empty ? historySnap.docs[0].id : null;
   } else {
-    // Save updated values
+    // Collect updated values
     const [pastMedical, familyHistory, pastSurgical, supplements, allergies] =
       Array.from(
         document.querySelectorAll(".medical-history-content textarea")
       ).map((ta) => ta.value.trim());
 
-    // Immunization
-    const immunizationInputs = [
-      "bcg",
-      "dpt",
-      "opv",
-      "hepb",
-      "mmr",
-      "measles",
-      "others",
-    ];
+    const immunizationInputs = ["bcg","dpt","opv","hepb","mmr","measles","others"];
     const immunizationData = {};
     immunizationInputs.forEach((name) => {
       const input = document.querySelector(`input[name="${name}"]`);
       if (input) immunizationData[name] = input.value.trim();
     });
 
-    // OB-GYNE
-    const obgyneInputs = [
-      "menarcheAge",
-      "durationDays",
-      "napkinsPerDay",
-      "interval",
-      "lastMenstrual",
-    ];
+    const obgyneInputs = ["menarcheAge","durationDays","napkinsPerDay","interval","lastMenstrual"];
     const obgyneData = {};
     obgyneInputs.forEach((name) => {
       const input = document.querySelector(`input[name="${name}"]`);
       if (input) obgyneData[name] = input.value.trim();
     });
 
-    // Dysmenorrhea radio
-    const dysmenorrhea =
-      document.querySelector('input[name="dysmenorrhea"]:checked')?.value || "";
+    const dysmenorrhea = document.querySelector('input[name="dysmenorrhea"]:checked')?.value || "";
 
     const historyData = {
       pastMedicalHistory: pastMedical,
@@ -509,28 +491,45 @@ editHistoryBtn.addEventListener("click", async () => {
       const historyRef = collection(db, "users", patientId, "medicalHistory");
 
       if (currentHistoryId) {
-        // Update existing document
-        const historyDocRef = doc(historyRef, currentHistoryId);
-        await updateDoc(historyDocRef, historyData);
+        await updateDoc(doc(historyRef, currentHistoryId), historyData);
       } else {
-        // Create new document
         await addDoc(historyRef, historyData);
       }
 
-      // Save Edit Log
+      // -----------------------
+      // Fetch patient info for audit
+      let patientInfo = { name: patientId, schoolId: "N/A" };
+      try {
+        const patientDoc = await getDoc(doc(db, "users", patientId));
+        if (patientDoc.exists()) {
+          const data = patientDoc.data();
+          patientInfo = {
+            name: `${data.lastName}, ${data.firstName}`,
+            schoolId: data.schoolId || "N/A",
+          };
+        }
+      } catch (patientError) {
+        console.error("Failed to fetch patient info for audit:", patientError);
+      }
+
+      // -----------------------
+      // Add centralized Admin Audit Trail
+      const auditMessage = `${currentUserName || "Unknown User"} updated medical history for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId})`;
+
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
+      // -----------------------
+      // Add patient-specific edit log
       const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
-          "en-US",
-          {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }
-        )}`,
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString("en-US", {
+          month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true
+        })}`,
         timestamp: new Date(),
         editor: currentUserName,
         section: "Medical History",
@@ -544,7 +543,6 @@ editHistoryBtn.addEventListener("click", async () => {
       cancelHistoryBtn.style.display = "none";
       isEditingHistory = false;
 
-      // Refresh original data after save
       storeOriginalHistoryData();
     } catch (err) {
       console.error("Error saving medical history:", err);
@@ -552,6 +550,7 @@ editHistoryBtn.addEventListener("click", async () => {
     }
   }
 });
+
 
 // --------------------------
 // Cancel edits
@@ -2487,6 +2486,37 @@ confirmBtn.addEventListener("click", async () => {
       return;
     }
 
+    // 🔹 Fetch patient info for audit trail
+    let patientInfo = { name: patientId, schoolId: "N/A" }; // fallback
+    try {
+      const patientDoc = await getDoc(doc(db, "users", patientId));
+      if (patientDoc.exists()) {
+        const data = patientDoc.data();
+        patientInfo = {
+          name: `${data.lastName}, ${data.firstName}`,
+          schoolId: data.schoolId || "N/A",
+        };
+      }
+    } catch (patientError) {
+      console.error("Failed to fetch patient info:", patientError);
+    }
+
+    // 🔹 Add audit trail
+    try {
+      const auditMessage = `${currentUserName || "Unknown User"} uploaded a file "${selectedFile.name}" for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId}) under category "${folder}"`;
+
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
+      console.log("Audit trail for file upload added ✅");
+    } catch (auditError) {
+      console.error("Failed to log upload audit trail:", auditError);
+    }
+
     // Refresh file list in accordion
     await loadDocumentsFiles();
 
@@ -2500,6 +2530,8 @@ confirmBtn.addEventListener("click", async () => {
     filePreview.innerHTML = `<p class="text-muted mb-0">No file selected</p>`;
   }
 });
+
+
 
 const cancelFileUploadBtn = document.getElementById("cancel-upload-btn");
 

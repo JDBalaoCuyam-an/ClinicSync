@@ -229,6 +229,48 @@ function renderMedicines() {
 });
 }
 
+document.getElementById("export-btn").addEventListener("click", async () => {
+  // 🔹 Filtered & sorted medicines
+  const searchValue = searchBar.value.toLowerCase();
+  const filtered = medicines
+    .filter((med) => med.name.toLowerCase().includes(searchValue))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  // 🔹 Map to sheet-friendly format
+  const data = filtered.map((med) => ({
+    Name: med.name || "",
+    Stock: med.stock || 0,
+    "Date Purchased": formatDateLabel(med.datePurchased) || "-",
+    Expiry: formatDateLabel(med.expiry) || "-",
+    "Per Pack": med.perPack || "-",
+    Dispensed: med.dispensed || 0,
+  }));
+
+  // 🔹 Create worksheet & workbook
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Medicines");
+
+  // 🔹 Export Excel file
+  XLSX.writeFile(wb, "medicines.xlsx");
+
+  // 🔹 Add audit trail
+  try {
+    const auditMessage = `${currentUserName || "Unknown User"} exported the medicines list to Excel`;
+    
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: auditMessage,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+
+    console.log("Audit trail for export added ✅");
+  } catch (error) {
+    console.error("Failed to log export audit trail:", error);
+  }
+});
+
 
 /* ============================================================
    ✅ SEARCH FILTER
