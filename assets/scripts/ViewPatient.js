@@ -1898,28 +1898,68 @@ async function loadDoctorNotes() {
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
+      const docId = docSnap.id; // store document ID for editing
 
       const card = document.createElement("div");
-      card.className = "card shadow-sm";
+      card.className = "card shadow-sm mb-2";
 
       card.innerHTML = `
         <div class="card-body">
           <div class="d-flex justify-content-between mb-2">
             <strong>${formatDateLabel(data.date) || "-"}</strong>
-            <span class="text-muted">${data.time || "-"}</span>
+            <span class="text-muted">${formatTimeFromString(data.time) || "-"}</span>
           </div>
 
           <div class="mb-2">
-            <span class="badge bg-primary">
-              ${data.doctor || "Doctor"}
-            </span>
+            <span class="badge bg-primary">${data.doctor || "Doctor"}</span>
           </div>
 
-          <p class="mb-0">
-            ${data.note || "-"}
-          </p>
+          <p class="mb-2 note-text">${data.note || "-"}</p>
+          
+          <button class="btn btn-sm btn-warning edit-btn">Edit</button>
         </div>
       `;
+
+      // Edit button click handler
+      const editBtn = card.querySelector(".edit-btn");
+      editBtn.addEventListener("click", () => {
+        const noteParagraph = card.querySelector(".note-text");
+        const currentNote = noteParagraph.textContent;
+
+        const textarea = document.createElement("textarea");
+        textarea.className = "form-control mb-2";
+        textarea.value = currentNote;
+
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "btn btn-sm btn-success me-2";
+        saveBtn.textContent = "Save";
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.className = "btn btn-sm btn-secondary";
+        cancelBtn.textContent = "Cancel";
+
+        // Replace note text with textarea and buttons
+        noteParagraph.replaceWith(textarea);
+        editBtn.replaceWith(saveBtn);
+        saveBtn.after(cancelBtn);
+
+        // Save updated note to Firestore
+        saveBtn.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "users", patientId, "doctorNotes", docId), {
+              note: textarea.value
+            });
+            loadDoctorNotes(); // reload notes
+          } catch (err) {
+            console.error("Error updating note:", err);
+          }
+        });
+
+        // Cancel editing
+        cancelBtn.addEventListener("click", () => {
+          loadDoctorNotes(); // reload notes
+        });
+      });
 
       container.appendChild(card);
     });
@@ -1932,6 +1972,7 @@ async function loadDoctorNotes() {
     `;
   }
 }
+
 loadDoctorNotes();
 
 /* -----------------------------------------------
@@ -1990,28 +2031,67 @@ async function loadNurseNotes() {
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
+      const docId = docSnap.id;
 
       const card = document.createElement("div");
-      card.className = "card shadow-sm";
+      card.className = "card shadow-sm mb-2";
       card.style.width = "320px";
 
       card.innerHTML = `
         <div class="card-body">
-          <h6 class="card-subtitle mb-1 text-muted">
-            ${data.nurseName || "Nurse"}
-          </h6>
+          <h6 class="card-subtitle mb-1 text-muted">${data.nurseName || "Nurse"}</h6>
 
           <small class="text-muted d-block mb-2">
-            ${formatDateLabel(data.date) || "—"} ${
-        formatTimeFromString(data.time) || ""
-      }
+            ${formatDateLabel(data.date) || "—"} ${formatTimeFromString(data.time) || ""}
           </small>
 
-          <p class="card-text">
-            ${data.note || "No note provided"}
-          </p>
+          <p class="card-text note-text">${data.note || "No note provided"}</p>
+
+          <button class="btn btn-sm btn-warning edit-btn">Edit</button>
         </div>
       `;
+
+      // Edit button functionality
+      const editBtn = card.querySelector(".edit-btn");
+      editBtn.addEventListener("click", () => {
+        const noteParagraph = card.querySelector(".note-text");
+        const currentNote = noteParagraph.textContent;
+
+        const textarea = document.createElement("textarea");
+        textarea.className = "form-control mb-2";
+        textarea.value = currentNote;
+
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "btn btn-sm btn-success me-2";
+        saveBtn.textContent = "Save";
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.className = "btn btn-sm btn-secondary";
+        cancelBtn.textContent = "Cancel";
+
+        // Replace note text with textarea and buttons
+        noteParagraph.replaceWith(textarea);
+        editBtn.replaceWith(saveBtn);
+        saveBtn.after(cancelBtn);
+
+        // Save updated note
+        saveBtn.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "users", patientId, "nurseNotes", docId), {
+              note: textarea.value,
+            });
+            loadNurseNotes(); // reload notes
+          } catch (err) {
+            console.error("Error updating nurse note:", err);
+            alert("Failed to update note");
+          }
+        });
+
+        // Cancel editing
+        cancelBtn.addEventListener("click", () => {
+          loadNurseNotes(); // reload notes
+        });
+      });
 
       container.appendChild(card);
     });
@@ -2024,6 +2104,7 @@ async function loadNurseNotes() {
     `;
   }
 }
+
 
 loadNurseNotes();
 /* -----------------------------------------------
@@ -2154,6 +2235,7 @@ document
     }
   });
 
+// Load dental records with Edit button
 async function loadDentalRecords() {
   const container = document.getElementById("dental-records-container");
   if (!container) return;
@@ -2170,22 +2252,18 @@ async function loadDentalRecords() {
       return;
     }
 
-    // ✅ Sort by date + time (latest first)
+    // Sort by date + time (latest first)
     const records = snap.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .sort((a, b) => {
-        const aDateTime = new Date(`${a.date} ${a.time}`);
-        const bDateTime = new Date(`${b.date} ${b.time}`);
-        return bDateTime - aDateTime;
-      });
+      .sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
 
     records.forEach((d) => {
       const medsHTML = d.medications?.length
         ? d.medications
             .map(
-              (m) => `
+              (m, i) => `
               <li>
-                ${m.name} (${m.quantity}) – ${m.type}
+                <strong>${m.name}</strong> (${m.quantity}) – ${m.type}
                 <br />
                 <small class="text-muted">${m.remarks || "No remarks"}</small>
               </li>`
@@ -2201,28 +2279,26 @@ async function loadDentalRecords() {
         <div class="card-body">
           <h5 class="card-title">🦷 ${d.procedure}</h5>
 
-          <p class="mb-1">
-            <strong>Teeth:</strong> ${d.teeth?.join(", ") || "-"}
-          </p>
-
-          <p class="mb-1">
-            <strong>Dentist:</strong> ${d.dentist || "Unassigned"}
-          </p>
-
+          <p class="mb-1"><strong>Teeth:</strong> ${d.teeth?.join(", ") || "-"}</p>
+          <p class="mb-1"><strong>Dentist:</strong> ${d.dentist || "Unassigned"}</p>
           <p class="mb-2">
-            <strong>Date:</strong> ${formatDateLabel(d.date) || "-"}
-            <br />
+            <strong>Date:</strong> ${formatDateLabel(d.date) || "-"}<br />
             <strong>Time:</strong> ${formatTimeFromString(d.time) || "-"}
           </p>
 
           <hr />
-
           <strong>Medications:</strong>
           <ul class="ps-3 mb-2">${medsHTML}</ul>
 
           <p class="card-text text-muted">${d.notes || "No notes"}</p>
+
+          <button class="btn btn-sm btn-warning edit-btn">Edit</button>
         </div>
       `;
+
+      // Edit button opens modal
+      const editBtn = card.querySelector(".edit-btn");
+      editBtn.addEventListener("click", () => openEditDentalModal(d));
 
       container.appendChild(card);
     });
@@ -2231,6 +2307,107 @@ async function loadDentalRecords() {
     container.innerHTML = `<div class="text-danger">Failed to load records</div>`;
   }
 }
+
+// Function to open a modal for editing dental record
+function openEditDentalModal(record) {
+  // Create modal HTML if it doesn't exist
+  let modal = document.getElementById("editDentalModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.className = "modal fade";
+    modal.id = "editDentalModal";
+    modal.tabIndex = -1;
+    modal.innerHTML = `
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form id="editDentalForm">
+            <div class="modal-header">
+              <h5 class="modal-title">Edit Dental Record</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Procedure</label>
+                <select
+                              class="form-select"
+                              id="editProcedure"
+                              required
+                            >
+                              <option value="">Select Procedure</option>
+                              <option>Dental Filling</option>
+                              <option>Tooth Extraction</option>
+                              <option>Oral Prophylaxis</option>
+                            </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Teeth (comma separated)</label>
+                <input type="text" class="form-control" id="editTeeth">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Dentist</label>
+                <input type="text" class="form-control" id="editDentist">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-control" id="editDate">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Time</label>
+                <input type="time" class="form-control" id="editTime">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" id="editNotes"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-success">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // Prefill form with record data
+  document.getElementById("editProcedure").value = record.procedure || "";
+  document.getElementById("editTeeth").value = record.teeth?.join(", ") || "";
+  document.getElementById("editDentist").value = record.dentist || "";
+  document.getElementById("editDate").value = record.date || "";
+  document.getElementById("editTime").value = record.time || "";
+  document.getElementById("editNotes").value = record.notes || "";
+
+  // Show modal
+  const bsModal = new bootstrap.Modal(modal);
+  bsModal.show();
+
+  // Handle form submit
+  const form = document.getElementById("editDentalForm");
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const updatedRecord = {
+      procedure: document.getElementById("editProcedure").value,
+      teeth: document.getElementById("editTeeth").value.split(",").map((t) => t.trim()),
+      dentist: document.getElementById("editDentist").value,
+      date: document.getElementById("editDate").value,
+      time: document.getElementById("editTime").value,
+      notes: document.getElementById("editNotes").value,
+    };
+
+    try {
+      await updateDoc(doc(db, "users", patientId, "dentalRecords", record.id), updatedRecord);
+      bsModal.hide();
+      loadDentalRecords(); // reload records
+    } catch (err) {
+      console.error("Error updating dental record:", err);
+      alert("Failed to update record");
+    }
+  };
+}
+
 
 loadDentalRecords();
 
