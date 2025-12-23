@@ -620,7 +620,6 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-/* Load Staff with Date-Based Availability */
 async function loadStaff() {
   try {
     const q = query(
@@ -696,11 +695,61 @@ async function loadStaff() {
         </div>
       `;
 
-      // ✅ BUTTON CLICK
-      colDiv.querySelector(".book-appt-btn").addEventListener("click", () => {
-        console.log("Opening appointment modal for:", fullName);
-        openAppointmentModal(id, fullName);
+      // ✅ BUTTON CLICK WITH COOLDOWN CHECK
+      colDiv.querySelector(".book-appt-btn").addEventListener("click", async () => {
+  try {
+    const currentUserId = auth.currentUser.uid;
+
+    // Get all appointments for this user
+    const appointmentsQuery = query(
+      collection(db, "appointments"),
+      where("patientId", "==", currentUserId)
+    );
+
+    const apptSnap = await getDocs(appointmentsQuery);
+
+    // Filter appointments in the last 3 days
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+    const recentAppointments = apptSnap.docs
+      .map(doc => doc.data())
+      .filter(data => {
+        const createdAt = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+        return createdAt >= threeDaysAgo;
       });
+
+    if (recentAppointments.length > 0) {
+      // Find the most recent appointment
+      const lastAppt = recentAppointments.reduce((a, b) => {
+        const aDate = a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+        const bDate = b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+        return aDate > bDate ? a : b;
+      });
+
+      const lastDate = lastAppt.createdAt.toDate ? lastAppt.createdAt.toDate() : new Date(lastAppt.createdAt);
+      const cooldownEnd = new Date(lastDate.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days later
+      const now = new Date();
+      const diffMs = cooldownEnd - now;
+
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+      alert(`You can only book once every 3 days.\nTime remaining: ${days} day(s), ${hours} hour(s), ${minutes} minute(s).`);
+      return;
+    }
+
+    // No recent appointment, open modal
+    console.log("Opening appointment modal for:", fullName);
+    openAppointmentModal(id, fullName);
+
+  } catch (err) {
+    console.error("Error checking appointment cooldown:", err);
+  }
+});
+
+
 
       staffList.appendChild(colDiv);
     });
@@ -710,6 +759,7 @@ async function loadStaff() {
 }
 
 loadStaff();
+
 
 /* Open Appointment Modal */
 async function openAppointmentModal(id, fullName) {
