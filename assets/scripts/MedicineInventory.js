@@ -5,6 +5,8 @@ import {
   getDocs,
   updateDoc,
   doc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 function formatDateLabel(dateStr) {
@@ -361,39 +363,109 @@ document.getElementById("upload-bulk-btn").onclick = async () => {
   const reader = new FileReader();
   reader.onload = async (e) => {
     const rows = parseCSV(e.target.result);
-
     if (rows.length < 2) return alert("⚠ No data found in CSV!");
 
-    // Skip the first row (header)
     const dataRows = rows.slice(1);
+    const duplicates = [];
+    const newEntries = [];
 
     try {
       for (const row of dataRows) {
         const [name, stock, expiry, perPack, datePurchased] = row;
+        const medicineRef = collection(db, "MedicineInventory");
+        const querySnapshot = await getDocs(query(medicineRef, where("name", "==", name.trim())));
 
-        await addDoc(collection(db, "MedicineInventory"), {
-          name,
-          stock: Number(stock),
-          expiry,
-          perPack: Number(perPack),
-          datePurchased,
-          dispensed: 0,
-          createdAt: new Date(),
-        });
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((docSnap) => {
+            duplicates.push({
+              id: docSnap.id,
+              existing: docSnap.data(),
+              incoming: { name: name.trim(), stock: Number(stock), expiry, perPack: Number(perPack), datePurchased },
+            });
+          });
+        } else {
+          newEntries.push({ name: name.trim(), stock: Number(stock), expiry, perPack: Number(perPack), datePurchased });
+        }
       }
 
-      alert("✅ Bulk upload completed!");
-      document.getElementById("bulk-upload-modal").classList.add("d-none");
-      loadMedicines(); // refresh table
+      if (duplicates.length > 0) {
+        // Populate Bootstrap modal table
+        const tbody = document.querySelector("#duplicates-table tbody");
+        tbody.innerHTML = "";
+        duplicates.forEach((dup, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><input type="checkbox" data-index="${index}" checked></td>
+            <td>${dup.incoming.name}</td>
+            <td>${dup.existing.stock}</td>
+            <td>${dup.incoming.stock}</td>
+            <td>${dup.incoming.expiry}</td>
+            <td>${dup.incoming.datePurchased}</td>
+          `;
+          tbody.appendChild(tr);
+        });
 
-      // 🔹 Audit log for bulk upload
-      const auditMessage = `${currentUserName || "Unknown User"} performed a bulk upload of ${dataRows.length} medicines.`;
-      await addDoc(collection(db, "AdminAuditTrail"), {
-        message: auditMessage,
-        userId: currentUserName || null,
-        timestamp: new Date(),
-        section: "ClinicStaffActions",
-      });
+        // Show Bootstrap modal
+        const duplicatesModal = new bootstrap.Modal(document.getElementById('duplicatesModal'));
+        duplicatesModal.show();
+
+        // Merge button
+        document.getElementById("merge-selected-btn").onclick = async () => {
+          const checkboxes = document.querySelectorAll("#duplicates-table tbody input[type='checkbox']");
+          for (const checkbox of checkboxes) {
+            if (checkbox.checked) {
+              const dup = duplicates[checkbox.dataset.index];
+              const docRef = doc(db, "MedicineInventory", dup.id);
+              await updateDoc(docRef, {
+                stock: dup.existing.stock + dup.incoming.stock,
+                expiry: dup.incoming.expiry,
+                perPack: dup.incoming.perPack,
+                datePurchased: dup.incoming.datePurchased,
+              });
+            }
+          }
+
+          duplicatesModal.hide();
+
+          // Upload non-duplicates
+          for (const entry of newEntries) {
+            await addDoc(collection(db, "MedicineInventory"), {
+              ...entry,
+              dispensed: 0,
+              createdAt: new Date(),
+            });
+          }
+
+          loadMedicines();
+          alert("✅ Upload and merge completed!");
+        };
+
+        // Skip duplicates button
+        document.getElementById("skip-duplicates-btn").onclick = async () => {
+          duplicatesModal.hide();
+          for (const entry of newEntries) {
+            await addDoc(collection(db, "MedicineInventory"), {
+              ...entry,
+              dispensed: 0,
+              createdAt: new Date(),
+            });
+          }
+          loadMedicines();
+          alert("✅ Uploaded non-duplicate medicines.");
+        };
+      } else {
+        // No duplicates, upload all
+        for (const entry of newEntries) {
+          await addDoc(collection(db, "MedicineInventory"), {
+            ...entry,
+            dispensed: 0,
+            createdAt: new Date(),
+          });
+        }
+        alert("✅ Bulk upload completed!");
+        loadMedicines();
+      }
+
     } catch (err) {
       console.error(err);
       alert("⚠ Error uploading medicines. Check console.");
@@ -402,4 +474,5 @@ document.getElementById("upload-bulk-btn").onclick = async () => {
 
   reader.readAsText(file);
 };
+
 

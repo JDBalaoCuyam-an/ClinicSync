@@ -291,6 +291,37 @@
         </div>
       </div>
     </div>
+    <!-- Bootstrap Duplicate Modal -->
+<div class="modal fade" id="duplicatesModal" tabindex="-1" aria-labelledby="duplicatesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="duplicatesModalLabel">Duplicate Medicines Found</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Select which medicines to merge with existing entries:</p>
+        <table class="table table-bordered" id="duplicates-table">
+          <thead>
+            <tr>
+              <th>Merge?</th>
+              <th>Name</th>
+              <th>Existing Stock</th>
+              <th>Incoming Stock</th>
+              <th>Expiry</th>
+              <th>Date Purchased</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="skip-duplicates-btn" class="btn btn-secondary" data-bs-dismiss="modal">Skip Duplicates</button>
+        <button type="button" id="merge-selected-btn" class="btn btn-primary">Merge Selected</button>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- <div class="dispense-medicine" id="dispense-medicine">
       <h2>Dispense Medicine</h2>
