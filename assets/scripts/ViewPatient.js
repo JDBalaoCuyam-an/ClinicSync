@@ -459,21 +459,36 @@ editHistoryBtn.addEventListener("click", async () => {
         document.querySelectorAll(".medical-history-content textarea")
       ).map((ta) => ta.value.trim());
 
-    const immunizationInputs = ["bcg","dpt","opv","hepb","mmr","measles","others"];
+    const immunizationInputs = [
+      "bcg",
+      "dpt",
+      "opv",
+      "hepb",
+      "mmr",
+      "measles",
+      "others",
+    ];
     const immunizationData = {};
     immunizationInputs.forEach((name) => {
       const input = document.querySelector(`input[name="${name}"]`);
       if (input) immunizationData[name] = input.value.trim();
     });
 
-    const obgyneInputs = ["menarcheAge","durationDays","napkinsPerDay","interval","lastMenstrual"];
+    const obgyneInputs = [
+      "menarcheAge",
+      "durationDays",
+      "napkinsPerDay",
+      "interval",
+      "lastMenstrual",
+    ];
     const obgyneData = {};
     obgyneInputs.forEach((name) => {
       const input = document.querySelector(`input[name="${name}"]`);
       if (input) obgyneData[name] = input.value.trim();
     });
 
-    const dysmenorrhea = document.querySelector('input[name="dysmenorrhea"]:checked')?.value || "";
+    const dysmenorrhea =
+      document.querySelector('input[name="dysmenorrhea"]:checked')?.value || "";
 
     const historyData = {
       pastMedicalHistory: pastMedical,
@@ -514,7 +529,11 @@ editHistoryBtn.addEventListener("click", async () => {
 
       // -----------------------
       // Add centralized Admin Audit Trail
-      const auditMessage = `${currentUserName || "Unknown User"} updated medical history for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId})`;
+      const auditMessage = `${
+        currentUserName || "Unknown User"
+      } updated medical history for patient "${patientInfo.name}" (School ID: ${
+        patientInfo.schoolId
+      })`;
 
       await addDoc(collection(db, "AdminAuditTrail"), {
         message: auditMessage,
@@ -527,9 +546,17 @@ editHistoryBtn.addEventListener("click", async () => {
       // Add patient-specific edit log
       const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
-        message: `Edited by ${currentUserName} · ${new Date().toLocaleString("en-US", {
-          month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true
-        })}`,
+        message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
         timestamp: new Date(),
         editor: currentUserName,
         section: "Medical History",
@@ -550,7 +577,6 @@ editHistoryBtn.addEventListener("click", async () => {
     }
   }
 });
-
 
 // --------------------------
 // Cancel edits
@@ -610,7 +636,6 @@ function restoreOriginalPatientInfo(fields) {
 function enablePatientInfoEditing(fields) {
   fields.forEach((el) => {
     el.removeAttribute("disabled");
-   
   });
   editPatientInfoBtn.textContent = "💾 Save";
   cancelPatientInfoBtn.style.display = "inline-block";
@@ -915,7 +940,10 @@ document
 
     const now = new Date();
     const medDate = now.toISOString().split("T")[0];
-    const medTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const medTime = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     // Collect medicines
     const medsDispensed = Array.from(document.querySelectorAll(".med-row"))
@@ -937,7 +965,9 @@ document
 
     // Handle Complaint
     let complaintValue = document.getElementById("consult-complaint").value;
-    let newComplaintText = document.getElementById("new-complaint-input").value.trim();
+    let newComplaintText = document
+      .getElementById("new-complaint-input")
+      .value.trim();
     let finalComplaint =
       complaintValue === "__add_new__"
         ? capitalizeFirstLetter(newComplaintText)
@@ -953,15 +983,22 @@ document
     // Save new complaint if needed
     if (complaintValue === "__add_new__") {
       const complaintsRef = collection(db, "complaints");
-      const snap = await getDocs(query(complaintsRef, where("name", "==", finalComplaint)));
+      const snap = await getDocs(
+        query(complaintsRef, where("name", "==", finalComplaint))
+      );
       if (snap.empty) {
-        await addDoc(complaintsRef, { name: finalComplaint, createdAt: new Date() });
+        await addDoc(complaintsRef, {
+          name: finalComplaint,
+          createdAt: new Date(),
+        });
       }
     }
 
     // Handle Diagnosis
     let diagnosisValue = document.getElementById("consult-diagnosis").value;
-    let newDiagnosisText = document.getElementById("new-diagnosis-input").value.trim();
+    let newDiagnosisText = document
+      .getElementById("new-diagnosis-input")
+      .value.trim();
     let finalDiagnosis =
       diagnosisValue === "__add_new__"
         ? capitalizeFirstLetter(newDiagnosisText)
@@ -977,7 +1014,9 @@ document
     // Save new diagnosis if needed
     if (diagnosisValue === "__add_new__") {
       const diagRef = collection(db, "diagnoses");
-      const snap = await getDocs(query(diagRef, where("name", "==", finalDiagnosis)));
+      const snap = await getDocs(
+        query(diagRef, where("name", "==", finalDiagnosis))
+      );
       if (snap.empty) {
         await addDoc(diagRef, { name: finalDiagnosis, createdAt: new Date() });
       }
@@ -1014,13 +1053,18 @@ document
       for (const med of medsDispensed) {
         if (med.name && med.quantity > 0) {
           const invRef = collection(db, "MedicineInventory");
-          const snap = await getDocs(query(invRef, where("name", "==", med.name)));
+          const snap = await getDocs(
+            query(invRef, where("name", "==", med.name))
+          );
           if (!snap.empty) {
             const medDoc = snap.docs[0];
             const data = medDoc.data();
             const newStock = Math.max((data.stock || 0) - med.quantity, 0);
             const newDispensed = (data.dispensed || 0) + med.quantity;
-            await updateDoc(medDoc.ref, { stock: newStock, dispensed: newDispensed });
+            await updateDoc(medDoc.ref, {
+              stock: newStock,
+              dispensed: newDispensed,
+            });
           }
         }
       }
@@ -1032,7 +1076,10 @@ document
         const patientDoc = await getDoc(doc(db, "users", patientId));
         if (patientDoc.exists()) {
           const data = patientDoc.data();
-          patientInfo = { name: `${data.lastName}, ${data.firstName}`, schoolId: data.schoolId || "N/A" };
+          patientInfo = {
+            name: `${data.lastName}, ${data.firstName}`,
+            schoolId: data.schoolId || "N/A",
+          };
         }
       } catch (patientError) {
         console.error("Failed to fetch patient info for audit:", patientError);
@@ -1040,7 +1087,11 @@ document
 
       // -----------------------
       // Add centralized Admin Audit Trail
-      const auditMessage = `${currentUserName || "Unknown User"} added a consultation for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId}) with doctor "${doctorName}"`;
+      const auditMessage = `${
+        currentUserName || "Unknown User"
+      } added a consultation for patient "${patientInfo.name}" (School ID: ${
+        patientInfo.schoolId
+      }) with doctor "${doctorName}"`;
 
       await addDoc(collection(db, "AdminAuditTrail"), {
         message: auditMessage,
@@ -1053,14 +1104,17 @@ document
       // Add patient-specific edit log
       const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
-        message: `Added consultation by ${currentUserName} · ${new Date().toLocaleString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        })}`,
+        message: `Added consultation by ${currentUserName} · ${new Date().toLocaleString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }
+        )}`,
         timestamp: new Date(),
         editor: currentUserName,
         section: "Medical Consultation Record",
@@ -1080,7 +1134,6 @@ document
       submitBtn.textContent = originalText;
     }
   });
-
 
 /* -----------------------------------------------
    🔹 LOAD CONSULTATION RECORDS INTO TABLE
@@ -1226,7 +1279,10 @@ editOverviewBtn.addEventListener("click", async () => {
       const patientDoc = await getDoc(doc(db, "users", patientId));
       if (patientDoc.exists()) {
         const data = patientDoc.data();
-        patientInfo = { name: `${data.lastName}, ${data.firstName}`, schoolId: data.schoolId || "N/A" };
+        patientInfo = {
+          name: `${data.lastName}, ${data.firstName}`,
+          schoolId: data.schoolId || "N/A",
+        };
       }
     } catch (patientError) {
       console.error("Failed to fetch patient info for audit:", patientError);
@@ -1234,7 +1290,11 @@ editOverviewBtn.addEventListener("click", async () => {
 
     // -----------------------
     // Add centralized Admin Audit Trail
-    const auditMessage = `${currentUserName || "Unknown User"} edited consultation record for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId})`;
+    const auditMessage = `${
+      currentUserName || "Unknown User"
+    } edited consultation record for patient "${
+      patientInfo.name
+    }" (School ID: ${patientInfo.schoolId})`;
 
     await addDoc(collection(db, "AdminAuditTrail"), {
       message: auditMessage,
@@ -1247,14 +1307,17 @@ editOverviewBtn.addEventListener("click", async () => {
     // Save patient-specific edit log
     const editLogRef = collection(db, "users", patientId, "editLogs");
     await addDoc(editLogRef, {
-      message: `Edited by ${currentUserName} · ${new Date().toLocaleString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })}`,
+      message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
+        "en-US",
+        {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }
+      )}`,
       timestamp: new Date(),
       editor: currentUserName,
       section: "Medical Consultation Record",
@@ -1278,7 +1341,6 @@ editOverviewBtn.addEventListener("click", async () => {
     alert("Failed to update consultation.");
   }
 });
-
 
 // When modal is hidden, exit edit mode automatically
 consultationModalEl.addEventListener("hidden.bs.modal", () => {
@@ -1354,7 +1416,39 @@ document
       );
       await addDoc(examRef, physicalData);
 
-      // ✅ Save edit log in subcollection
+      // -----------------------
+      // Fetch patient info for audit
+      let patientInfo = { name: patientId, schoolId: "N/A" };
+      try {
+        const patientDoc = await getDoc(doc(db, "users", patientId));
+        if (patientDoc.exists()) {
+          const data = patientDoc.data();
+          patientInfo = {
+            name: `${data.lastName}, ${data.firstName}`,
+            schoolId: data.schoolId || "N/A",
+          };
+        }
+      } catch (patientError) {
+        console.error("Failed to fetch patient info for audit:", patientError);
+      }
+
+      // -----------------------
+      // Add centralized Admin Audit Trail
+      const auditMessage = `${
+        currentUserName || "Unknown User"
+      } added a Physical Examination record for patient "${
+        patientInfo.name
+      }" (School ID: ${patientInfo.schoolId})`;
+
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+
+      // -----------------------
+      // Save patient-specific edit log
       const editLogRef = collection(db, "users", patientId, "editLogs");
       await addDoc(editLogRef, {
         message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
@@ -1376,17 +1470,13 @@ document
       alert("Physical Examination Record Saved!");
       loadPhysicalExaminations();
 
-      // ✅ Close Bootstrap modal programmatically
+      // Close modal programmatically
       const modalEl = document.getElementById("addPhysicalExamModal");
       const modal = bootstrap.Modal.getInstance(modalEl);
-      if (modal) {
-        modal.hide();
-      }
+      if (modal) modal.hide();
 
-      // Reset form after closing
+      // Reset form
       e.target.reset();
-
-      // Reset BMI field if needed
       const bmiInput = document.getElementById("exam-bmi");
       if (bmiInput) bmiInput.value = "";
     } catch (err) {
@@ -1601,7 +1691,6 @@ const editExamBtn = document.getElementById("editExamBtn");
 
 editExamBtn.addEventListener("click", async () => {
   const modal = document.getElementById("exam-overview-modal");
-
   const inputs = modal.querySelectorAll("input, textarea, select");
 
   /* ===============================
@@ -1614,7 +1703,6 @@ editExamBtn.addEventListener("click", async () => {
     document
       .getElementById("ovr-exam-weight")
       .addEventListener("input", computeOverviewBMI);
-
     document
       .getElementById("ovr-exam-height")
       .addEventListener("input", computeOverviewBMI);
@@ -1633,8 +1721,6 @@ editExamBtn.addEventListener("click", async () => {
 
   /* ---------- DATE FIX ---------- */
   let dateValue = document.getElementById("ovr-exam-date").value || "";
-
-  // MM-DD-YYYY → YYYY-MM-DD (fallback safety)
   if (dateValue.includes("-")) {
     const parts = dateValue.split("-");
     if (parts[0].length === 2) {
@@ -1664,13 +1750,10 @@ editExamBtn.addEventListener("click", async () => {
     "deformity",
     "others",
   ];
-
   const findingsObj = {};
   findingFields.forEach((field) => {
     const el = document.getElementById(`ovr-exam-${field}`);
-    if (el && el.value.trim() !== "") {
-      findingsObj[field] = el.value.trim();
-    }
+    if (el && el.value.trim() !== "") findingsObj[field] = el.value.trim();
   });
 
   /* ---------- BUILD FINAL OBJECT ---------- */
@@ -1681,20 +1764,15 @@ editExamBtn.addEventListener("click", async () => {
     weight: Number(document.getElementById("ovr-exam-weight").value || 0),
     height: Number(document.getElementById("ovr-exam-height").value || 0),
     bmi: Number(document.getElementById("ovr-exam-bmi").value || 0),
-
     visualAcuity: {
       os: document.getElementById("ovr-exam-os").value || "",
       od: document.getElementById("ovr-exam-od").value || "",
       glasses: document.getElementById("ovr-exam-glasses").value === "true",
     },
-
     findings: findingsObj,
-
     labPresent: document.getElementById("ovr-exam-lab").value || "",
-
     recommendations:
       document.getElementById("ovr-exam-recommendations").value || "",
-
     updatedAt: new Date(),
   };
 
@@ -1720,9 +1798,36 @@ editExamBtn.addEventListener("click", async () => {
 
     await updateDoc(examRef, updatedExam);
 
-    /* ---------- EDIT LOG ---------- */
-    const editLogRef = collection(db, "users", currentPatientId, "editLogs");
+    /* ---------- FETCH PATIENT INFO FOR AUDIT ---------- */
+    let patientInfo = { name: currentPatientId, schoolId: "N/A" };
+    try {
+      const patientDoc = await getDoc(doc(db, "users", currentPatientId));
+      if (patientDoc.exists()) {
+        const data = patientDoc.data();
+        patientInfo = {
+          name: `${data.lastName}, ${data.firstName}`,
+          schoolId: data.schoolId || "N/A",
+        };
+      }
+    } catch (patientError) {
+      console.error("Failed to fetch patient info for audit:", patientError);
+    }
 
+    /* ---------- ADMIN AUDIT TRAIL ---------- */
+    const auditMessage = `${
+      currentUserName || "Unknown User"
+    } edited physical examination record for patient "${
+      patientInfo.name
+    }" (School ID: ${patientInfo.schoolId})`;
+    await addDoc(collection(db, "AdminAuditTrail"), {
+      message: auditMessage,
+      userId: currentUserName || null,
+      timestamp: new Date(),
+      section: "ClinicStaffActions",
+    });
+
+    /* ---------- PATIENT-SPECIFIC EDIT LOG ---------- */
+    const editLogRef = collection(db, "users", currentPatientId, "editLogs");
     await addDoc(editLogRef, {
       message: `Edited by ${currentUserName} · ${new Date().toLocaleString(
         "en-US",
@@ -1746,9 +1851,8 @@ editExamBtn.addEventListener("click", async () => {
     inputs.forEach((el) => el.setAttribute("disabled", "true"));
     editExamBtn.textContent = "✏️ Edit";
 
-    if (typeof loadPhysicalExaminations === "function") {
+    if (typeof loadPhysicalExaminations === "function")
       loadPhysicalExaminations();
-    }
   } catch (err) {
     console.error("❌ Error updating exam:", err);
     alert("Failed to update physical examination record.");
@@ -1932,7 +2036,9 @@ async function loadDoctorNotes() {
         <div class="card-body">
           <div class="d-flex justify-content-between mb-2">
             <strong>${formatDateLabel(data.date) || "-"}</strong>
-            <span class="text-muted">${formatTimeFromString(data.time) || "-"}</span>
+            <span class="text-muted">${
+              formatTimeFromString(data.time) || "-"
+            }</span>
           </div>
 
           <div class="mb-2">
@@ -1972,7 +2078,7 @@ async function loadDoctorNotes() {
         saveBtn.addEventListener("click", async () => {
           try {
             await updateDoc(doc(db, "users", patientId, "doctorNotes", docId), {
-              note: textarea.value
+              note: textarea.value,
             });
             loadDoctorNotes(); // reload notes
           } catch (err) {
@@ -2064,10 +2170,14 @@ async function loadNurseNotes() {
 
       card.innerHTML = `
         <div class="card-body">
-          <h6 class="card-subtitle mb-1 text-muted">${data.nurseName || "Nurse"}</h6>
+          <h6 class="card-subtitle mb-1 text-muted">${
+            data.nurseName || "Nurse"
+          }</h6>
 
           <small class="text-muted d-block mb-2">
-            ${formatDateLabel(data.date) || "—"} ${formatTimeFromString(data.time) || ""}
+            ${formatDateLabel(data.date) || "—"} ${
+        formatTimeFromString(data.time) || ""
+      }
           </small>
 
           <p class="card-text note-text">${data.note || "No note provided"}</p>
@@ -2129,7 +2239,6 @@ async function loadNurseNotes() {
     `;
   }
 }
-
 
 loadNurseNotes();
 /* -----------------------------------------------
@@ -2280,7 +2389,10 @@ async function loadDentalRecords() {
     // Sort by date + time (latest first)
     const records = snap.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
+      .sort(
+        (a, b) =>
+          new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`)
+      );
 
     records.forEach((d) => {
       const medsHTML = d.medications?.length
@@ -2304,8 +2416,12 @@ async function loadDentalRecords() {
         <div class="card-body">
           <h5 class="card-title">🦷 ${d.procedure}</h5>
 
-          <p class="mb-1"><strong>Teeth:</strong> ${d.teeth?.join(", ") || "-"}</p>
-          <p class="mb-1"><strong>Dentist:</strong> ${d.dentist || "Unassigned"}</p>
+          <p class="mb-1"><strong>Teeth:</strong> ${
+            d.teeth?.join(", ") || "-"
+          }</p>
+          <p class="mb-1"><strong>Dentist:</strong> ${
+            d.dentist || "Unassigned"
+          }</p>
           <p class="mb-2">
             <strong>Date:</strong> ${formatDateLabel(d.date) || "-"}<br />
             <strong>Time:</strong> ${formatTimeFromString(d.time) || "-"}
@@ -2415,7 +2531,10 @@ function openEditDentalModal(record) {
 
     const updatedRecord = {
       procedure: document.getElementById("editProcedure").value,
-      teeth: document.getElementById("editTeeth").value.split(",").map((t) => t.trim()),
+      teeth: document
+        .getElementById("editTeeth")
+        .value.split(",")
+        .map((t) => t.trim()),
       dentist: document.getElementById("editDentist").value,
       date: document.getElementById("editDate").value,
       time: document.getElementById("editTime").value,
@@ -2423,7 +2542,10 @@ function openEditDentalModal(record) {
     };
 
     try {
-      await updateDoc(doc(db, "users", patientId, "dentalRecords", record.id), updatedRecord);
+      await updateDoc(
+        doc(db, "users", patientId, "dentalRecords", record.id),
+        updatedRecord
+      );
       bsModal.hide();
       loadDentalRecords(); // reload records
     } catch (err) {
@@ -2432,7 +2554,6 @@ function openEditDentalModal(record) {
     }
   };
 }
-
 
 loadDentalRecords();
 
@@ -2526,7 +2647,11 @@ confirmBtn.addEventListener("click", async () => {
 
     // 🔹 Add audit trail
     try {
-      const auditMessage = `${currentUserName || "Unknown User"} uploaded a file "${selectedFile.name}" for patient "${patientInfo.name}" (School ID: ${patientInfo.schoolId}) under category "${folder}"`;
+      const auditMessage = `${
+        currentUserName || "Unknown User"
+      } uploaded a file "${selectedFile.name}" for patient "${
+        patientInfo.name
+      }" (School ID: ${patientInfo.schoolId}) under category "${folder}"`;
 
       await addDoc(collection(db, "AdminAuditTrail"), {
         message: auditMessage,
@@ -2553,8 +2678,6 @@ confirmBtn.addEventListener("click", async () => {
     filePreview.innerHTML = `<p class="text-muted mb-0">No file selected</p>`;
   }
 });
-
-
 
 const cancelFileUploadBtn = document.getElementById("cancel-upload-btn");
 
