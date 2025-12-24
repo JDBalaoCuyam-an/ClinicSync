@@ -636,7 +636,22 @@ document.querySelectorAll(".name-only").forEach((input) => {
     input.value = input.value.replace(/[^a-zA-Z\s-]/g, "");
   });
 });
+const backToTopButton = document.getElementById("backToTop");
 
+  window.addEventListener("scroll", () => {
+    if (window.pageYOffset > 300) {
+      backToTopButton.style.display = "block";
+    } else {
+      backToTopButton.style.display = "none";
+    }
+  });
+
+  backToTopButton.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  });
 // TABLE BODY
 const usersTableBody = document.querySelector("#usersTable tbody");
 // MODAL INSTANCES
