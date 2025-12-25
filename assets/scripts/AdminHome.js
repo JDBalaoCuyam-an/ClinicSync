@@ -1757,3 +1757,7 @@ document.getElementById("exportAudit").addEventListener("click", async () => {
   XLSX.writeFile(workbook, `AuditLogs_${new Date().toISOString().slice(0,10)}.xlsx`);
   alert("Export completed! All filtered sections are included.");
 });
+
+// For Footer
+document.getElementById("currentYear").textContent = new Date().getFullYear();
+// For Footer

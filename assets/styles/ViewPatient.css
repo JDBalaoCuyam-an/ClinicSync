@@ -1,219 +1,6 @@
 .nav::-webkit-scrollbar {
   display: none;          
 }
-/* ======================================================
-   🔹 PHYSICAL EXAMINATION - CONSISTENT DESIGN
-====================================================== */
-/* 
-/* ======================================================
-   🔹 PHYSICAL EXAM OVERVIEW MODAL - CONSISTENT DESIGN
-====================================================== */
-.exam-overview-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.95);
-  width: 70%;
-  max-height: 90vh;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  padding: 30px;
-  overflow-y: auto;
-  z-index: 1002;
-  display: none;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  opacity: 0;
-  border: none;
-}
-
-.exam-overview-modal.show {
-  display: block;
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-}
-
-/* 🔹 Modal Header */
-.exam-overview-modal h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #2c3e50;
-  font-size: 1.5rem;
-  font-weight: 600;
-  border-bottom: 2px solid #ecf0f1;
-  padding-bottom: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.exam-overview-modal h2 i {
-  color: #3498db;
-}
-
-/* 🔹 Overview Details */
-.exam-overview-modal .overview-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px 20px;
-  margin-bottom: 20px;
-}
-
-.exam-overview-modal .overview-details h4 {
-  grid-column: span 2;
-  margin-top: 15px;
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-  color: #2c3e50;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.exam-overview-modal .overview-details h4 i {
-  color: #3498db;
-}
-
-/* 🔹 Label and Input Layout */
-.exam-overview-modal .overview-details label {
-  display: flex;
-  flex-direction: column;
-  font-size: 14px;
-  font-weight: 500;
-  color: #2c3e50;
-  gap: 5px;
-}
-
-.exam-overview-modal .overview-details input,
-.exam-overview-modal .overview-details textarea,
-.exam-overview-modal .overview-details select {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 14px;
-  color: #2c3e50;
-  border-radius: 6px;
-  resize: none;
-  transition: all 0.2s ease;
-}
-
-/* Disabled Inputs */
-.exam-overview-modal .overview-details input:disabled,
-.exam-overview-modal .overview-details textarea:disabled,
-.exam-overview-modal .overview-details select:disabled {
-  background-color: #f8f9fa;
-  border: 1px solid #ecf0f1;
-}
-
-/* Enabled Inputs */
-.exam-overview-modal .overview-details input:enabled,
-.exam-overview-modal .overview-details textarea:enabled,
-.exam-overview-modal .overview-details select:enabled {
-  border: 1px solid #3498db;
-  background-color: #fff;
-}
-
-.exam-overview-modal .overview-details input:enabled:focus,
-.exam-overview-modal .overview-details textarea:enabled:focus,
-.exam-overview-modal .overview-details select:enabled:focus {
-  outline: none;
-  border-color: #2980b9;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-/* 🔹 Buttons */
-.exam-overview-modal .modal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 25px;
-}
-
-/* .modal-buttons .edit-btn {
-  position: relative;
-} */
-
-.exam-overview-modal .modal-buttons button {
-  background-color: #3498db;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.exam-overview-modal .modal-buttons button:hover {
-  background-color: #2980b9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
-.exam-overview-modal .modal-buttons button:last-child {
-  background-color: #95a5a6;
-  color: #fff;
-}
-
-.exam-overview-modal .modal-buttons button:last-child:hover {
-  background-color: #7f8c8d;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
-}
-
-#consultation-overview .modal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 25px;
-}
-
-/* 🔹 Findings Box */
-/* .findings-box {
-  grid-column: span 2;
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 15px;
-  transition: all 0.2s ease;
-}
-
-.findings-box:hover {
-  border-color: #3498db;
-}
-
-.findings-box textarea {
-  width: 100%;
-  min-height: 120px;
-  max-height: 300px;
-  font-size: 14px;
-  color: #2c3e50;
-  line-height: 1.4;
-  border: none;
-  background: transparent;
-  resize: vertical;
-  overflow-y: auto;
-  transition: all 0.2s ease;
-} */
-
-/* .findings-box textarea:disabled {
-  background: transparent;
-  color: #2c3e50;
-}
-
-.findings-box textarea:enabled {
-  border: 1px solid #3498db;
-  background: white;
-  padding: 10px;
-  border-radius: 6px;
-}
- */
-
 
 /* ======================================================
    🔹 BUTTONS, ICONS, AND FONT SIZE - CONSISTENT DESIGN
@@ -272,22 +59,22 @@
 }
 
 /* ===== PHYSICAL EXAMINATION FORM IMPROVEMENTS ===== */
-.exam-section .left-col,
+/* .exam-section .left-col,
 .exam-section .right-col {
   display: flex;
   flex-direction: column;
   gap: 15px;
-}
+} */
 
-.vitals {
+/* .vitals {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 15px;
   margin-bottom: 25px;
-}
+} */
 
 /* ===== RESPONSIVE ADJUSTMENTS ===== */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .exam-section {
     grid-template-columns: 1fr;
   }
@@ -297,7 +84,7 @@
     grid-template-columns: 1fr;
   }
 
-}
+} */
 
 .med-modal-content {
   background: #fff;
@@ -325,7 +112,6 @@
 .modal {
   position: absolute; 
   inset: 0;
-  /* background: rgba(0,0,0,0.5); */
   display: flex; 
   justify-content: center; 
   align-items: center;

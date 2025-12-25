@@ -1951,27 +1951,45 @@ async function loadVitals() {
     }
 
     snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const tr = document.createElement("tr");
+  const data = docSnap.data();
+  const tr = document.createElement("tr");
 
-      tr.innerHTML = `
-        <td>${formatDateLabel(data.date) || "-"}</td>
-        <td>${formatTimeFromString(data.time) || "-"}</td>
-        <td>${data.takenBy || "-"}</td>
-        <td>${data.temp ? data.temp + " °C" : "N"}</td>
-        <td>${data.bp || "N"}</td>
-        <td>${data.pr || "N/A"}</td>
-        <td>${data.spo2 ? data.spo2 + " %" : "N/A"}</td>
-        <td>${data.lmp || "-"}</td>
-      `;
+  tr.innerHTML = `
+    <td>${formatDateLabel(data.date) || "-"}</td>
+    <td>${formatTimeFromString(data.time) || "-"}</td>
+    <td>${data.takenBy || "-"}</td>
+    <td>${data.temp ? data.temp + " °C" : "N/A"}</td>
+    <td>${data.bp || "N/A"}</td>
+    <td>${data.pr || "N/A"}</td>
+    <td>${data.spo2 ? data.spo2 + " %" : "N/A"}</td>
+    <td>${data.lmp || "-"}</td>
+    <td>
+      <button class="btn btn-sm btn-outline-primary edit-vital-btn">Edit</button>
+    </td>
+  `;
 
-      // Optional: Add click event to show a detailed overview
-      tr.addEventListener("click", () =>
-        showVitalsOverview(patientId, docSnap.id)
-      );
+  // Show details or edit modal
+  tr.querySelector(".edit-vital-btn").addEventListener("click", () => {
+    openEditModal(docSnap.id, data);
+  });
 
-      tbody.appendChild(tr);
-    });
+  tbody.appendChild(tr);
+});
+function openEditModal(docId, data) {
+  document.getElementById("vitalDocId").value = docId;
+  document.getElementById("vitalDate").value = data.date || "";
+  document.getElementById("vitalTime").value = data.time || "";
+  document.getElementById("vitalTakenBy").value = data.takenBy || "";
+  document.getElementById("vitalTemp").value = data.temp || "";
+  document.getElementById("vitalBP").value = data.bp || "";
+  document.getElementById("vitalPR").value = data.pr || "";
+  document.getElementById("vitalSpO2").value = data.spo2 || "";
+  document.getElementById("vitalLMP").value = data.lmp || "";
+
+  const modal = new bootstrap.Modal(document.getElementById("editVitalsModal"));
+  modal.show();
+}
+
   } catch (err) {
     console.error("Error loading vitals:", err);
     const tr = document.createElement("tr");
@@ -1983,6 +2001,30 @@ async function loadVitals() {
 }
 
 loadVitals();
+document.getElementById("saveVitalBtn").addEventListener("click", async () => {
+  const docId = document.getElementById("vitalDocId").value;
+
+  const updatedData = {
+    date: document.getElementById("vitalDate").value,
+    time: document.getElementById("vitalTime").value,
+    takenBy: document.getElementById("vitalTakenBy").value,
+    temp: parseFloat(document.getElementById("vitalTemp").value) || null,
+    bp: document.getElementById("vitalBP").value,
+    pr: document.getElementById("vitalPR").value,
+    spo2: parseFloat(document.getElementById("vitalSpO2").value) || null,
+    lmp: document.getElementById("vitalLMP").value,
+  };
+
+  try {
+    await updateDoc(doc(db, "users", patientId, "vitals", docId), updatedData);
+    bootstrap.Modal.getInstance(document.getElementById("editVitalsModal")).hide();
+    loadVitals(); // Refresh table
+    alert("Vital record updated successfully!");
+  } catch (err) {
+    console.error("Failed to update vital:", err);
+    alert("Failed to update vital record.");
+  }
+});
 
 /* -----------------------------------------------
      Doctor's Notes
