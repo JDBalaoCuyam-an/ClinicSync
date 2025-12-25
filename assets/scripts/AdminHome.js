@@ -1256,9 +1256,27 @@ async function loadLoginHistory() {
 
   tableBody.innerHTML = "";
 
+  // Build date filters
+  const startDateValue = document.getElementById("startDate").value;
+  const endDateValue = document.getElementById("endDate").value;
+
+  const dateFilters = [];
+  if (startDateValue) {
+    const start = new Date(startDateValue);
+    start.setHours(0, 0, 0, 0);
+    dateFilters.push(where("timestamp", ">=", start));
+  }
+  if (endDateValue) {
+    const end = new Date(endDateValue);
+    end.setHours(23, 59, 59, 999);
+    dateFilters.push(where("timestamp", "<=", end));
+  }
+
+  // Build query with date filters
   const q = query(
     collection(db, "AdminAuditTrail"),
     where("section", "==", "LoginHistory"),
+    ...dateFilters,
     orderBy("timestamp", "desc")
   );
 
@@ -1273,7 +1291,6 @@ async function loadLoginHistory() {
     if (!userDoc.exists()) continue;
 
     const userData = userDoc.data();
-
     const firstName = userData.firstName || "";
     const middleName = userData.middleName || "";
     const lastName = userData.lastName || "";
@@ -1284,10 +1301,7 @@ async function loadLoginHistory() {
     const fullName = `${firstName} ${middleInitial} ${lastName}`;
 
     // Timestamp formatting
-    const loginTime = data.timestamp?.toDate
-      ? data.timestamp.toDate()
-      : new Date();
-
+    const loginTime = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
     const formattedTime = loginTime.toLocaleString(undefined, {
       year: "numeric",
       month: "long",
@@ -1311,6 +1325,7 @@ async function loadLoginHistory() {
   }
 }
 
+
 // Call the function to populate table
 loadLoginHistory();
 const userChangesTabButton = document.getElementById("user-changes-tab");
@@ -1320,9 +1335,27 @@ async function loadUserChanges() {
   userChangesTab.innerHTML = "<p>Loading...</p>";
 
   try {
+    // Build date filters
+    const startDateValue = document.getElementById("startDate").value;
+    const endDateValue = document.getElementById("endDate").value;
+
+    const dateFilters = [];
+    if (startDateValue) {
+      const start = new Date(startDateValue);
+      start.setHours(0, 0, 0, 0);
+      dateFilters.push(where("timestamp", ">=", start));
+    }
+    if (endDateValue) {
+      const end = new Date(endDateValue);
+      end.setHours(23, 59, 59, 999);
+      dateFilters.push(where("timestamp", "<=", end));
+    }
+
+    // Build query with date filters
     const q = query(
       collection(db, "AdminAuditTrail"),
       where("section", "==", "UserChanges"),
+      ...dateFilters,
       orderBy("timestamp", "desc")
     );
 
@@ -1339,10 +1372,7 @@ async function loadUserChanges() {
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
 
-      const changeTime = data.timestamp?.toDate
-        ? data.timestamp.toDate()
-        : new Date();
-
+      const changeTime = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
       const formattedTime = changeTime.toLocaleString(undefined, {
         year: "numeric",
         month: "long",
@@ -1369,6 +1399,7 @@ async function loadUserChanges() {
   }
 }
 
+
 // Load immediately on first page load
 loadUserChanges();
 
@@ -1389,12 +1420,30 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
   userAccountTab.innerHTML = `<div class="text-muted">Loading user account logs...</div>`;
 
   try {
-    // Query AdminAuditTrail for UserChanges section
+    // Build date filters
+    const startDateValue = document.getElementById("startDate").value;
+    const endDateValue = document.getElementById("endDate").value;
+
+    const dateFilters = [];
+    if (startDateValue) {
+      const start = new Date(startDateValue);
+      start.setHours(0, 0, 0, 0);
+      dateFilters.push(where("timestamp", ">=", start));
+    }
+    if (endDateValue) {
+      const end = new Date(endDateValue);
+      end.setHours(23, 59, 59, 999);
+      dateFilters.push(where("timestamp", "<=", end));
+    }
+
+    // Build query with date filters
     const q = query(
       collection(db, "AdminAuditTrail"),
       where("section", "==", "AccountsManagement"),
+      ...dateFilters,
       orderBy("timestamp", "desc")
     );
+
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
@@ -1404,11 +1453,9 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
 
     // Collect docs into array
     const logs = [];
-    querySnapshot.forEach((doc) => {
-      logs.push(doc.data());
-    });
+    querySnapshot.forEach((doc) => logs.push(doc.data()));
 
-    // Sort by timestamp descending (redundant if already ordered, but safe)
+    // Sort by timestamp descending (optional, already ordered by query)
     logs.sort((a, b) => {
       const tA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date();
       const tB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date();
@@ -1423,10 +1470,7 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
       const li = document.createElement("li");
       li.classList.add("list-group-item");
 
-      // Parse timestamp
-      let logTime = data.timestamp?.toDate
-        ? data.timestamp.toDate()
-        : new Date();
+      const logTime = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
       const formattedTime = logTime.toLocaleString(undefined, {
         year: "numeric",
         month: "long",
@@ -1436,13 +1480,10 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
         hour12: true,
       });
 
-      li.textContent = `${formattedTime} — ${
-        data.message || "No details provided"
-      }`;
+      li.textContent = `${formattedTime} — ${data.message || "No details provided"}`;
       list.appendChild(li);
     });
 
-    // Render the list
     userAccountTab.innerHTML = "";
     userAccountTab.appendChild(list);
   } catch (err) {
@@ -1450,6 +1491,7 @@ userAccountTabButton.addEventListener("shown.bs.tab", async () => {
     userAccountTab.innerHTML = `<div class="text-danger">Failed to load logs.</div>`;
   }
 });
+
 
 const departmentsTabButton = document.getElementById(
   "departments-and-courses-tab"
@@ -1462,10 +1504,27 @@ departmentsTabButton.addEventListener("shown.bs.tab", async () => {
   departmentsTab.innerHTML = `<div class="text-muted">Loading department audit logs...</div>`;
 
   try {
-    // Query AdminAuditTrail for department changes
+    // Build date filters
+    const startDateValue = document.getElementById("startDate").value;
+    const endDateValue = document.getElementById("endDate").value;
+
+    const dateFilters = [];
+    if (startDateValue) {
+      const start = new Date(startDateValue);
+      start.setHours(0, 0, 0, 0);
+      dateFilters.push(where("timestamp", ">=", start));
+    }
+    if (endDateValue) {
+      const end = new Date(endDateValue);
+      end.setHours(23, 59, 59, 999);
+      dateFilters.push(where("timestamp", "<=", end));
+    }
+
+    // Build query with date filters
     const q = query(
       collection(db, "AdminAuditTrail"),
       where("section", "==", "DepartmentChanges"),
+      ...dateFilters,
       orderBy("timestamp", "desc")
     );
 
@@ -1483,9 +1542,7 @@ departmentsTabButton.addEventListener("shown.bs.tab", async () => {
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
 
-      const logTime = data.timestamp?.toDate
-        ? data.timestamp.toDate()
-        : new Date();
+      const logTime = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
       const formattedTime = logTime.toLocaleString(undefined, {
         year: "numeric",
         month: "long",
@@ -1497,7 +1554,7 @@ departmentsTabButton.addEventListener("shown.bs.tab", async () => {
 
       const li = document.createElement("li");
       li.classList.add("list-group-item");
-      li.textContent = `${formattedTime} — ${data.message}`;
+      li.textContent = `${formattedTime} — ${data.message || "No details provided"}`;
 
       list.appendChild(li);
     });
@@ -1511,6 +1568,7 @@ departmentsTabButton.addEventListener("shown.bs.tab", async () => {
   }
 });
 
+
 const clinicStaffTabButton = document.getElementById(
   "clinic-staff-actions-tab"
 );
@@ -1523,10 +1581,27 @@ clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
   logList.innerHTML = `<li class="list-group-item text-muted">Loading clinic staff actions...</li>`;
 
   try {
-    // Query Firestore for AdminAuditTrail with section "ClinicStaffActions"
+    // Build date filters
+    const startDateValue = document.getElementById("startDate").value;
+    const endDateValue = document.getElementById("endDate").value;
+
+    const dateFilters = [];
+    if (startDateValue) {
+      const start = new Date(startDateValue);
+      start.setHours(0, 0, 0, 0);
+      dateFilters.push(where("timestamp", ">=", start));
+    }
+    if (endDateValue) {
+      const end = new Date(endDateValue);
+      end.setHours(23, 59, 59, 999);
+      dateFilters.push(where("timestamp", "<=", end));
+    }
+
+    // Build query with date filters
     const q = query(
       collection(db, "AdminAuditTrail"),
       where("section", "==", "ClinicStaffActions"),
+      ...dateFilters,
       orderBy("timestamp", "desc")
     );
 
@@ -1541,7 +1616,7 @@ clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
     const logs = [];
     snapshot.forEach((doc) => logs.push(doc.data()));
 
-    // Sort by timestamp descending
+    // Sort by timestamp descending (optional, already ordered by query)
     logs.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
 
     // Render logs
@@ -1550,10 +1625,7 @@ clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
       const li = document.createElement("li");
       li.classList.add("list-group-item");
 
-      // Format timestamp
-      const logTime = data.timestamp?.toDate
-        ? data.timestamp.toDate()
-        : new Date();
+      const logTime = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
       const formattedTime = logTime.toLocaleString(undefined, {
         year: "numeric",
         month: "long",
@@ -1563,13 +1635,125 @@ clinicStaffTabButton.addEventListener("shown.bs.tab", async () => {
         hour12: true,
       });
 
-      li.textContent = `${formattedTime} — ${
-        data.message || "No details provided"
-      }`;
+      li.textContent = `${formattedTime} — ${data.message || "No details provided"}`;
       logList.appendChild(li);
     });
   } catch (err) {
     console.error(err);
     logList.innerHTML = `<li class="list-group-item text-danger">Failed to load clinic staff actions.</li>`;
   }
+});
+// Set default dates to current month on page load
+window.addEventListener("DOMContentLoaded", () => {
+  const startDateInput = document.getElementById("startDate");
+  const endDateInput = document.getElementById("endDate");
+
+  const now = new Date();
+  
+  // First day of the current month
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  // Last day of the current month
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  // Format as yyyy-mm-dd for input[type="date"]
+  const formatDate = (date) => {
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${date.getFullYear()}-${mm}-${dd}`;
+  };
+
+  startDateInput.value = formatDate(firstDay);
+  endDateInput.value = formatDate(lastDay);
+});
+
+document.getElementById("filterAudit").addEventListener("click", () => {
+  const activeTab = document.querySelector(".tab-pane.active").id;
+
+  switch (activeTab) {
+    case "login-history":
+      loadLoginHistory();
+      break;
+    case "user-changes":
+      loadUserChanges();
+      break;
+    case "user-account-management":
+      userAccountTabButton.dispatchEvent(new Event("shown.bs.tab"));
+      break;
+    case "departments-and-courses":
+      departmentsTabButton.dispatchEvent(new Event("shown.bs.tab"));
+      break;
+    case "clinic-staff-actions":
+      clinicStaffTabButton.dispatchEvent(new Event("shown.bs.tab"));
+      break;
+  }
+});
+document.getElementById("exportAudit").addEventListener("click", async () => {
+  const workbook = XLSX.utils.book_new();
+
+  const startDateValue = document.getElementById("startDate").value;
+  const endDateValue = document.getElementById("endDate").value;
+
+  const dateFilters = [];
+  if (startDateValue) {
+    const start = new Date(startDateValue);
+    start.setHours(0, 0, 0, 0);
+    dateFilters.push(where("timestamp", ">=", start));
+  }
+  if (endDateValue) {
+    const end = new Date(endDateValue);
+    end.setHours(23, 59, 59, 999);
+    dateFilters.push(where("timestamp", "<=", end));
+  }
+
+  async function fetchAudit(section) {
+    const q = query(
+      collection(db, "AdminAuditTrail"),
+      where("section", "==", section),
+      ...dateFilters,
+      orderBy("timestamp", "desc")
+    );
+    const snapshot = await getDocs(q);
+    const logs = [];
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+      const time = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
+      logs.push([time.toLocaleString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true
+      }), data.message || "N/A"]);
+    }
+    return logs;
+  }
+
+  function addSheet(sheetName, headers, rows) {
+    if (!rows.length) return;
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  }
+
+  // 1️⃣ Login History
+  const loginRows = Array.from(document.querySelectorAll("#loginHistoryTable tbody tr")).map(tr =>
+    Array.from(tr.querySelectorAll("td")).map(td => td.innerText)
+  );
+  addSheet("Login History", ["Timestamp", "Full Name", "Email", "User Type", "IP Address"], loginRows);
+
+  // 2️⃣ Other sections
+  const sections = [
+    { name: "User Changes", key: "UserChanges" },
+    { name: "Accounts Management", key: "AccountsManagement" },
+    { name: "Departments", key: "DepartmentChanges" },
+    { name: "Clinic Staff Actions", key: "ClinicStaffActions" }
+  ];
+
+  for (const s of sections) {
+    const logs = await fetchAudit(s.key);
+    addSheet(s.name, ["Timestamp", "Message"], logs);
+  }
+
+  XLSX.writeFile(workbook, `AuditLogs_${new Date().toISOString().slice(0,10)}.xlsx`);
+  alert("Export completed! All filtered sections are included.");
 });
