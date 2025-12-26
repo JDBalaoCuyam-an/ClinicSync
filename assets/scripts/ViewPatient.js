@@ -1186,6 +1186,136 @@ async function loadConsultations() {
 /* -----------------------------------------------
    🔹 SHOW CONSULTATION DETAILS IN MODAL
 ------------------------------------------------ */
+const addMedModal = new bootstrap.Modal(
+  document.getElementById("addMedicineModal")
+);
+
+document.getElementById("ov-med").addEventListener("click", () => {
+  if (!currentConsultationId) {
+    alert("Select a consultation first.");
+    return;
+  }
+
+  populateMedicineDropdown();
+
+  document.getElementById("med-qty").value = "";
+  document.getElementById("med-type").value = "";
+  document.getElementById("med-remarks").value = "";
+  document.getElementById("med-stock").textContent = "";
+
+  new bootstrap.Modal(
+    document.getElementById("addMedicineModal")
+  ).show();
+});
+
+function populateMedicineDropdown() {
+  const select = document.getElementById("med-name");
+  select.innerHTML = `<option value="">-- Select Medicine --</option>`;
+
+  medicinesData.forEach((med) => {
+    const opt = document.createElement("option");
+    opt.value = med.name;
+    opt.textContent = `${med.name}`;
+    opt.dataset.stock = med.availableQty;
+    select.appendChild(opt);
+  });
+}
+document.getElementById("med-name").addEventListener("change", (e) => {
+  const selected = e.target.selectedOptions[0];
+  const stockLabel = document.getElementById("med-stock");
+
+  if (!selected || !selected.dataset.stock) {
+    stockLabel.textContent = "";
+    return;
+  }
+
+  stockLabel.textContent = `Available stock: ${selected.dataset.stock}`;
+});
+document.getElementById("saveMedicineBtn").addEventListener("click", async () => {
+  const name = document.getElementById("med-name").value;
+  const quantity = parseInt(document.getElementById("med-qty").value) || 0;
+  const type = document.getElementById("med-type").value;
+  const remarks = document.getElementById("med-remarks").value;
+
+  if (!name || quantity <= 0 || !type) {
+    alert("Please complete all required fields.");
+    return;
+  }
+
+  const now = new Date();
+  const medDate = now.toISOString().split("T")[0];
+  const medTime = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const newMed = {
+    name,
+    quantity,
+    type,
+    remarks,
+    NurseOnDuty: currentUserName,
+    date: medDate,
+    time: medTime,
+  };
+
+  try {
+    // 1️⃣ Get medicine document
+    const q = query(
+      collection(db, "MedicineInventory"),
+      where("name", "==", name)
+    );
+
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      alert("Medicine not found in inventory.");
+      return;
+    }
+
+    const medDoc = snap.docs[0];
+    const medRef = medDoc.ref;
+    const currentStock = medDoc.data().stock || 0;
+
+    // 2️⃣ Check stock
+    if (quantity > currentStock) {
+      alert(`Insufficient stock. Available: ${currentStock}`);
+      return;
+    }
+
+    // 3️⃣ Deduct stock
+    await updateDoc(medRef, {
+      stock: currentStock - quantity,
+    });
+
+    // 4️⃣ Save medicine to consultation
+    const consultRef = doc(
+      db,
+      "users",
+      patientId,
+      "consultations",
+      currentConsultationId
+    );
+
+    await updateDoc(consultRef, {
+      meds: arrayUnion(newMed),
+    });
+
+    // 5️⃣ Refresh consultation modal
+    const updatedSnap = await getDoc(consultRef);
+    showConsultationDetails(updatedSnap.data(), currentConsultationId);
+
+    bootstrap.Modal.getInstance(
+      document.getElementById("addMedicineModal")
+    ).hide();
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to add medicine.");
+  }
+});
+
+
+
 window.showConsultationDetails = async function (data, consultId) {
   currentConsultationId = consultId;
 
@@ -3026,424 +3156,10 @@ function getImageBase64(url) {
 
 async function exportPatientPDF() {
   if (!patientId) return alert("No patient selected!");
-
-  try {
-    const headerImageBase64 = await getImageBase64(
+const headerImageBase64 = await getImageBase64(
       "../../assets/images/KCP header.png"
     );
 
-    const patientRef = doc(db, "users", patientId);
-    const patientSnap = await getDoc(patientRef);
-
-    if (!patientSnap.exists()) {
-      alert("Patient not found!");
-      return;
-    }
-
-    const data = patientSnap.data();
-    const fullName = `${data.lastName || ""}, ${data.firstName || ""} ${
-      data.middleName || ""
-    }`.trim();
-
-    const historyRef = collection(db, "users", patientId, "medicalHistory");
-    const historySnap = await getDocs(historyRef);
-
-    let pastMedicalHistory = "";
-    let familyHistory = "";
-    let pastSurgicalHistory = "";
-
-    historySnap.forEach((doc) => {
-      const h = doc.data();
-      pastMedicalHistory = h.pastMedicalHistory || "";
-      familyHistory = h.familyHistory || "";
-      pastSurgicalHistory = h.pastSurgicalHistory || "";
-    });
-
-    const consultRef = collection(db, "users", patientId, "consultations");
-    const consultSnap = await getDocs(consultRef);
-
-    let consultations = [];
-
-    consultSnap.forEach((c) => {
-      const d = c.data();
-      consultations.push({
-        date: d.date || "",
-        time: d.time || "",
-        complaint: d.complaint || "",
-        diagnosis: d.diagnosis || "",
-        notes: d.notes || "",
-        meds: Array.isArray(d.meds) ? d.meds : [],
-        // vitals: Array.isArray(d.vitals) ? d.vitals : [],
-      });
-    });
-
-    const createField = (label, value, autoHeight = false) => ({
-      table: {
-        widths: ["*"],
-        body: [
-          [
-            {
-              text: label,
-              bold: true,
-              fontSize: 8,
-              fillColor: "#E0EFFF",
-              margin: [1, 1, 1, 0],
-            },
-          ],
-          [{ text: value || "", fontSize: 8, margin: [1, 1, 1, 0] }],
-        ],
-        heights: autoHeight ? (row) => (row === 0 ? 13 : "auto") : [13, 13],
-      },
-      layout: {
-        hLineWidth: () => 0.5,
-        vLineWidth: () => 0.5,
-        hLineColor: () => "#999",
-        vLineColor: () => "#999",
-        paddingLeft: () => 2,
-        paddingRight: () => 2,
-      },
-      width: "*",
-    });
-
-    const createRows = (fields) => {
-      const rows = [];
-      for (let i = 0; i < fields.length; i += 3) {
-        rows.push({
-          columns: [
-            createField(fields[i][0], fields[i][1]),
-            fields[i + 1]
-              ? createField(fields[i + 1][0], fields[i + 1][1])
-              : createField("", ""),
-            fields[i + 2]
-              ? createField(fields[i + 2][0], fields[i + 2][1])
-              : createField("", ""),
-          ],
-        });
-      }
-      return rows;
-    };
-
-    const createBorderedSection = (title, fieldsOrContent) => ({
-      table: {
-        widths: ["*"],
-        body: [
-          [
-            {
-              stack: [
-                {
-                  text: title,
-                  style: "sectionHeader",
-                  margin: [0, 2, 0, 4],
-                  alignment: "center",
-                },
-                ...fieldsOrContent,
-              ],
-              margin: [2, 2, 2, 2],
-            },
-          ],
-        ],
-      },
-      layout: {
-        hLineWidth: () => 0.5,
-        vLineWidth: () => 0.5,
-        hLineColor: () => "#999",
-        vLineColor: () => "#999",
-      },
-      margin: [0, 5, 0, 5],
-    });
-
-    function buildConsultationRecord(item) {
-      const vitalsRows = item.vitals.length
-        ? item.vitals.map((v) => [
-            {
-              stack: [
-                { text: v.recordedDate || "", fontSize: 8 },
-                { text: v.recordedTime || "", fontSize: 8 },
-              ],
-            },
-            { text: v.bp || "", fontSize: 8 },
-            { text: v.temp || "", fontSize: 8 },
-            { text: v.spo2 || "", fontSize: 8 },
-            { text: v.pr || "", fontSize: 8 },
-            { text: v.lmp || "", fontSize: 8 },
-          ])
-        : [["", "", "", "", "", ""]];
-
-      const medsRows = item.meds.length
-        ? item.meds.map((m) => [
-            {
-              stack: [
-                { text: m.date || "", fontSize: 8 },
-                { text: m.time || "", fontSize: 8 }, // assuming you have a separate time field
-              ],
-            },
-            { text: m.name || "", fontSize: 8 },
-            { text: m.quantity || "", fontSize: 8 },
-          ])
-        : [["", "", ""]];
-
-      return {
-        table: {
-          widths: [
-            "auto",
-            "auto",
-            "auto",
-            "auto",
-            "auto",
-            "auto",
-            "*",
-            "*",
-            "*",
-            "auto",
-            "*",
-            "auto",
-          ],
-          body: [
-            [
-              {
-                text: "Vitals",
-                bold: true,
-                fillColor: "#E0EFFF",
-                colSpan: 6,
-                alignment: "center",
-                fontSize: 8,
-              },
-              {},
-              {},
-              {},
-              {},
-              {},
-              {
-                text: "Chief Complaint",
-                bold: true,
-                fillColor: "#E0EFFF",
-                fontSize: 8,
-              },
-              {
-                text: "Diagnosis",
-                bold: true,
-                fillColor: "#E0EFFF",
-                fontSize: 8,
-              },
-              {
-                text: "Notes/Intervention",
-                bold: true,
-                fillColor: "#E0EFFF",
-                fontSize: 8,
-              },
-              {
-                text: "Medications",
-                bold: true,
-                fillColor: "#E0EFFF",
-                colSpan: 3,
-                alignment: "center",
-                fontSize: 8,
-              },
-              {},
-              {},
-            ],
-            [
-              {
-                colSpan: 6,
-                table: {
-                  widths: ["auto", "auto", "auto", "auto", "auto", "auto"],
-                  body: [
-                    [
-                      {
-                        text: "Date/Time",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                      {
-                        text: "BP",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                      {
-                        text: "T",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                      {
-                        text: "Spo2",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                      {
-                        text: "PR",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                      {
-                        text: "LMP",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                    ],
-                    ...vitalsRows,
-                  ],
-                },
-                layout: "lightHorizontalLines",
-              },
-              {},
-              {},
-              {},
-              {},
-              {},
-              { text: item.complaint || "", fontSize: 8 },
-              { text: item.diagnosis || "", fontSize: 8 },
-              { text: item.notes || "", fontSize: 8 },
-              {
-                colSpan: 3,
-                table: {
-                  widths: ["auto", "*", "auto"],
-                  body: [
-                    [
-                      {
-                        text: "Date/Time",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                      {
-                        text: "Name",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                      {
-                        text: "qty",
-                        bold: true,
-                        fillColor: "#E0EFFF",
-                        fontSize: 8,
-                      },
-                    ],
-                    ...medsRows,
-                  ],
-                },
-                layout: "lightHorizontalLines",
-              },
-              {},
-              {},
-            ],
-          ],
-        },
-        layout: {
-          hLineWidth: () => 0.5,
-          vLineWidth: () => 0.5,
-          hLineColor: () => "#999",
-          vLineColor: () => "#999",
-        },
-        margin: [0, 2, 0, 2],
-      };
-    }
-
-    const personalFields = [
-      ["Last Name", data.lastName],
-      ["First Name", data.firstName],
-      ["Middle Name", data.middleName],
-      ["Extension Name", data.extName],
-      ["Gender", data.gender],
-      ["Birthdate", data.birthdate],
-      ["Age", data.age],
-      ["Civil Status", data.civilStatus],
-      ["Nationality", data.nationality],
-      ["Religion", data.religion],
-      ["School ID", data.schoolId],
-      ["Role", data.role],
-      ["Department", data.department],
-      ["Course/Strand/Gen. Educ.", data.course],
-      ["Year Level", data.year],
-    ];
-
-    const medicalFields = [
-      ["Past Medical History", pastMedicalHistory],
-      ["Family History", familyHistory],
-      ["Past Surgical History", pastSurgicalHistory],
-    ];
-
-    // Prepare consultation content
-    const consultationContent =
-      consultations.length === 0
-        ? [{ text: "No consultation records found.", italics: true }]
-        : consultations.map((c) => buildConsultationRecord(c));
-
-    const content = [
-      { image: headerImageBase64, width: 515, alignment: "center" },
-      { text: fullName, style: "subheader", margin: [0, 5, 0, 10] },
-
-      createBorderedSection("Personal Information", createRows(personalFields)),
-
-      {
-        table: {
-          widths: ["*"],
-          body: [
-            [
-              {
-                stack: [
-                  {
-                    text: "Contact Information",
-                    style: "sectionHeader",
-                    margin: [0, 2, 0, 4],
-                    alignment: "center",
-                  },
-                  {
-                    columns: [
-                      createField("Phone", data.phoneNumber),
-                      createField("Email", data.email),
-                    ],
-                  },
-                  { columns: [createField("Address", data.address)] },
-                  {
-                    columns: [
-                      createField("Guardian Name", data.guardianName),
-                      createField("Guardian Phone", data.guardianPhone),
-                    ],
-                  },
-                ],
-                margin: [2, 2, 2, 2],
-              },
-            ],
-          ],
-        },
-        layout: {
-          hLineWidth: () => 0.5,
-          vLineWidth: () => 0.5,
-          hLineColor: () => "#999",
-          vLineColor: () => "#999",
-        },
-        margin: [0, 5, 0, 5],
-      },
-
-      createBorderedSection("Medical History", createRows(medicalFields)),
-
-      createBorderedSection(
-        "Medical Consultation Records",
-        consultationContent
-      ),
-    ];
-
-    const docDefinition = {
-      pageSize: "A4",
-      pageMargins: [40, 10, 40, 10],
-      content,
-      styles: {
-        subheader: { fontSize: 14, bold: true, alignment: "center" },
-        sectionHeader: { fontSize: 10, bold: true },
-      },
-      defaultStyle: { fontSize: 9 },
-    };
-
-    pdfMake.createPdf(docDefinition).open();
-  } catch (err) {
-    console.error("PDF export error:", err);
-  }
 }
 
 /* -----------------------------------------------
