@@ -364,7 +364,51 @@ async function handleDateClick(year, month, day) {
 
   setDefaultRepeatUntil();
 }
+async function autoRemovePastAvailability() {
+  try {
+    const usersRef = collection(db, "users");
 
+    // Target doctors and nurses only
+    const q = query(
+      usersRef,
+      where("user_type", "in", ["doctor", "nurse"])
+    );
+
+    const snapshot = await getDocs(q);
+
+    // Today at midnight
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (const userDoc of snapshot.docs) {
+      const data = userDoc.data();
+      const availability = data.availability || [];
+
+      if (!availability.length) continue;
+
+      const filteredAvailability = availability.filter(a => {
+        const availDate = new Date(a.date);
+        availDate.setHours(0, 0, 0, 0);
+        return availDate >= today; // keep today & future
+      });
+
+      // Skip update if nothing changed
+      if (filteredAvailability.length === availability.length) continue;
+
+      await updateDoc(doc(db, "users", userDoc.id), {
+        availability: filteredAvailability
+      });
+
+      console.log(
+        `Cleaned availability for ${userDoc.id} (${data.user_type})`
+      );
+    }
+
+  } catch (err) {
+    console.error("Auto availability cleanup failed:", err);
+  }
+}
+autoRemovePastAvailability();
 function renderModalAvailability(staffId) {
   const staffRef = doc(db, "users", staffId);
   getDoc(staffRef).then((docSnap) => {
