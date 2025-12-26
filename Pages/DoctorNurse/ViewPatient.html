@@ -1385,7 +1385,9 @@
 
                         <!-- Medications Table -->
                         <h6 class="fw-bold mt-4">Medications</h6>
-                        <button id="ov-med" class="btn btn-success btn-sm mb-2">Add Medicine</button>
+                        <button id="ov-med" class="btn btn-success btn-sm mb-2">
+                          Add Medicine
+                        </button>
                         <div class="table-responsive">
                           <table
                             class="table table-bordered table-striped table-sm"
@@ -1426,65 +1428,78 @@
                   </div>
                 </div>
                 <div
-  class="modal fade"
-  id="addMedicineModal"
-  tabindex="-1"
-  aria-labelledby="addMedicineLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addMedicineLabel">Add Medicine</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
+                  class="modal fade"
+                  id="addMedicineModal"
+                  tabindex="-1"
+                  aria-labelledby="addMedicineLabel"
+                  aria-hidden="true"
+                >
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="addMedicineLabel">
+                          Add Medicine
+                        </h5>
+                        <button
+                          type="button"
+                          class="btn-close"
+                          data-bs-dismiss="modal"
+                          aria-label="Close"
+                        ></button>
+                      </div>
 
-     <div class="modal-body">
-  <div class="mb-2">
-    <label class="form-label">Medicine</label>
-    <select id="med-name" class="form-select">
-      <option value="">-- Select Medicine --</option>
-    </select>
-    <small id="med-stock" class="text-muted"></small>
-  </div>
+                      <div class="modal-body">
+                        <div class="mb-2">
+                          <label class="form-label">Medicine</label>
+                          <select id="med-name" class="form-select">
+                            <option value="">-- Select Medicine --</option>
+                          </select>
+                          <small id="med-stock" class="text-muted"></small>
+                        </div>
 
-  <div class="mb-2">
-    <label class="form-label">Quantity</label>
-    <input type="number" id="med-qty" class="form-control" min="1" />
-  </div>
+                        <div class="mb-2">
+                          <label class="form-label">Quantity</label>
+                          <input
+                            type="number"
+                            id="med-qty"
+                            class="form-control"
+                            min="1"
+                          />
+                        </div>
 
-  <div class="mb-2">
-    <label class="form-label">Type</label>
-    <select id="med-type" class="form-select">
-      <option value="">-- Select Type --</option>
-      <option value="Administered">Administered</option>
-      <option value="Dispensed">Dispensed</option>
-    </select>
-  </div>
+                        <div class="mb-2">
+                          <label class="form-label">Type</label>
+                          <select id="med-type" class="form-select">
+                            <option value="">-- Select Type --</option>
+                            <option value="Administered">Administered</option>
+                            <option value="Dispensed">Dispensed</option>
+                          </select>
+                        </div>
 
-  <div class="mb-2">
-    <label class="form-label">Remarks</label>
-    <textarea id="med-remarks" class="form-control" rows="2"></textarea>
-  </div>
-</div>
+                        <div class="mb-2">
+                          <label class="form-label">Remarks</label>
+                          <textarea
+                            id="med-remarks"
+                            class="form-control"
+                            rows="2"
+                          ></textarea>
+                        </div>
+                      </div>
 
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancel
-        </button>
-        <button id="saveMedicineBtn" class="btn btn-success">
-          Save Medicine
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+                      <div class="modal-footer">
+                        <button
+                          class="btn btn-secondary"
+                          data-bs-dismiss="modal"
+                        >
+                          Cancel
+                        </button>
+                        <button id="saveMedicineBtn" class="btn btn-success">
+                          Save Medicine
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <div
                   class="tab-pane fade vital-signs-content"

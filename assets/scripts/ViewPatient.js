@@ -1203,9 +1203,7 @@ document.getElementById("ov-med").addEventListener("click", () => {
   document.getElementById("med-remarks").value = "";
   document.getElementById("med-stock").textContent = "";
 
-  new bootstrap.Modal(
-    document.getElementById("addMedicineModal")
-  ).show();
+  new bootstrap.Modal(document.getElementById("addMedicineModal")).show();
 });
 
 function populateMedicineDropdown() {
@@ -1231,90 +1229,89 @@ document.getElementById("med-name").addEventListener("change", (e) => {
 
   stockLabel.textContent = `Available stock: ${selected.dataset.stock}`;
 });
-document.getElementById("saveMedicineBtn").addEventListener("click", async () => {
-  const name = document.getElementById("med-name").value;
-  const quantity = parseInt(document.getElementById("med-qty").value) || 0;
-  const type = document.getElementById("med-type").value;
-  const remarks = document.getElementById("med-remarks").value;
+document
+  .getElementById("saveMedicineBtn")
+  .addEventListener("click", async () => {
+    const name = document.getElementById("med-name").value;
+    const quantity = parseInt(document.getElementById("med-qty").value) || 0;
+    const type = document.getElementById("med-type").value;
+    const remarks = document.getElementById("med-remarks").value;
 
-  if (!name || quantity <= 0 || !type) {
-    alert("Please complete all required fields.");
-    return;
-  }
+    if (!name || quantity <= 0 || !type) {
+      alert("Please complete all required fields.");
+      return;
+    }
 
-  const now = new Date();
-  const medDate = now.toISOString().split("T")[0];
-  const medTime = now.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
+    const now = new Date();
+    const medDate = now.toISOString().split("T")[0];
+    const medTime = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const newMed = {
+      name,
+      quantity,
+      type,
+      remarks,
+      NurseOnDuty: currentUserName,
+      date: medDate,
+      time: medTime,
+    };
+
+    try {
+      // 1️⃣ Get medicine document
+      const q = query(
+        collection(db, "MedicineInventory"),
+        where("name", "==", name)
+      );
+
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        alert("Medicine not found in inventory.");
+        return;
+      }
+
+      const medDoc = snap.docs[0];
+      const medRef = medDoc.ref;
+      const currentStock = medDoc.data().stock || 0;
+
+      // 2️⃣ Check stock
+      if (quantity > currentStock) {
+        alert(`Insufficient stock. Available: ${currentStock}`);
+        return;
+      }
+
+      // 3️⃣ Deduct stock
+      await updateDoc(medRef, {
+        stock: currentStock - quantity,
+      });
+
+      // 4️⃣ Save medicine to consultation
+      const consultRef = doc(
+        db,
+        "users",
+        patientId,
+        "consultations",
+        currentConsultationId
+      );
+
+      await updateDoc(consultRef, {
+        meds: arrayUnion(newMed),
+      });
+
+      // 5️⃣ Refresh consultation modal
+      const updatedSnap = await getDoc(consultRef);
+      showConsultationDetails(updatedSnap.data(), currentConsultationId);
+
+      bootstrap.Modal.getInstance(
+        document.getElementById("addMedicineModal")
+      ).hide();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add medicine.");
+    }
   });
-
-  const newMed = {
-    name,
-    quantity,
-    type,
-    remarks,
-    NurseOnDuty: currentUserName,
-    date: medDate,
-    time: medTime,
-  };
-
-  try {
-    // 1️⃣ Get medicine document
-    const q = query(
-      collection(db, "MedicineInventory"),
-      where("name", "==", name)
-    );
-
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      alert("Medicine not found in inventory.");
-      return;
-    }
-
-    const medDoc = snap.docs[0];
-    const medRef = medDoc.ref;
-    const currentStock = medDoc.data().stock || 0;
-
-    // 2️⃣ Check stock
-    if (quantity > currentStock) {
-      alert(`Insufficient stock. Available: ${currentStock}`);
-      return;
-    }
-
-    // 3️⃣ Deduct stock
-    await updateDoc(medRef, {
-      stock: currentStock - quantity,
-    });
-
-    // 4️⃣ Save medicine to consultation
-    const consultRef = doc(
-      db,
-      "users",
-      patientId,
-      "consultations",
-      currentConsultationId
-    );
-
-    await updateDoc(consultRef, {
-      meds: arrayUnion(newMed),
-    });
-
-    // 5️⃣ Refresh consultation modal
-    const updatedSnap = await getDoc(consultRef);
-    showConsultationDetails(updatedSnap.data(), currentConsultationId);
-
-    bootstrap.Modal.getInstance(
-      document.getElementById("addMedicineModal")
-    ).hide();
-
-  } catch (err) {
-    console.error(err);
-    alert("Failed to add medicine.");
-  }
-});
-
-
 
 window.showConsultationDetails = async function (data, consultId) {
   currentConsultationId = consultId;
@@ -2081,10 +2078,10 @@ async function loadVitals() {
     }
 
     snapshot.forEach((docSnap) => {
-  const data = docSnap.data();
-  const tr = document.createElement("tr");
+      const data = docSnap.data();
+      const tr = document.createElement("tr");
 
-  tr.innerHTML = `
+      tr.innerHTML = `
     <td>${formatDateLabel(data.date) || "-"}</td>
     <td>${formatTimeFromString(data.time) || "-"}</td>
     <td>${data.takenBy || "-"}</td>
@@ -2098,28 +2095,29 @@ async function loadVitals() {
     </td>
   `;
 
-  // Show details or edit modal
-  tr.querySelector(".edit-vital-btn").addEventListener("click", () => {
-    openEditModal(docSnap.id, data);
-  });
+      // Show details or edit modal
+      tr.querySelector(".edit-vital-btn").addEventListener("click", () => {
+        openEditModal(docSnap.id, data);
+      });
 
-  tbody.appendChild(tr);
-});
-function openEditModal(docId, data) {
-  document.getElementById("vitalDocId").value = docId;
-  document.getElementById("vitalDate").value = data.date || "";
-  document.getElementById("vitalTime").value = data.time || "";
-  document.getElementById("vitalTakenBy").value = data.takenBy || "";
-  document.getElementById("vitalTemp").value = data.temp || "";
-  document.getElementById("vitalBP").value = data.bp || "";
-  document.getElementById("vitalPR").value = data.pr || "";
-  document.getElementById("vitalSpO2").value = data.spo2 || "";
-  document.getElementById("vitalLMP").value = data.lmp || "";
+      tbody.appendChild(tr);
+    });
+    function openEditModal(docId, data) {
+      document.getElementById("vitalDocId").value = docId;
+      document.getElementById("vitalDate").value = data.date || "";
+      document.getElementById("vitalTime").value = data.time || "";
+      document.getElementById("vitalTakenBy").value = data.takenBy || "";
+      document.getElementById("vitalTemp").value = data.temp || "";
+      document.getElementById("vitalBP").value = data.bp || "";
+      document.getElementById("vitalPR").value = data.pr || "";
+      document.getElementById("vitalSpO2").value = data.spo2 || "";
+      document.getElementById("vitalLMP").value = data.lmp || "";
 
-  const modal = new bootstrap.Modal(document.getElementById("editVitalsModal"));
-  modal.show();
-}
-
+      const modal = new bootstrap.Modal(
+        document.getElementById("editVitalsModal")
+      );
+      modal.show();
+    }
   } catch (err) {
     console.error("Error loading vitals:", err);
     const tr = document.createElement("tr");
@@ -2147,7 +2145,9 @@ document.getElementById("saveVitalBtn").addEventListener("click", async () => {
 
   try {
     await updateDoc(doc(db, "users", patientId, "vitals", docId), updatedData);
-    bootstrap.Modal.getInstance(document.getElementById("editVitalsModal")).hide();
+    bootstrap.Modal.getInstance(
+      document.getElementById("editVitalsModal")
+    ).hide();
     loadVitals(); // Refresh table
     alert("Vital record updated successfully!");
   } catch (err) {
@@ -3153,13 +3153,901 @@ function getImageBase64(url) {
     img.onerror = (err) => reject(err);
   });
 }
-
 async function exportPatientPDF() {
   if (!patientId) return alert("No patient selected!");
-const headerImageBase64 = await getImageBase64(
+
+  try {
+    const headerImageBase64 = await getImageBase64(
       "../../assets/images/KCP header.png"
     );
 
+    const snap = await getDoc(doc(db, "users", patientId));
+    if (!snap.exists()) return alert("Patient not found!");
+
+    const p = snap.data();
+    // Fetch medical history subcollection
+    const medHistSnap = await getDocs(
+      collection(db, "users", patientId, "medicalHistory")
+    );
+    let medHistData = [];
+    medHistSnap.forEach((doc) => medHistData.push(doc.data()));
+    // Fetch consultations subcollection
+    const consSnap = await getDocs(
+      collection(db, "users", patientId, "consultations")
+    );
+    const consultations = consSnap.docs.map((doc) => doc.data());
+    // If multiple documents, just use the first for simplicity
+    // Fetch Vitals subcollection
+    const vitalsSnap = await getDocs(
+      collection(db, "users", patientId, "vitals")
+    );
+    const vitals = vitalsSnap.docs
+      .map((doc) => doc.data())
+      .sort(
+        (a, b) =>
+          new Date(b.date + " " + (b.time || "00:00")) -
+          new Date(a.date + " " + (a.time || "00:00"))
+      ); // newest first
+
+    // Fetch Nurse Notes
+    const nurseNotesSnap = await getDocs(
+      collection(db, "users", patientId, "nurseNotes")
+    );
+    const nurseNotes = nurseNotesSnap.docs
+      .map((doc) => doc.data())
+      .sort(
+        (a, b) =>
+          new Date(b.date + " " + (b.time || "00:00")) -
+          new Date(a.date + " " + (a.time || "00:00"))
+      );
+
+    // Fetch Doctor Notes
+    const doctorNotesSnap = await getDocs(
+      collection(db, "users", patientId, "doctorNotes")
+    );
+    const doctorNotes = doctorNotesSnap.docs
+      .map((doc) => doc.data())
+      .sort(
+        (a, b) =>
+          new Date(b.date + " " + (b.time || "00:00")) -
+          new Date(a.date + " " + (a.time || "00:00"))
+      );
+      // Fetch Dental Records subcollection
+const dentalSnap = await getDocs(collection(db, "users", patientId, "dentalRecords"));
+const dentalRecords = dentalSnap.docs
+  .map(doc => ({ id: doc.id, ...doc.data() }))
+  .sort((a, b) => {
+    const dateA = new Date(`${a.date || '1970-01-01'} ${a.time || '00:00'}`);
+    const dateB = new Date(`${b.date || '1970-01-01'} ${b.time || '00:00'}`);
+    return dateB - dateA; // newest first
+  });
+  // Fetch Physical Examinations subcollection
+const examSnap = await getDocs(collection(db, "users", patientId, "physicalExaminations"));
+const physicalExams = examSnap.docs
+  .map(doc => ({ id: doc.id, ...doc.data() }))
+  .sort((a, b) => {
+    // Newest first (assuming date is string in YYYY-MM-DD)
+    return new Date(b.date || '1970-01-01') - new Date(a.date || '1970-01-01');
+  });
+  const lastName = p.lastName || "";
+    const firstName = p.firstName || "";
+    const middleName = p.middleName || "";
+
+    const displayName = `${lastName}, ${firstName} ${middleName}`.trim();
+    const mh = medHistData[0] || {};
+    const docDefinition = {
+      pageSize: "A4",
+      pageMargins: [35, 15, 35, 45],
+      content: [
+        {
+          image: headerImageBase64,
+          width: 480,
+          alignment: "center",
+          margin: [0, 0, 0, 15],
+        },
+
+        /* ================= PERSONAL INFORMATION ================= */
+        {
+  text:displayName,
+  fontSize:15,
+  bold:true,
+  alignment:"center"
+},
+{
+  text: "Personal Information",
+  fontSize: 11,
+  bold: true,
+  margin: [0, 16, 0, 8]
+},
+
+{
+  table: {
+    widths: ['*', '*', '*'],
+    body: [
+      [
+        {
+          stack: [
+            { text: "First Name", fontSize: 8, bold: true, color: "#555" },
+            { text: p.firstName || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        {
+          stack: [
+            { text: "Middle Name", fontSize: 8, bold: true, color: "#555" },
+            { text: p.middleName || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        {
+          stack: [
+            { text: "Last Name", fontSize: 8, bold: true, color: "#555" },
+            { text: p.lastName || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        }
+      ],
+      [
+        {
+          stack: [
+            { text: "Extension Name", fontSize: 8, bold: true, color: "#555" },
+            { text: p.extName || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        {
+          stack: [
+            { text: "Gender", fontSize: 8, bold: true, color: "#555" },
+            { text: p.gender || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        {
+          stack: [
+            { text: "Birthdate", fontSize: 8, bold: true, color: "#555" },
+            { text: p.birthdate || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        }
+      ],
+      [
+        {
+          stack: [
+            { text: "Age", fontSize: 8, bold: true, color: "#555" },
+            { text: p.age || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        {
+          stack: [
+            { text: "Civil Status", fontSize: 8, bold: true, color: "#555" },
+            { text: p.civilStatus || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        {
+          stack: [
+            { text: "Nationality", fontSize: 8, bold: true, color: "#555" },
+            { text: p.nationality || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        }
+      ],
+      [
+        {
+          stack: [
+            { text: "Religion", fontSize: 8, bold: true, color: "#555" },
+            { text: p.religion || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        { text: "", border: [true, true, true, true], borderColor: '#e0e0e0', fillColor: '#ffffff' },
+        { text: "", border: [true, true, true, true], borderColor: '#e0e0e0', fillColor: '#ffffff' }
+      ]
+    ]
+  },
+  layout: {
+    hLineWidth: () => 0.5,
+    vLineWidth: () => 0.5,
+    hLineColor: () => '#e0e0e0',
+    vLineColor: () => '#e0e0e0'
+  },
+  margin: [0, 0, 0, 12]
+},
+{
+  text: "Academic Information",
+  fontSize: 11,
+  bold: true,
+  margin: [0, 16, 0, 8]
+},
+
+{
+  table: {
+    widths: ['*', '*', '*', '*'],           // 4 equal-width columns
+    body: [
+      [
+        // School ID
+        {
+          stack: [
+            { text: "School ID", fontSize: 8, bold: true, color: "#555" },
+            { text: p.schoolId || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        // Department
+        {
+          stack: [
+            { text: "Department", fontSize: 8, bold: true, color: "#555" },
+            { text: p.department || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        // Course
+        {
+          stack: [
+            { text: "Course", fontSize: 8, bold: true, color: "#555" },
+            { text: p.course || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        },
+        // Year Level
+        {
+          stack: [
+            { text: "Year Level", fontSize: 8, bold: true, color: "#555" },
+            { text: p.yearLevel || "—", fontSize: 9.5 }
+          ],
+          border: [true, true, true, true],
+          borderColor: '#e0e0e0',
+          fillColor: '#ffffff',
+          padding: [8, 8, 8, 8]
+        }
+      ]
+    ]
+  },
+  layout: {
+    hLineWidth: () => 0.5,
+    vLineWidth: () => 0.5,
+    hLineColor: () => '#e0e0e0',
+    vLineColor: () => '#e0e0e0'
+  },
+  margin: [0, 0, 0, 12]
+},
+
+        // ───────────────────────────────────────────────
+        //          CONSULTATIONS SECTION - TABLE STYLE
+        // ───────────────────────────────────────────────
+        {
+          text: "Medical Consultations Records",
+          fontSize: 12,
+          bold: true,
+          margin: [0, 16, 0, 8],
+        },
+
+        ...(consultations.length === 0
+          ? [
+              {
+                text: "No consultations recorded yet.",
+                fontSize: 10,
+                italics: true,
+                color: "#777",
+                margin: [0, 0, 0, 15],
+              },
+            ]
+          : []),
+
+        // Main Consultations Table
+        ...(consultations.length > 0
+          ? [
+              {
+                table: {
+                  headerRows: 1,
+                  widths: ["auto", "auto", "auto", "*", "*", "*"], // Date/Time | Doctor | Complaint | Diagnosis | Notes | Meds
+                  body: [
+                    // Header row
+                    [
+                      { text: "Date / Time", style: "tableHeader", fontSize:10},
+                      { text: "Doctor", style: "tableHeader", fontSize:10 },
+                      { text: "Complaint", style: "tableHeader", fontSize:10 },
+                      { text: "Diagnosis", style: "tableHeader", fontSize:10 },
+                      { text: "Notes/Intervention", style: "tableHeader", fontSize:10 },
+                      { text: "Medications", style: "tableHeader", fontSize:10 },
+                    ],
+
+                    // Data rows - one consultation per row
+                    ...consultations.map((consult, index) => {
+                      // Sort meds chronologically
+                      const meds = (consult.meds || []).sort(
+                        (a, b) =>
+                          new Date(`${a.date} ${a.time}`) -
+                          new Date(`${b.date} ${b.time}`)
+                      );
+
+                      return [
+                        // Date / Time
+                        {
+                          text: `${formatDateLabel(consult.date) || "—"}\n${
+                            formatTimeFromString(consult.time) || "—"
+                          }`,
+                          fontSize: 9,
+                          alignment: "center",
+                        },
+
+                        // Doctor + Nurse
+                        {
+                          stack: [
+                            {
+                              text: consult.consultingDoctor || "—",
+                              bold: true,
+                              fontSize: 10,
+                            },
+                            {
+                              text: `Nurse: ${consult.NurseOnDuty || "—"}`,
+                              fontSize: 8.5,
+                              color: "#555",
+                              italics: true,
+                            },
+                          ],
+                          fontSize: 9,
+                        },
+
+                        // Chief Complaint
+                        { text: consult.complaint || "—", fontSize: 9 },
+
+                        // Diagnosis
+                        { text: consult.diagnosis || "—", fontSize: 9 },
+
+                        // Notes
+                        { text: consult.notes || "—", fontSize: 9 },
+
+                        // Medications - compact list
+                        {
+                          stack:
+                            meds.length > 0
+                              ? [
+                                  ...meds.map((m) => ({
+                                    text: [
+                                      {
+                                        text: m.name || "?",
+                                        bold: true,
+                                        fontSize: 9.5,
+                                      },
+                                      {
+                                        text: ` ×${m.quantity || "?"} ${
+                                          m.type || ""
+                                        }`,
+                                        fontSize: 9,
+                                      },
+                                      {
+                                        text: `  •  ${m.remarks || "—"}`,
+                                        fontSize: 8.5,
+                                        color: "#444",
+                                      },
+                                      {
+                                        text: ` (${formatDateLabel(m.date) || ""} ${
+                                          formatTimeFromString(m.time) || ""
+                                        })`,
+                                        fontSize: 8,
+                                        italics: true,
+                                        color: "#777",
+                                      },
+                                    ],
+                                    margin: [0, 1, 0, 1],
+                                  })),
+                                ]
+                              : [
+                                  {
+                                    text: "—",
+                                    fontSize: 9,
+                                    italics: true,
+                                    color: "#888",
+                                    alignment: "center",
+                                  },
+                                ],
+                          fontSize: 9,
+                        },
+                      ];
+                    }),
+                  ],
+                },
+                layout: {
+                  hLineWidth: () => 0.4,
+                  vLineWidth: () => 0.4,
+                  hLineColor: () => "#ddd",
+                  vLineColor: () => "#ddd",
+                  fillColor: (rowIndex) =>
+                    rowIndex === 0
+                      ? "#e6f0ff"
+                      : rowIndex % 2 === 0
+                      ? "#f9f9f9"
+                      : null,
+                },
+                margin: [0, 0, 0, 12],
+              },
+              
+            ]
+          : []),
+          // ───────────────────────────────────────────────
+//                  VITAL SIGNS
+// ───────────────────────────────────────────────
+{
+  text: "Vital Signs",
+  fontSize: 12,
+  bold: true,
+  margin: [0, 16, 0, 8],
+},
+
+...(vitals.length === 0
+  ? [
+      {
+        text: "No vital signs recorded yet.",
+        fontSize: 10,
+        // italics: true,
+        color: "#666",
+        margin: [0, 0, 0, 12],
+      },
+    ]
+  : [
+      {
+        table: {
+          headerRows: 1,
+          widths: ["*", "*", "*", "*", "*", "*", "*"],
+          body: [
+            [
+              { text: "Date", style: "tableHeader", fontSize:10 },
+              { text: "Time", style: "tableHeader", fontSize:10 },
+              { text: "Taken By", style: "tableHeader", fontSize:10 },
+              { text: "BP", style: "tableHeader", fontSize:10 },
+              { text: "PR", style: "tableHeader", fontSize:10 },
+              { text: "SpO₂", style: "tableHeader", fontSize:10 },
+              { text: "Temp", style: "tableHeader", fontSize:10 },
+            ],
+            ...vitals.map((v) => [
+              formatDateLabel(v.date) || "—",
+              formatTimeFromString(v.time) || "—",
+              v.takenBy || "—",
+              v.bp || "—",
+              v.pr || "—",
+              v.spo2 ? `${v.spo2}%` : "—",
+              v.temp ? `${v.temp}°C` : "—",
+            ]),
+          
+          ],
+        },
+        layout: {
+          hLineWidth: () => 0.5,
+          vLineWidth: () => 0.5,
+          hLineColor: () => "#ddd",
+          vLineColor: () => "#ddd",
+          fillColor: (rowIndex) =>
+            rowIndex === 0 ? "#e6f0ff" : null,
+        },
+        margin: [0, 0, 0, 12],
+        fontSize:10
+      },
+    ]),
+// ───────────────────────────────────────────────
+//                  NURSE NOTES
+// ───────────────────────────────────────────────
+{
+  text: "Nurse Notes",
+  fontSize: 12,
+  bold: true,
+  margin: [0, 16, 0, 8],
+},
+
+...(nurseNotes.length === 0
+  ? [{
+      text: "No nurse notes recorded.",
+      fontSize: 10,
+      italics: true,
+      color: "#666",
+      margin: [0, 0, 0, 12],
+    }]
+  : [{
+      table: {
+        headerRows: 1,
+        widths: ['auto', 'auto', 'auto', '*'],
+        body: [
+          // Header row
+          [
+            { text: 'Date', style: 'tableHeader',fontSize:10 },
+            { text: 'Time', style: 'tableHeader',fontSize:10 },
+            { text: 'Nurse', style: 'tableHeader',fontSize:10 },
+            { text: 'Note', style: 'tableHeader',fontSize:10 }
+          ],
+          // Data rows
+          ...nurseNotes.map(note => [
+            formatDateLabel(note.date) || '—',
+            note.time || '—',
+            note.nurseName || '—',
+            note.note || 'No note content'
+          ])
+        ]
+      },
+      layout: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => '#ddd',
+        vLineColor: () => '#ddd',
+        fillColor: (rowIndex) => rowIndex === 0 ? '#f0f4f8' : (rowIndex % 2 === 0 ? '#fafafa' : null),
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 6,
+        paddingBottom: () => 6
+      },
+      margin: [0, 0, 0, 12],
+      fontSize:10
+    }]),
+// ───────────────────────────────────────────────
+//                DOCTOR'S NOTES
+// ───────────────────────────────────────────────
+{
+  text: "Doctor's Notes",
+  fontSize: 12,
+  bold: true,
+  margin: [0, 16, 0, 8],
+},
+
+...(doctorNotes.length === 0
+  ? [{
+      text: "No doctor's notes recorded.",
+      fontSize: 10,
+      italics: true,
+      color: "#666",
+      margin: [0, 0, 0, 12],
+    }]
+  : [{
+      table: {
+        headerRows: 1,
+        widths: ['auto', 'auto', 'auto', '*'],
+        body: [
+          // Header row
+          [
+            { text: 'Date', style: 'tableHeader',fontSize:10 },
+            { text: 'Time', style: 'tableHeader',fontSize:10 },
+            { text: 'Doctor', style: 'tableHeader',fontSize:10 },
+            { text: 'Note', style: 'tableHeader',fontSize:10 }
+          ],
+          // Data rows
+          ...doctorNotes.map(note => [
+           formatDateLabel(note.date) || '—',
+            formatTimeFromString(note.time) || '—',
+            note.doctor || '—',
+            note.note || 'No note content'
+          ])
+        ]
+      },
+      layout: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => '#ddd',
+        vLineColor: () => '#ddd',
+        fillColor: (rowIndex) => rowIndex === 0 ? '#f0f4f8' : (rowIndex % 2 === 0 ? '#fafafa' : null),
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 6,
+        paddingBottom: () => 6
+      },
+      margin: [0, 0, 0, 12],
+      fontSize:10
+    }]),
+// ───────────────────────────────────────────────
+//               DENTAL RECORDS
+// ───────────────────────────────────────────────
+{
+  text: "Dental Records",
+  fontSize: 12,
+  bold: true,
+  margin: [0, 16, 0, 8]
+},
+
+...(dentalRecords.length === 0 ? [{
+  text: "No dental records recorded yet.",
+  fontSize: 10,
+  italics: true,
+  color: "#777",
+  margin: [0, 0, 0, 16]
+}] : [{
+  table: {
+    headerRows: 1,
+    widths: ['auto', 'auto', 'auto', 'auto', '*', '*', '*'],
+    body: [
+      // Header row
+      [
+        { text: 'Date', style: 'tableHeader',fontSize:10 },
+        { text: 'Time', style: 'tableHeader',fontSize:10 },
+        { text: 'Dentist', style: 'tableHeader',fontSize:10 },
+        { text: 'Procedure', style: 'tableHeader',fontSize:10 },
+        { text: 'Teeth Involved', style: 'tableHeader',fontSize:10 },
+        { text: 'Medications', style: 'tableHeader',fontSize:10 },
+        { text: 'Notes', style: 'tableHeader',fontSize:10 }
+      ],
+      // Data rows
+      ...dentalRecords.map(record => {
+        // Format teeth
+        const teethText = Array.isArray(record.teeth) && record.teeth.length > 0
+          ? record.teeth
+              .map(t => String(t))
+              .sort((a, b) => Number(a) - Number(b))
+              .join(', ')
+          : '—';
+
+        // Format medications (multi-line if multiple)
+        const medicationsText = Array.isArray(record.medications) && record.medications.length > 0
+          ? record.medications
+              .map(med => `${med.name || '?'}${med.quantity ? ` ×${med.quantity}` : ''}${med.type ? ` ${med.type}` : ''}${med.remarks ? ` (${med.remarks})` : ''}`)
+              .join('\n')
+          : '—';
+
+        return [
+          formatDateLabel(record.date) || '—',
+          formatTimeFromString(record.time) || '—',
+          record.dentist ? `Dr. ${record.dentist}` : '—',
+          record.procedure || '—',
+          teethText,
+          { text: medicationsText, fontSize: 9.5 },
+          { text: record.notes || '—', fontSize: 9.5 }
+        ];
+      })
+    ]
+  },
+  layout: {
+    hLineWidth: () => 0.5,
+    vLineWidth: () => 0.5,
+    hLineColor: () => '#ddd',
+    vLineColor: () => '#ddd',
+    fillColor: (rowIndex) => rowIndex === 0 ? '#f0f4f8' : (rowIndex % 2 === 0 ? '#fafafa' : null),
+    paddingLeft: () => 8,
+    paddingRight: () => 8,
+    paddingTop: () => 6,
+    paddingBottom: () => 6
+  },
+  margin: [0, 0, 0, 12],
+  fontSize:10
+}]),
+          // ───────────────────────────────────────────────
+//          PHYSICAL EXAMINATION RECORDS
+// ───────────────────────────────────────────────
+// {
+//   text: "Physical Examinations",
+//   fontSize: 13,
+//   bold: true,
+//   color: "#1a3c5e",
+//   margin: [0, 16, 0, 12]
+// },
+
+// ...(physicalExams.length === 0 ? [{
+//   text: "No physical examination records available.",
+//   fontSize: 10,
+//   italics: true,
+//   color: "#777",
+//   margin: [0, 0, 0, 16]
+// }] : physicalExams.map((exam, index) => [
+//   {
+//     stack: [
+
+//       {
+//         columns: [
+//           {
+//             stack: [
+//               { 
+//                 text: `Physical Exam ${index + 1}`, 
+//                 fontSize: 11.5, 
+//                 bold: true, 
+//                 color: "#1a3c5e" 
+//               },
+//               { 
+//                 text: exam.date || '—', 
+//                 fontSize: 10, 
+//                 color: "#555", 
+//                 margin: [0, 2, 0, 0] 
+//               }
+//             ]
+//           },
+//           {
+//             text: exam.bp ? `BP: ${exam.bp}` : "—",
+//             fontSize: 10,
+//             bold: true,
+//             alignment: 'right',
+//             color: "#2c5282"
+//           }
+//         ],
+//         margin: [0, index === 0 ? 6 : 22, 0, 10]
+//       },
+
+
+//       {
+//         columns: [
+
+//           {
+//             width: "50%",
+//             stack: [
+
+//               {
+//                 columns: [
+//                   { width: "40%", text: "PR:", bold: true, fontSize: 9.5, color: "#555" },
+//                   { width: "60%", text: exam.pr || "—", fontSize: 9.8 }
+//                 ],
+//                 margin: [0, 0, 0, 6]
+//               },
+//               {
+//                 columns: [
+//                   { width: "40%", text: "Weight:", bold: true, fontSize: 9.5, color: "#555" },
+//                   { width: "60%", text: exam.weight ? `${exam.weight} kg` : "—", fontSize: 9.8 }
+//                 ],
+//                 margin: [0, 0, 0, 6]
+//               },
+//               {
+//                 columns: [
+//                   { width: "40%", text: "Height:", bold: true, fontSize: 9.5, color: "#555" },
+//                   { width: "60%", text: exam.height ? `${exam.height} cm` : "—", fontSize: 9.8 }
+//                 ],
+//                 margin: [0, 0, 0, 6]
+//               },
+//               {
+//                 columns: [
+//                   { width: "40%", text: "BMI:", bold: true, fontSize: 9.5, color: "#555" },
+//                   { width: "60%", text: exam.bmi || "—", fontSize: 9.8 }
+//                 ],
+//                 margin: [0, 0, 0, 12]
+//               },
+
+
+//               ...(exam.visualAcuity ? [{
+//                 stack: [
+//                   { text: "Visual Acuity", fontSize: 10, bold: true, margin: [0, 0, 0, 4] },
+//                   { text: `OD: ${exam.visualAcuity.od || "—"}`, fontSize: 9.5 },
+//                   { text: `OS: ${exam.visualAcuity.os || "—"}`, fontSize: 9.5 },
+//                   { 
+//                     text: exam.visualAcuity.glasses ? "Uses glasses" : "No glasses",
+//                     fontSize: 9, 
+//                     italics: true, 
+//                     color: "#555", 
+//                     margin: [0, 4, 0, 0] 
+//                   }
+//                 ],
+//                 margin: [0, 0, 0, 12]
+//               }] : []),
+
+
+//               ...[
+//                 { label: "HEENT", value: exam.findings?.heent },
+//                 { label: "Teeth / Oral", value: exam.findings?.teeth },
+//                 { label: "Neck", value: exam.findings?.neck },
+//                 { label: "Chest", value: exam.findings?.chest },
+//                 { label: "Lungs", value: exam.findings?.lungs }
+//               ].filter(item => item.value).map(item => ({
+//                 columns: [
+//                   { width: "40%", text: `${item.label}:`, bold: true, fontSize: 9.5, color: "#555" },
+//                   { width: "60%", text: item.value || "—", fontSize: 9.5 }
+//                 ],
+//                 margin: [0, 0, 0, 4]
+//               }))
+//             ]
+//           },
+
+
+//           {
+//             width: "50%",
+//             stack: [
+
+//               ...[
+//                 { label: "Heart", value: exam.findings?.heart },
+//                 { label: "Breast", value: exam.findings?.breast },
+//                 { label: "Abdomen", value: exam.findings?.abdomen },
+//                 { label: "Back", value: exam.findings?.back },
+//                 { label: "Extremities", value: exam.findings?.extremities },
+//                 { label: "Skin", value: exam.findings?.skin },
+//                 { label: "Posture / Nutrition", value: [exam.findings?.posture, exam.findings?.nutrition].filter(Boolean).join(" • ") },
+//                 { label: "Deformity", value: exam.findings?.deformity },
+//                 { label: "Others", value: exam.findings?.others }
+//               ].filter(item => item.value).map(item => ({
+//                 columns: [
+//                   { width: "40%", text: `${item.label}:`, bold: true, fontSize: 9.5, color: "#555" },
+//                   { width: "60%", text: item.value || "—", fontSize: 9.5 }
+//                 ],
+//                 margin: [0, 0, 0, 4]
+//               })),
+
+
+//               ...(exam.labPresent || exam.recommendations ? [{
+//                 stack: [
+//                   ...(exam.labPresent ? [
+//                     { text: "Laboratory / Ancillary", fontSize: 10, bold: true, margin: [0, 12, 0, 4] },
+//                     { text: exam.labPresent, fontSize: 9.5, margin: [0, 0, 0, 8] }
+//                   ] : []),
+//                   ...(exam.recommendations ? [
+//                     { text: "Recommendations / Plan", fontSize: 10, bold: true, margin: [0, 8, 0, 4] },
+//                     { text: exam.recommendations, fontSize: 9.5, lineHeight: 1.3 }
+//                   ] : [])
+//                 ],
+//                 margin: [0, 8, 0, 16]
+//               }] : [])
+//             ]
+//           }
+//         ],
+//         columnGap: 25
+//       },
+
+
+//       ...(index < physicalExams.length - 1 ? [{
+//         canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.7, lineColor: '#e0e0e0' }],
+//         margin: [0, 12, 0, 12]
+//       }] : [])
+//     ]
+//   }
+// ]))
+      ],
+    };
+    let patientInfo = { name: patientId, schoolId: "N/A" };
+      try {
+        const patientDoc = await getDoc(doc(db, "users", patientId));
+        if (patientDoc.exists()) {
+          const data = patientDoc.data();
+          patientInfo = {
+            name: `${data.lastName}, ${data.firstName}`,
+            schoolId: data.schoolId || "N/A",
+          };
+        }
+      } catch (patientError) {
+        console.error("Failed to fetch patient info for audit:", patientError);
+      }
+    const auditMessage = `${
+        currentUserName || "Unknown User"
+      } Exported "${patientInfo.name}"(School ID: ${
+        patientInfo.schoolId
+      })'s Medical Records`;
+
+      await addDoc(collection(db, "AdminAuditTrail"), {
+        message: auditMessage,
+        userId: currentUserName || null,
+        timestamp: new Date(),
+        section: "ClinicStaffActions",
+      });
+    pdfMake.createPdf(docDefinition).open();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to export PDF");
+  }
 }
 
 /* -----------------------------------------------
